@@ -86,6 +86,9 @@ void buildUi(UI::Window& gui) {
 
 int main(int numArgs, char** args) {
 	gApp = make_shared<VulkanApp>(1618, 1000);
+
+	gApp->setAntiAliasSamples(VK_SAMPLE_COUNT_4_BIT);
+
 #if TEST_GUI
 	UI::Window gui(gApp);
 	buildUi(gui);

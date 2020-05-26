@@ -65,12 +65,12 @@ void Image::destroy() {
 		cout << "Image leak\n";
 }
 
-void Image::create(DeviceContext& dc, VkFormat format, VkImageUsageFlags flagBits, uint32_t width, uint32_t height, VkSampleCountFlagBits msaaSamples) {
+void Image::create(DeviceContext& dc, VkFormat format, VkImageUsageFlags flagBits, uint32_t width, uint32_t height, VkSampleCountFlagBits _msaaSamples) {
 	destroy();
 	dc_ = &dc;
 	dc_->images_.insert(this);
 	// VK_IMAGE_USAGE_TRANSIENT_ATTACHMENT_BIT | VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT
-	createImage(width, height, 1, msaaSamples, format, VK_IMAGE_TILING_OPTIMAL,
+	createImage(width, height, 1, _msaaSamples, format, VK_IMAGE_TILING_OPTIMAL,
 		flagBits, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
 	VkImageAspectFlags aspectFlags = (flagBits & VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT) ?
 		VK_IMAGE_ASPECT_DEPTH_BIT :

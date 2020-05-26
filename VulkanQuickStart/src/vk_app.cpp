@@ -380,7 +380,7 @@ namespace VK {
 		for (const auto& device : devices) {
 			if (isDeviceSuitable(device)) {
 				deviceContext.physicalDevice_ = device;
-				msaaSamples = getMaxUsableSampleCount();
+				_msaaSamples = getMaxUsableSampleCount();
 				break;
 			}
 		}
@@ -500,7 +500,7 @@ namespace VK {
 	void VulkanApp::createRenderPass() {
 		VkAttachmentDescription colorAttachment = {};
 		colorAttachment.format = _swapChain.swapChainImageFormat;
-		colorAttachment.samples = msaaSamples;
+		colorAttachment.samples = _msaaSamples;
 		colorAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
 		colorAttachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
 		colorAttachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
@@ -510,7 +510,7 @@ namespace VK {
 
 		VkAttachmentDescription depthAttachment = {};
 		depthAttachment.format = findDepthFormat();
-		depthAttachment.samples = msaaSamples;
+		depthAttachment.samples = _msaaSamples;
 		depthAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
 		depthAttachment.storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
 		depthAttachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
@@ -615,13 +615,13 @@ namespace VK {
 	void VulkanApp::createColorResources() {
 		VkFormat colorFormat = _swapChain.swapChainImageFormat;
 		VkImageUsageFlags flagBits = VK_IMAGE_USAGE_TRANSIENT_ATTACHMENT_BIT | VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
-		colorImage.create(deviceContext, colorFormat, flagBits, _swapChain.swapChainExtent.width, _swapChain.swapChainExtent.height, msaaSamples);
+		colorImage.create(deviceContext, colorFormat, flagBits, _swapChain.swapChainExtent.width, _swapChain.swapChainExtent.height, _msaaSamples);
 	}
 
 	void VulkanApp::createDepthResources() {
 		VkFormat depthFormat = findDepthFormat();
 		VkImageUsageFlags flagBits = VK_IMAGE_USAGE_TRANSIENT_ATTACHMENT_BIT | VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT;
-		depthImage.create(deviceContext, depthFormat, flagBits, _swapChain.swapChainExtent.width, _swapChain.swapChainExtent.height, msaaSamples);
+		depthImage.create(deviceContext, depthFormat, flagBits, _swapChain.swapChainExtent.width, _swapChain.swapChainExtent.height, _msaaSamples);
 	}
 
 	VkFormat VulkanApp::findSupportedFormat(const std::vector<VkFormat>& candidates, VkImageTiling tiling, VkFormatFeatureFlags features) {

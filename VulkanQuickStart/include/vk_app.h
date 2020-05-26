@@ -110,6 +110,7 @@ namespace VK {
 		SwapChain& getSwapChain();
 
 		VkRenderPass getRenderPass() const;
+		void setAntiAliasSamples(VkSampleCountFlagBits samples);
 		VkSampleCountFlagBits getAntiAliasSamples() const;
 		GLFWwindow* getWindow();
 		UI::Window* getUiWindow();
@@ -199,7 +200,7 @@ namespace VK {
 		VkDebugUtilsMessengerEXT debugMessenger;
 
 		DeviceContext deviceContext;
-		VkSampleCountFlagBits msaaSamples = VK_SAMPLE_COUNT_1_BIT;
+		VkSampleCountFlagBits _msaaSamples = VK_SAMPLE_COUNT_1_BIT;
 
 		VkQueue presentQueue;
 		SwapChain _swapChain;
@@ -254,8 +255,12 @@ namespace VK {
 		return renderPass;
 	}
 
+	inline void VulkanApp::setAntiAliasSamples(VkSampleCountFlagBits samples) {
+		_msaaSamples = samples;
+	}
+
 	inline VkSampleCountFlagBits VulkanApp::getAntiAliasSamples() const {
-		return msaaSamples;
+		return _msaaSamples;
 	}
 
 	inline GLFWwindow* VulkanApp::getWindow() {
