@@ -38,33 +38,33 @@ If someone with a unix box wants to contribute by getting the linux environment 
 
 ### Prerequisites
 
-1 A Vulkan API. It is configured to be build with ![Lunar G's API](https://vulkan.lunarg.com/)
-2 The prequisites required by the API.
-3 FreeType (https://www.freetype.org/)
-4 Eigen Matrix (http://eigen.tuxfamily.org/index.php?title=Main_Page) - Eigen is optional. It's a high performance package, but IMO too heavy for easy debugging.
-5 Dark Sky Innovative Solution's triMesh library ();
+1 A Vulkan API. It is configured to be build with [Lunar G's Vulkan API](https://vulkan.lunarg.com/)  
+2 The prequisites required by the API.  
+3 FreeType (https://www.freetype.org/)  
+4 Eigen Matrix (http://eigen.tuxfamily.org/index.php?title=Main_Page) - Eigen is optional. It's a high performance package, but IMO too heavy for easy debugging.  
+5 Dark Sky Innovative Solution's [triMesh library] (https://github.com/btipton-ds/triMesh)  
 6 CMake
-7 A C++-17 complient compiler. Some of the third party code incorporated required C++17.
+7 A C++-17 compliant compiler. Some of the third party code incorporated required C++17.
 
 ### Installing
 
 VulkanQuickStart is being developed using Visual Studio 2019 as a MakeFile project with Unix/Linux compatibility being tested using WSL. The foundation libraries are currently building on WSL, but not the main app.
 
-Create a project root
-Create a Thirdparty directory there.
-Place dependencies in this directory. Except triMesh.
-Setup FreeType - this was challenging. I ended up building it from source in the Thirdparty directory.
+1 Create a project root.  
+2 Create a Thirdparty directory there.  
+3 Place dependencies in this directory. Except triMesh.  
+4 Setup FreeType - this was challenging. I ended up building it from source in the Thirdparty directory.  
 
-Clone triMesh to the project root
-Build triMesh
+5 Clone triMesh to the project root  
+6 Build triMesh  
 
-Clone the VulkanQuickStart to the project root.
-Build it also.
+7 Clone the VulkanQuickStart to the project root.  
+8 Build it also.  
 
-Launch VS 2019 (2017 shuould work also) - get the community edition if you don't have a copy
-Skip the entry screen using the 'without code' option
-Open the project
-Choose makefile project and select the root CMakeLists.txt
+9 Launch VS 2019 (2017 shuould work also) - get the community edition if you don't have a copy  
+10 Skip the entry screen using the 'without code' option  
+11 Open the project  
+12 Choose makefile project and select the root CMakeLists.txt  
 
 A fully working linux version is in the future, but for logistal reasons I don't have a linux box to develop on. Virtual Box doesn't do graphics which makes graphics work _difficult_. WSL is the current workaround.
 
