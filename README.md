@@ -25,7 +25,7 @@ I plan to grow it into a light weight development platform which can be used to 
 The source code is available under GPLv3. I don't plan to, or have the resources to, pursue violators. It's yours to use. 
 However, if you use it for commercial purposes I expect fare compensation for the value you received.
 
-I am also accepting donations through ![GoFundMe.com ElectroFish](https://www.gofundme.com/f/electrofish)
+I am also accepting donations through [GoFundMe.com ElectroFish](https://www.gofundme.com/f/electrofish)
 
 The project was developed as the foundation for some cross platform CAD/CAE tools I need to complete some work on the ElectroFish project. I'm strapped enough for resources, and locked down in the Philippines 
 quarantine. It's actually faster to develop my own toolset.
