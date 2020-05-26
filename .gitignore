@@ -1,0 +1,12 @@
+*.obj
+x64
+Debug
+.vs
+*.pdb
+*.idb
+*.filters
+*.user
+*.TMP
+out
+
+
