@@ -35,8 +35,8 @@ This file is part of the VulkanQuickStart Project.
 #include <ft2build.h>
 #include FT_FREETYPE_H
 
-#include <vk_guiButton.h>
-#include <vk_guiWindow.h>
+#include <vk_uiButton.h>
+#include <vk_uiWindow.h>
 #include <vk_app.h>
 
 namespace VK::UI {

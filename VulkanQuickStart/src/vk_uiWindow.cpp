@@ -37,7 +37,7 @@ This file is part of the VulkanQuickStart Project.
 #include <glm/gtc/matrix_transform.hpp>
 
 #include <vk_pipelineUi.h>
-#include <vk_guiWindow.h>
+#include <vk_uiWindow.h>
 #include <vk_app.h>
 
 namespace VK::UI {

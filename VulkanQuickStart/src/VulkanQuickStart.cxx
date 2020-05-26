@@ -41,8 +41,8 @@ This file is part of the VulkanQuickStart Project.
 
 #include "vk_model.h"
 #include <vk_pipelineUi.h>
-#include <vk_guiButton.h>
-#include <vk_guiWindow.h>
+#include <vk_uiButton.h>
+#include <vk_uiWindow.h>
 
 #include <triMesh.h>
 #include <readStl.h>

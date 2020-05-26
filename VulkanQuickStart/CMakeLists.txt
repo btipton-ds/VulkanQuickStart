@@ -59,7 +59,6 @@ VulkanQuickStart
 "src/vk_app.cpp"
 "src/vk_buffer.cpp"
 "src/vk_device_context.cpp"
-"src/vk_guiWindow.cpp"
 "src/vk_image.cpp"
 "src/vk_model.cpp"  
 "src/vk_modelObj.cpp"
@@ -69,11 +68,13 @@ VulkanQuickStart
 "src/vk_scene.cpp"
 "src/vk_sceneNode.cpp"
 "src/vk_sceneNodeGroup.cpp"
+"src/vk_sceneNode3d.cpp"
 "src/vk_shaderPool.cpp"
 "src/vk_texture_image.cpp"
-"src/vk_guiButton.cpp" 
+"src/vk_uiButton.cpp" 
+"src/vk_uiWindow.cpp"
 "src/VulkanQuickStart.cxx"
- "src/vk_sceneNode3d.cpp")
+)
 
 target_link_libraries("VulkanQuickStart" 
 PUBLIC freetype
