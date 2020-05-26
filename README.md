@@ -20,7 +20,7 @@ Unlike other examples and tutorials, it creates multiple objects of various type
 
 **It is** a quick way to get several thousand lines of Vulkan code up an running so you can modify it.
 
-I planned to grow into a light weight development platform which can be used to start projects.
+I plan to grow it into a light weight development platform which can be used to start projects.
 
 The source code is available under GPLv3. I don't plan to, or have the resources to, pursue violators. It's yours to use. 
 However, if you use it for commercial purposes I expect fare compensation for the value you received.
