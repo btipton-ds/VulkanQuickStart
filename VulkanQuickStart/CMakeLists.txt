@@ -71,8 +71,8 @@ VulkanQuickStart
 "src/vk_sceneNode3d.cpp"
 "src/vk_shaderPool.cpp"
 "src/vk_texture_image.cpp"
-"src/vk_uiButton.cpp" 
-"src/vk_uiWindow.cpp"
+"src/vk_ui_button.cpp" 
+"src/vk_ui_window.cpp"
 "src/VulkanQuickStart.cxx"
 )
 

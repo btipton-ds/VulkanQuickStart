@@ -50,7 +50,7 @@ This file is part of the VulkanQuickStart Project.
 #include <vk_scene.h>
 #include <vk_pipeline3D.h>
 #include <vk_pipelineUi.h>
-#include <vk_uiWindow.h>
+#include <vk_ui_window.h>
 #include "vk_app.h"
 
 #include <iostream>
