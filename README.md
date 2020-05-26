@@ -1,4 +1,4 @@
-# Project Title
+# VulkanQuickStart
 
 VulkanQuickStart is intended as a tutorial, example and foundation for building applications using the Vulkan graphics engine.
 
