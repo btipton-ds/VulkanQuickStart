@@ -38,23 +38,6 @@ This file is part of the VulkanQuickStart Project.
 using namespace std;
 using namespace VK;
 
-namespace {
-
-	struct Allocator : public VkAllocationCallbacks {
-		Allocator();
-
-		static void* allocate(void* pUserData, size_t size,size_t alignment, VkSystemAllocationScope allocationScope);
-		static void* reallocate(void* pUserData, void* pOriginal, size_t size, size_t alignment, VkSystemAllocationScope allocationScope);
-		static void freeFunction(void* pUserData, void* pMemory);
-		static void notifyAllocate(void* pUserData, size_t size, VkInternalAllocationType allocationType, VkSystemAllocationScope allocationScope);
-		static void notifyFree(void* pUserData, size_t size, VkInternalAllocationType allocationType, VkSystemAllocationScope allocationScope);
-
-		size_t _allocated = 0;
-	};
-
-//	static Allocator sAlloc;
-}
-
 void ShaderPool::ShaderRec::add(const std::string& filename, const VkShaderModule& shaderModule) {
 	_shaderModules.push_back(shaderModule);
 }
@@ -149,81 +132,3 @@ vector<char> ShaderPool::readFile(const std::string& filename) {
 	return buffer;
 }
 
-namespace {
-Allocator::Allocator() {
-	pUserData = (void*)this;
-	pfnAllocation = allocate;
-	pfnReallocation = reallocate;
-	pfnFree = freeFunction;
-	pfnInternalAllocation = notifyAllocate;
-	pfnInternalFree = notifyFree;
-}
-
-void* Allocator::allocate(void* pUserData, size_t size, size_t alignment, VkSystemAllocationScope allocationScope) {
-
-	size_t alignedSize = size;
-	switch (alignment) {
-	case 8:
-		break;
-	case 16:
-		alignedSize = ((size + 1) / 2) * 2;
-		break;
-	case 32:
-		alignedSize = ((size + 3) / 4) * 4;
-		break;
-	case 64:
-		alignedSize = ((size + 7) / 8) * 8;
-		break;
-	default:
-		throw runtime_error("Unexpected alignment");
-	}
-
-	((Allocator*)(pUserData))->_allocated += alignedSize;
-
-	size_t headSize = sizeof(size_t);
-
-	unsigned char* result = new unsigned char[alignedSize + headSize];
-	size_t* head = (size_t*)result;
-	*head = alignedSize;
-	return (void*)(result + headSize);
-}
-
-void* Allocator::reallocate(void* pUserData, void* pOriginal, size_t size, size_t alignment, VkSystemAllocationScope allocationScope) {
-	throw runtime_error("This isn't working. Fix it if it's used.");
-
-	unsigned char* result = (unsigned char* )allocate(pUserData, size, alignment, allocationScope);
-
-	size_t headSize = sizeof(size_t);
-
-	unsigned char* ptr = ((unsigned char*)pOriginal) - headSize;
-	size_t* head = (size_t*)ptr;
-	memcpy(result, pOriginal, *head);
-
-	freeFunction(pUserData, pOriginal);
-
-	return result;
-
-}
-
-void Allocator::freeFunction(void* pUserData, void* pMemory) {
-	size_t headSize = sizeof(size_t);
-
-	unsigned char* ptr = ((unsigned char*)pMemory) - headSize;
-
-	size_t* head = (size_t*)ptr;
-	((Allocator*)(pUserData))->_allocated -= *head;
-
-	delete[] ptr;
-}
-
-void Allocator::notifyAllocate(void* pUserData, size_t size, VkInternalAllocationType allocationType, VkSystemAllocationScope allocationScope) {
-	int dbgBreak = 1;
-}
-
-void Allocator::notifyFree(void* pUserData, size_t size, VkInternalAllocationType allocationType, VkSystemAllocationScope allocationScope) {
-	int dbgBreak = 1;
-}
-
-
-
-}
