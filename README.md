@@ -74,16 +74,13 @@ Vulkan Quick Start has no automatic tests at this time.
 
 ## Deployment
 
-It's currently build as a fully linked app. No shared libraries are required.
+It's currently built as a fully linked app. No shared libraries are required.
 
-## Built With
-
-* Built with Visual Studio 2019 (https://visualstudio.microsoft.com/downloads/)
+## Built with Visual Studio 2019 (https://visualstudio.microsoft.com/downloads/)
 
 ## Contributing
 
 Please read [CONTRIBUTING.md](https://gist.github.com/PurpleBooth/b24679402957c63ec426) for details on our code of conduct, and the process for submitting pull requests to us.
-
 
 ## Authors
 
