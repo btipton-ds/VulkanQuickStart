@@ -79,7 +79,7 @@ Please read [CONTRIBUTING.md](https://gist.github.com/PurpleBooth/b24679402957c6
 
 ## Authors
 
-* **Robert R (Bob) Tipton** - (btipton@darkskyinnovation.com)
+**Robert R (Bob) Tipton** - btipton - darkskyinnovation.com
 
 ## License
 
