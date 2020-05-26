@@ -822,15 +822,6 @@ namespace VK {
 		}
 	}
 
-	namespace {
-		inline glm::vec3 conv(const Vector3f& pt) {
-			return glm::vec3(pt[0], pt[1], pt[2]);
-		}
-		inline glm::vec4 conv4(const Vector3f& pt) {
-			return glm::vec4(pt[0], pt[1], pt[2], 1);
-		}
-	}
-
 	void VulkanApp::reportFPS() {
 		static auto startTime = std::chrono::high_resolution_clock::now();
 
@@ -857,63 +848,10 @@ namespace VK {
 	void VulkanApp::updateUniformBuffer(uint32_t swapChainImageIndex) {
 		reportFPS();
 
-		BoundingBox modelBounds;
-		getRoot3D()->traverse([&](const SceneNodeConstPtr& node) {
-			auto node3D = dynamic_pointer_cast<const SceneNode3D>(node);
-			if (node3D)
-				modelBounds.merge(node3D->getBounds());
-		});
-
-		UniformBufferObject ubo = {};
-		ubo.ambient = 0.10f;
-		ubo.numLights = 2;
-		ubo.lightDir[0] = glm::normalize(glm::vec3(1, -0.5, 1));
-		ubo.lightDir[1] = glm::normalize(glm::vec3(-1, -0.5, 3));
-
-		float w = (float)_swapChain.swapChainExtent.width;
-		float h = (float)_swapChain.swapChainExtent.height;
-		float maxDim = std::max(w, h);
-		float minDim = std::min(w, h);
-		w /= maxDim;
-		h /= maxDim;
-
-		auto range = modelBounds.range();
-		float maxModelDim = max(max(range[0], range[1]), range[2]);
-		float scale = 1.0f *  1.0f / maxModelDim * minDim / maxDim;
-		scale *= (float)_modelScale;
-
-		auto ctr = (modelBounds.getMin() + modelBounds.getMax()) / 2;
-		ubo.model = _modelToWorld;
-		ubo.model *= glm::scale(glm::mat4(1.0f), glm::vec3(scale, scale, scale));
-		ubo.model *= glm::translate(glm::mat4(1.0f), -conv(ctr));
-
-		ubo.view = glm::lookAt(glm::vec3(1.0f, 0.0f, 0.0f), glm::vec3(0.0f,0.0f,0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
-		//		auto proj = glm::perspective(glm::radians(45.0f), swapChainExtent.width / (float)swapChainExtent.height, 0.1f, 10.0f);
-		ubo.proj = glm::ortho(-w / 2, w, -h / 2, h, 0.10f, 10.0f);
-		ubo.proj[1][1] *= -1;
 
 		for (auto& pipeline : _pipelines) {
 			if (pipeline->numSceneNodes() > 0) {
-				auto vertPipeline = dynamic_pointer_cast<PipelineVertex3D>(pipeline);
-				if (vertPipeline)
-					vertPipeline->updateUniformBuffer(swapChainImageIndex, ubo);
-				auto uiPipeline = dynamic_pointer_cast<PipelineUi>(pipeline);
-				if (uiPipeline) {
-					PipelineUi::UniformBufferObject ubo;
-
-					int widthPx, heightPx;
-					glfwGetWindowSize(_window, &widthPx, &heightPx);
-
-					float widthIn = widthPx / (float)_windowDpi;
-					float heightIn = heightPx / (float)_windowDpi;
-					float widthPts = widthIn * 72;
-					float heightPts = heightIn * 72;
-
-					ubo._scale = glm::vec2(1.0f / widthPts, 1.0f / heightPts);
-					ubo._offset = glm::vec2(-1.0f, -1.0f);
-					ubo._color = glm::vec4(1, 0, 0, 1);
-					uiPipeline->updateUniformBuffer(swapChainImageIndex, ubo);
-				}
+				pipeline->updateUniformBuffer(swapChainImageIndex);
 			}
 		}
 	}

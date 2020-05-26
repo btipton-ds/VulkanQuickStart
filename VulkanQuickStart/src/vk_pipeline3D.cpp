@@ -35,7 +35,15 @@ This file is part of the VulkanQuickStart Project.
 #include <string>
 #include <fstream>
 #include <array>
+#include <algorithm>
 
+#define GLM_FORCE_RADIANS
+#define GLM_FORCE_DEPTH_ZERO_TO_ONE
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+
+#include <vk_pipeline3D.h>
+#include <vk_sceneNode3D.h>
 #include <vk_device_context.h>
 #include <vk_buffer.h>
 #include <vk_vertex_types.h>
@@ -58,6 +66,80 @@ namespace VK {
 	{
 		_vertBindDesc = Vertex3_PNCTf::getBindingDescription();
 		_vertAttribDesc = Vertex3_PNCTf::getAttributeDescriptions();
+	}
+
+	namespace {
+		inline glm::vec3 conv(const Vector3f& pt) {
+			return glm::vec3(pt[0], pt[1], pt[2]);
+		}
+		inline glm::vec4 conv4(const Vector3f& pt) {
+			return glm::vec4(pt[0], pt[1], pt[2], 1);
+		}
+
+		PipelineVertex3D::BoundingBox transform(const PipelineVertex3D::BoundingBox& bb, const glm::mat4& xform) {
+			PipelineVertex3D::BoundingBox result;
+			glm::vec4 pt(0, 0, 0, 1);
+			for (int i = 0; i < 2; i++) {
+				pt[0] = i == 0 ? bb.getMin()[0] : bb.getMax()[0];
+				for (int j = 0; j < 2; j++) {
+					pt[1] = j == 0 ? bb.getMin()[1] : bb.getMax()[1];
+					for (int k = 0; k < 2; k++) {
+						pt[2] = k == 0 ? bb.getMin()[2] : bb.getMax()[2];
+						pt = xform * pt;
+						result.merge(Vector3f(pt[0], pt[1], pt[2]));
+					}
+				}
+			}
+			return result;
+		}
+	}
+
+	void PipelineVertex3D::updateUniformBuffer(size_t swapChainIndex) {
+		BoundingBox modelBounds;
+		_app->getRoot3D()->traverse([&](const SceneNodePtr& node) {
+			auto node3D = dynamic_pointer_cast<const SceneNode3D>(node);
+			if (node3D) {
+				auto bb = node3D->getBounds();
+				const auto& xform = node3D->getModelTransform();
+				bb = transform(bb, xform);
+				modelBounds.merge(bb);
+			}
+		});
+
+		_ubo = {};
+		_ubo.ambient = 0.10f;
+		_ubo.numLights = 2;
+		_ubo.lightDir[0] = glm::normalize(glm::vec3(1, -0.5, 1));
+		_ubo.lightDir[1] = glm::normalize(glm::vec3(-1, -0.5, 3));
+
+		auto& swapChain = _app->getSwapChain();
+
+		float w = (float)swapChain.swapChainExtent.width;
+		float h = (float)swapChain.swapChainExtent.height;
+		float maxDim = std::max(w, h);
+		float minDim = std::min(w, h);
+		w /= maxDim;
+		h /= maxDim;
+
+		auto range = modelBounds.range();
+		float maxModelDim = max(max(range[0], range[1]), range[2]);
+		float scale = 1.0f * 1.0f / maxModelDim * minDim / maxDim;
+		scale *= (float)_app->getModelScale();
+
+		auto ctr = (modelBounds.getMin() + modelBounds.getMax()) / 2;
+		_ubo.model = _app->getModelToWorldTransform();
+		_ubo.model *= glm::scale(glm::mat4(1.0f), glm::vec3(scale, scale, scale));
+		_ubo.model *= glm::translate(glm::mat4(1.0f), -conv(ctr));
+
+		_ubo.view = glm::lookAt(glm::vec3(1.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+		//		auto proj = glm::perspective(glm::radians(45.0f), swapChainExtent.width / (float)swapChainExtent.height, 0.1f, 10.0f);
+		_ubo.proj = glm::ortho(-w / 2, w, -h / 2, h, 0.10f, 10.0f);
+		_ubo.proj[1][1] *= -1;
+
+		for (auto& sceneNode : _sceneNodes) {
+			sceneNode->updateUniformBuffer(this, swapChainIndex);
+		}
+
 	}
 
 	void PipelineVertex3D::createDescriptorSetLayout() {

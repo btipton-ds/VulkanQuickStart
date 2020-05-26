@@ -31,27 +31,47 @@ This file is part of the VulkanQuickStart Project.
 
 #include <defines.h>
 
+
+#define GLM_FORCE_RADIANS
+#define GLM_FORCE_DEPTH_ZERO_TO_ONE
+#include <glm/glm.hpp>
+
 #include <vk_sceneNode.h>
+#include <vk_pipeline3D.h>
 
 namespace VK {
 
 	class SceneNode3D : public SceneNode {
 	public:
-		using BoundingBox = CBoundingBox3D<float>;
+		using BoundingBox = PipelineVertex3D::BoundingBox;
+		using UniformBufferObject = PipelineVertex3D::UniformBufferObject;
+
 		SceneNode3D();
 		virtual ~SceneNode3D();
 
 		virtual BoundingBox getBounds() const = 0;
+		void updateUniformBuffer(Pipeline* pipeline, size_t swapChainIndex) override;
+
+		void setModelTransform(const glm::mat4& xform);
+		const glm::mat4& getModelTransform() const;
+		glm::mat4& getModelTransform();
 
 	private:
+		glm::mat4 _modelXForm;
 	};
 	using SceneNode3DPtr = std::shared_ptr<SceneNode3D>;
 	using SceneNode3DConstPtr = std::shared_ptr<const SceneNode3D>;
 
-	inline SceneNode3D::SceneNode3D() {
+	inline void SceneNode3D::setModelTransform(const glm::mat4& xform) {
+		_modelXForm = xform;
 	}
 
-	inline SceneNode3D::~SceneNode3D() {
+	inline const glm::mat4& SceneNode3D::getModelTransform() const {
+		return _modelXForm;
+	}
+
+	inline glm::mat4& SceneNode3D::getModelTransform() {
+		return _modelXForm;
 	}
 
 }

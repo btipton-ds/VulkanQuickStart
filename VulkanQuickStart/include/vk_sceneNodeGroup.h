@@ -47,6 +47,8 @@ namespace VK {
 
 		void addCommands(VkCommandBuffer cmdBuff, VkPipelineLayout pipelineLayout, const VkDescriptorSet& descSet) const override;
 		void buildImageInfoList(std::vector<VkDescriptorImageInfo>& imageInfoList) const override;
+		void updateUniformBuffer(Pipeline* pipeline, size_t swapChainIndex) override;
+
 
 		template<typename FUNC_TYPE>
 		inline void traverse(FUNC_TYPE func) const {

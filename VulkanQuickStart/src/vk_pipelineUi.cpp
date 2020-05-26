@@ -57,6 +57,27 @@ namespace VK {
 			shaders.addShader(getShaderId(), { "shaders/shader_ui_vert.spv", "shaders/shader_ui_frag.spv" });
 	}
 
+	void PipelineUi::updateUniformBuffer(size_t swapChainIndex) {
+		int widthPx, heightPx;
+
+		auto win = _app->getWindow();
+		glfwGetWindowSize(win, &widthPx, &heightPx);
+
+		int dpi = _app->getWindowDpi();
+		float widthIn = widthPx / (float)dpi;
+		float heightIn = heightPx / (float)dpi;
+		float widthPts = widthIn * 72;
+		float heightPts = heightIn * 72;
+
+		_ubo._scale = glm::vec2(1.0f / widthPts, 1.0f / heightPts);
+		_ubo._offset = glm::vec2(-1.0f, -1.0f);
+		_ubo._color = glm::vec4(1, 0, 0, 1);
+
+		for (auto& sceneNode : _sceneNodes) {
+			sceneNode->updateUniformBuffer(this, swapChainIndex);
+		}
+	}
+
 	void PipelineUi::createUniformBuffers() {
 		auto& device = _app->getDeviceContext();
 		size_t bufferSize = sizeof(UniformBufferObject);

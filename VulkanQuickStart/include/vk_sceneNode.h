@@ -44,10 +44,12 @@ This file is part of the VulkanQuickStart Project.
 
 namespace VK {
 
+	class Pipeline;
+	using PipelinePtr = std::shared_ptr<Pipeline>;
+
 	class SceneNode;
 	using SceneNodePtr = std::shared_ptr<SceneNode>;
-	using SceneNodeConstPtr = std::shared_ptr<const SceneNode>;
-	using ScenNodeConstList = std::vector<SceneNodeConstPtr>;
+	using SceneNodeList = std::vector<SceneNodePtr>;
 
 	class SceneNode {
 	public:
@@ -78,12 +80,12 @@ namespace VK {
 
 		virtual void addCommands(VkCommandBuffer cmdBuff, VkPipelineLayout pipelineLayout, const VkDescriptorSet& descSet) const = 0;
 		virtual void buildImageInfoList(std::vector<VkDescriptorImageInfo>& imageInfoList) const = 0;
+		virtual void updateUniformBuffer(Pipeline* pipeline, size_t swapChainIndex) = 0;
 
 		void setMaterial(const Material& material);
 		const Material& getMaterial() const;
 		Material& getMaterial();
 
-	protected:
 		Material _material;
 	};
 

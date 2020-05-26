@@ -29,25 +29,26 @@ This file is part of the VulkanQuickStart Project.
 
 #include <defines.h>
 
-#include <vk_sceneNodeGroup.h>
+#include <memory>
 
+#include <vk_sceneNode3D.h>
+#include <vk_pipeline3D.h>
+
+using namespace std;
 using namespace VK;
 
-void SceneNodeGroup::addCommands(VkCommandBuffer cmdBuff, VkPipelineLayout pipelineLayout, const VkDescriptorSet& descSet) const {
-	for (const auto& child : _childScenes) {
-		child->addCommands(cmdBuff, pipelineLayout, descSet);
-	}
+SceneNode3D::SceneNode3D()
+	: _modelXForm(glm::mat4(1.0f))
+{
 }
 
-void SceneNodeGroup::buildImageInfoList(std::vector<VkDescriptorImageInfo>& imageInfoList) const {
-	for (const auto& child : _childScenes) {
-		child->buildImageInfoList(imageInfoList);
-	}
+SceneNode3D::~SceneNode3D() {
 }
 
-void SceneNodeGroup::updateUniformBuffer(Pipeline* pipeline, size_t swapChainIndex) {
-	for (const auto& child : _childScenes) {
-		child->updateUniformBuffer(pipeline, swapChainIndex);
-	}
-}
 
+void SceneNode3D::updateUniformBuffer(Pipeline* pipeline, size_t swapChainIndex) {
+	auto pipeline3D = dynamic_cast<PipelineVertex3D*>(pipeline);
+	auto ubo = pipeline3D->getUniformBuffer();
+	ubo.model *= _modelXForm;
+	pipeline->updateUniformBuffer(swapChainIndex, ubo);
+}

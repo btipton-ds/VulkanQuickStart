@@ -73,7 +73,7 @@ VulkanQuickStart
 "src/vk_texture_image.cpp"
 "src/vk_guiButton.cpp" 
 "src/VulkanQuickStart.cxx"
-)
+ "src/vk_sceneNode3d.cpp")
 
 target_link_libraries("VulkanQuickStart" 
 PUBLIC freetype

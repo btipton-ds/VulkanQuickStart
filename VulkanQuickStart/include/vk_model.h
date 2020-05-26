@@ -95,8 +95,6 @@ namespace VK {
 			return static_cast<uint32_t>(indices_.size());
 		}
 
-		void setModelToWorldXForm(const glm::mat4& xform);
-
 	protected:
 		Model(DeviceContext& dc);
 		Model(DeviceContext& dc, const TriMesh::CMeshPtr& meshPtr);
@@ -108,7 +106,6 @@ namespace VK {
 
 		DeviceContext* _dc = VK_NULL_HANDLE; // TODO I think this should be a parameter, not a member
 		BoundingBox _bounds;
-		glm::mat4 _toWorldXform;
 		std::vector<Vertex3_PNCTf> vertices_;
 		std::vector<uint32_t> indices_;
 		Buffer vertexBuffer_, indexBuffer_;

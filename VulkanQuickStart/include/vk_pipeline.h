@@ -41,15 +41,12 @@ This file is part of the VulkanQuickStart Project.
 
 #include <vulkan/vulkan_core.h>
 #include <vk_buffer.h>
+#include <vk_sceneNode.h>
 
 namespace VK {
 
 	class VulkanApp;
 	using VulkanAppPtr = std::shared_ptr<class VulkanApp>;
-
-	class SceneNode;
-	using SceneNodeConstPtr = std::shared_ptr<const SceneNode>;
-	using ScenNodeConstList = std::vector<SceneNodeConstPtr>;
 
 	class Pipeline;
 	using PipelinePtr = std::shared_ptr<Pipeline>;
@@ -69,12 +66,14 @@ namespace VK {
 		void setPolygonMode(VkPolygonMode polygonMode);
 		void setLineWidth(double width);
 
-		void addSceneNode(const SceneNodeConstPtr& node);
+		void addSceneNode(const SceneNodePtr& node);
 
 		void cleanupSwapChain();
 		void build();
 
 		VkPipeline getVKPipeline() const;
+
+		virtual void updateUniformBuffer(size_t swapChainIndex) = 0;
 
 		template<class BUF_TYPE>
 		void updateUniformBuffer(size_t swapChainIndex, const BUF_TYPE& ubo);
@@ -90,7 +89,7 @@ namespace VK {
 		virtual std::string getShaderIdMethod() = 0;
 
 		VulkanApp* _app;
-		ScenNodeConstList _sceneNodes;
+		SceneNodeList _sceneNodes;
 		VkVertexInputBindingDescription _vertBindDesc;
 		std::vector<VkVertexInputAttributeDescription> _vertAttribDesc;
 
@@ -118,7 +117,7 @@ namespace VK {
 		_lineWidth = (float)width;
 	}
 
-	inline void Pipeline::addSceneNode(const SceneNodeConstPtr& node) {
+	inline void Pipeline::addSceneNode(const SceneNodePtr& node) {
 		_sceneNodes.push_back(node);
 	}
 

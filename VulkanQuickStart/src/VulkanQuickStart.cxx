@@ -97,7 +97,7 @@ int main(int numArgs, char** args) {
 
 #if TEST_OBJ
 	ModelPtr plant = std::dynamic_pointer_cast<Model> (gApp->addSceneNode3D(pottedPlantFilename, pottedPlantTextureFilename));
-//	plant->setModelToWorldXForm(glm::rotate(glm::mat4(1.0f), glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f))); // TODO, get per element transforms working.
+	plant->setModelTransform(glm::rotate(glm::mat4(1.0f), glm::radians(90.0f), glm::vec3(1.0f, 0.0f, 0.0f)));
 #endif
 
 #if TEST_STL
@@ -108,7 +108,8 @@ int main(int numArgs, char** args) {
 	CReadSTL readStl(meshPtr);
 	if (!readStl.read(modelPath, filename))
 		return 1;
-	auto target = gApp->addSceneNode3D(meshPtr);
+	auto meshModel = gApp->addSceneNode3D(meshPtr);
+	meshModel->setModelTransform(glm::scale(glm::mat4(1.0f), glm::vec3(.05f, .05f, .05f)));
 #endif
 
 	try {

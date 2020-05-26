@@ -51,7 +51,6 @@ namespace std {
 
 Model::Model(DeviceContext& dc, const TriMesh::CMeshPtr& meshPtr)
 	: _dc(&dc)
-	, _toWorldXform(glm::mat4(1.0f))
 {
 	loadModel(meshPtr);
 	createVertexBuffer();
@@ -60,7 +59,6 @@ Model::Model(DeviceContext& dc, const TriMesh::CMeshPtr& meshPtr)
 
 Model::Model(DeviceContext& dc)
 	: _dc(&dc)
-	, _toWorldXform(glm::mat4(1.0f))
 {
 }
 
@@ -138,10 +136,6 @@ void Model::loadModel(const TriMesh::CMeshPtr& meshPtr) {
 	for (auto& vert : vertices_) {
 		normalize(vert.norm);
 	}
-}
-
-void Model::setModelToWorldXForm(const glm::mat4& xform) {
-	_toWorldXform = xform;
 }
 
 void Model::createVertexBuffer() {

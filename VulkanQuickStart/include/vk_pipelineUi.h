@@ -63,6 +63,8 @@ namespace VK {
 
 		static std::string getShaderId();
 		PipelineUi(VulkanApp* app);
+		void updateUniformBuffer(size_t swapChainIndex) override;
+		const UniformBufferObject& getUniformBuffer() const;
 
 	protected:
 		std::string getShaderIdMethod() override;
@@ -77,6 +79,11 @@ namespace VK {
 		: _pos(pos)
 		, _texCoord(tc)
 	{ }
+
+	inline const PipelineUi::UniformBufferObject& PipelineUi::getUniformBuffer() const {
+		return _ubo;
+	}
+
 
 }
 

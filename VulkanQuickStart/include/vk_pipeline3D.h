@@ -31,6 +31,7 @@ This file is part of the VulkanQuickStart Project.
 
 #include <defines.h>
 
+#include <boundingBox.h>
 #include <vk_pipeline.h>
 
 namespace VK {
@@ -47,16 +48,32 @@ namespace VK {
 			alignas(16) glm::vec3 lightDir[2];
 		};
 
+		using BoundingBox = CBoundingBox3D<float>;
+
 		static std::string getShaderId();
 
 		PipelineVertex3D(VulkanApp* app);
+		void updateUniformBuffer(size_t swapChainIndex) override;
+
+		const UniformBufferObject& getUniformBuffer() const;
+		UniformBufferObject& getUniformBuffer();
 
 	protected:
 		std::string getShaderIdMethod() override;
 		virtual void createDescriptorSetLayout() override;
 		virtual void createDescriptorSets() override;
 		virtual void createUniformBuffers() override;
+
+		UniformBufferObject _ubo;
 	};
+
+	inline const PipelineVertex3D::UniformBufferObject& PipelineVertex3D::getUniformBuffer() const {
+		return _ubo;
+	}
+
+	inline PipelineVertex3D::UniformBufferObject& PipelineVertex3D::getUniformBuffer() {
+		return _ubo;
+	}
 
 	class PipelineVertex3DWSampler : public PipelineVertex3D {
 	public:
@@ -68,5 +85,7 @@ namespace VK {
 		virtual void createDescriptorSetLayout() override;
 		virtual void createDescriptorSets() override;
 	};
+
+
 
 }
