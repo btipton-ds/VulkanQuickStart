@@ -102,70 +102,39 @@ namespace VK {
 			I leave that decision to you.
 		*/
 
+		/*
+		Note: 
+		I chose to use the older style 'declare first, use after' pattern so the code flow is more visible.
+
+		TODO It's tempting to make this a class, possibly a singleton, just to keep the code organized. If all the methods are inlined and the class is on the stack, 
+		there will be no performance hit.
+		*/
+
 		vector<VkPipelineShaderStageCreateInfo> shaderStages;
-		setShaderStages(shaderStages);
-
 		VkPipelineVertexInputStateCreateInfo vertexInputInfo;
-		setVertexInputInfo(vertexInputInfo);
-
 		VkPipelineInputAssemblyStateCreateInfo inputAssembly;
-		setInputAssembly(inputAssembly);
-
 		VkViewport viewport;
-		setViewport(viewport);
-
 		VkRect2D scissorRect;
-		setScissor(scissorRect);
-
 		VkPipelineViewportStateCreateInfo viewportState;
+		VkPipelineRasterizationStateCreateInfo rasterizer;
+		VkPipelineMultisampleStateCreateInfo multisampling;
+		VkPipelineDepthStencilStateCreateInfo depthStencil;
+		VkPipelineColorBlendAttachmentState colorBlendAttachment;
+		VkPipelineColorBlendStateCreateInfo colorBlending;
+
+		setShaderStages(shaderStages);
+		setVertexInputInfo(vertexInputInfo);
+		setInputAssembly(inputAssembly);
+		setViewport(viewport);
+		setScissor(scissorRect);
 		setViewportState(viewportState, &viewport, &scissorRect);
+		setRasterizer(rasterizer);
+		setMultisampling(multisampling);
+		setDepthStencil(depthStencil);
+		setColorBlendAttachment(colorBlendAttachment);
+		setColorBlending(colorBlending, &colorBlendAttachment);
 
-		VkPipelineRasterizationStateCreateInfo rasterizer = {};
-		rasterizer.sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO;
-		rasterizer.depthClampEnable = VK_FALSE;
-		rasterizer.rasterizerDiscardEnable = VK_FALSE;
-		rasterizer.polygonMode = _polygonMode;
-		rasterizer.lineWidth = _lineWidth;
-		rasterizer.cullMode = _cullMode;
-		rasterizer.frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE;
-		rasterizer.depthBiasEnable = VK_FALSE;
-
-		VkPipelineMultisampleStateCreateInfo multisampling = {};
-		multisampling.sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO;
-		multisampling.sampleShadingEnable = VK_FALSE;
-		multisampling.rasterizationSamples = _app->getAntiAliasSamples();
-
-		VkPipelineDepthStencilStateCreateInfo depthStencil = {};
-		depthStencil.sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO;
-		depthStencil.depthTestEnable = VK_TRUE;
-		depthStencil.depthWriteEnable = VK_TRUE;
-		depthStencil.depthCompareOp = VK_COMPARE_OP_LESS;
-		depthStencil.depthBoundsTestEnable = VK_FALSE;
-		depthStencil.stencilTestEnable = VK_FALSE;
-
-		VkPipelineColorBlendAttachmentState colorBlendAttachment = {};
-		colorBlendAttachment.colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
-		colorBlendAttachment.blendEnable = VK_FALSE;
-
-		VkPipelineColorBlendStateCreateInfo colorBlending = {};
-		colorBlending.sType = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO;
-		colorBlending.logicOpEnable = VK_FALSE;
-		colorBlending.logicOp = VK_LOGIC_OP_COPY;
-		colorBlending.attachmentCount = 1;
-		colorBlending.pAttachments = &colorBlendAttachment;
-		colorBlending.blendConstants[0] = 0.0f;
-		colorBlending.blendConstants[1] = 0.0f;
-		colorBlending.blendConstants[2] = 0.0f;
-		colorBlending.blendConstants[3] = 0.0f;
-
-		VkPipelineLayoutCreateInfo pipelineLayoutInfo = {};
-		pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
-		pipelineLayoutInfo.setLayoutCount = 1;
-		pipelineLayoutInfo.pSetLayouts = &_descriptorSetLayout;
-
-		if (vkCreatePipelineLayout(_app->getDeviceContext().device_, &pipelineLayoutInfo, nullptr, &_pipelineLayout) != VK_SUCCESS) {
-			throw std::runtime_error("failed to create pipeline layout!");
-		}
+		createPipelineLayout();
 
 		VkGraphicsPipelineCreateInfo pipelineInfo = {};
 		pipelineInfo.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
@@ -190,7 +159,7 @@ namespace VK {
 		}
 	}
 
-	void Pipeline::setShaderStages(vector<VkPipelineShaderStageCreateInfo>& shaderStages) {
+	inline void Pipeline::setShaderStages(vector<VkPipelineShaderStageCreateInfo>& shaderStages) {
 		auto& shader = _app->getShaderPool().getShader(getShaderIdMethod());
 		for (size_t i = 0; i < shader->_shaderModules.size(); i++) {
 			const auto& shaderModule = shader->_shaderModules[i];
@@ -203,7 +172,7 @@ namespace VK {
 		}
 	}
 
-	void Pipeline::setVertexInputInfo(VkPipelineVertexInputStateCreateInfo& vertexInputInfo) {
+	inline void Pipeline::setVertexInputInfo(VkPipelineVertexInputStateCreateInfo& vertexInputInfo) {
 		vertexInputInfo = {};
 		vertexInputInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
 
@@ -213,14 +182,14 @@ namespace VK {
 		vertexInputInfo.pVertexAttributeDescriptions = _vertAttribDesc.data();
 	}
 
-	void Pipeline::setInputAssembly(VkPipelineInputAssemblyStateCreateInfo& inputAssembly) {
+	inline void Pipeline::setInputAssembly(VkPipelineInputAssemblyStateCreateInfo& inputAssembly) {
 		inputAssembly = {};
 		inputAssembly.sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
 		inputAssembly.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
 		inputAssembly.primitiveRestartEnable = VK_FALSE;
 	}
 
-	void Pipeline::setViewport(VkViewport& viewport) {
+	inline void Pipeline::setViewport(VkViewport& viewport) {
 		// TODO, we should be able to set this to values within the swap chain extent
 		const auto& extent = _app->getSwapChain().swapChainExtent;
 
@@ -232,7 +201,7 @@ namespace VK {
 		viewport.maxDepth = 1.0f;
 	}
 
-	void Pipeline::setScissor(VkRect2D& scissorRect) {
+	inline void Pipeline::setScissor(VkRect2D& scissorRect) {
 		// TODO, we should be able to set this to values within the swap chain extent
 		const auto& extent = _app->getSwapChain().swapChainExtent;
 
@@ -241,13 +210,73 @@ namespace VK {
 
 	}
 
-	void Pipeline::setViewportState(VkPipelineViewportStateCreateInfo& viewportState, VkViewport* viewportPtr, VkRect2D* scissorRect) {
+	inline void Pipeline::setViewportState(VkPipelineViewportStateCreateInfo& viewportState, VkViewport* viewportPtr, VkRect2D* scissorRect) {
 		viewportState = {};
 		viewportState.sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO;
 		viewportState.viewportCount = 1;
 		viewportState.pViewports = viewportPtr;
 		viewportState.scissorCount = 1;
 		viewportState.pScissors = scissorRect;
+	}
+
+	inline void Pipeline::setRasterizer(VkPipelineRasterizationStateCreateInfo& rasterizer) {
+		rasterizer = {};
+		rasterizer.sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO;
+		rasterizer.depthClampEnable = VK_FALSE;
+		rasterizer.rasterizerDiscardEnable = VK_FALSE;
+		rasterizer.polygonMode = _polygonMode;
+		rasterizer.lineWidth = _lineWidth;
+		rasterizer.cullMode = _cullMode;
+		rasterizer.frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE;
+		rasterizer.depthBiasEnable = VK_FALSE;
+	}
+
+	inline void Pipeline::setMultisampling(VkPipelineMultisampleStateCreateInfo& multisampling) {
+		multisampling = {};
+		multisampling.sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO;
+		multisampling.sampleShadingEnable = VK_FALSE;
+		multisampling.rasterizationSamples = _app->getAntiAliasSamples();
+	}
+
+	inline void Pipeline::setDepthStencil(VkPipelineDepthStencilStateCreateInfo& depthStencil) {
+		depthStencil = {};
+		depthStencil.sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO;
+		depthStencil.depthTestEnable = VK_TRUE;
+		depthStencil.depthWriteEnable = VK_TRUE;
+		depthStencil.depthCompareOp = VK_COMPARE_OP_LESS;
+		depthStencil.depthBoundsTestEnable = VK_FALSE;
+		depthStencil.stencilTestEnable = VK_FALSE;
+	}
+
+	inline void Pipeline::setColorBlendAttachment(VkPipelineColorBlendAttachmentState& colorBlendAttachment) {
+		colorBlendAttachment = {};
+		colorBlendAttachment.colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
+		colorBlendAttachment.blendEnable = VK_FALSE;
+	}
+
+	inline void Pipeline::setColorBlending(VkPipelineColorBlendStateCreateInfo& colorBlending, VkPipelineColorBlendAttachmentState* colorBlendAttachmentPtr) {
+		colorBlending = {};
+		colorBlending.sType = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO;
+		colorBlending.logicOpEnable = VK_FALSE;
+		colorBlending.logicOp = VK_LOGIC_OP_COPY;
+		colorBlending.attachmentCount = 1;
+		colorBlending.pAttachments = colorBlendAttachmentPtr;
+		colorBlending.blendConstants[0] = 0.0f;
+		colorBlending.blendConstants[1] = 0.0f;
+		colorBlending.blendConstants[2] = 0.0f;
+		colorBlending.blendConstants[3] = 0.0f;
+	}
+
+	inline void Pipeline::createPipelineLayout() {
+		VkPipelineLayoutCreateInfo pipelineLayoutInfo = {};
+
+		pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
+		pipelineLayoutInfo.setLayoutCount = 1;
+		pipelineLayoutInfo.pSetLayouts = &_descriptorSetLayout;
+
+		if (vkCreatePipelineLayout(_app->getDeviceContext().device_, &pipelineLayoutInfo, nullptr, &_pipelineLayout) != VK_SUCCESS) {
+			throw std::runtime_error("failed to create pipeline layout!");
+		}
 	}
 
 	void Pipeline::createDescriptorPool() {
