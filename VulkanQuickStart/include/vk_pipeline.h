@@ -90,17 +90,27 @@ namespace VK {
 
 		VulkanApp* _app;
 		SceneNodeList _sceneNodes;
+
 		VkVertexInputBindingDescription _vertBindDesc;
 		std::vector<VkVertexInputAttributeDescription> _vertAttribDesc;
+		std::vector<Buffer> _uniformBuffers;
+		VkDescriptorPool _descriptorPool;
+		VkDescriptorSetLayout _descriptorSetLayout;
+		std::vector<VkDescriptorSet> _descriptorSets;
+
+	private:
+		void setShaderStages(std::vector<VkPipelineShaderStageCreateInfo>& shaderStages);
+		void setVertexInputInfo(VkPipelineVertexInputStateCreateInfo& vertexInputInfo);
+		void setInputAssembly(VkPipelineInputAssemblyStateCreateInfo& inputAssembly);
+		void setViewport(VkViewport& viewPort);
+		void setScissor(VkRect2D& scissor);
+		void setViewportState(VkPipelineViewportStateCreateInfo& viewportState, VkViewport* viewportPtr, VkRect2D* scissor);
+
 
 		VkCullModeFlagBits _cullMode = VK_CULL_MODE_NONE;
 		VkPolygonMode _polygonMode = VK_POLYGON_MODE_FILL;
 		float _lineWidth = 1.0f;
 
-		std::vector<Buffer> _uniformBuffers;
-		VkDescriptorPool _descriptorPool;
-		VkDescriptorSetLayout _descriptorSetLayout;
-		std::vector<VkDescriptorSet> _descriptorSets;
 		VkPipelineLayout _pipelineLayout;
 		VkPipeline _graphicsPipeline;
 	};

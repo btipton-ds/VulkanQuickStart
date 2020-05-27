@@ -77,51 +77,48 @@ namespace VK {
 		createDescriptorSetLayout();
 		createDescriptorSets();
 
-		auto& shader = _app->getShaderPool().getShader(getShaderIdMethod());
+		/*
+			Caution!
+			The following sequence uses pointers to temporary storage. If you declare viewPort or scissorRect (for example) in the
+			setViewPortState method, their storage will roll up on the stack on function exit.
+
+			The original code was a long, continuous stream and difficult for me to read.
+
+			This is a reasonable compromise.
+
+			All the storage structures are declared in this stack frame, or stored on the heap.
+			The code which populates the members is broken out so that it's possible to see the code flow.
+
+			It may be desireable to create composite structs such as 
+
+			myViewportState {
+				VkViewport						  viewport;
+				VkRect2D						  scissorRect;
+				VkPipelineViewportStateCreateInfo viewportState;
+			}
+
+			so that dependent sub structs are colocated with their owner so that stack coherance is guaranteed.
+
+			I leave that decision to you.
+		*/
+
 		vector<VkPipelineShaderStageCreateInfo> shaderStages;
+		setShaderStages(shaderStages);
 
-		for (size_t i = 0; i < shader->_shaderModules.size(); i++) {
-			const auto& shaderModule = shader->_shaderModules[i];
-			VkPipelineShaderStageCreateInfo shaderStageInfo = {};
-			shaderStageInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
-			shaderStageInfo.stage = (i == 0) ? VK_SHADER_STAGE_VERTEX_BIT : VK_SHADER_STAGE_FRAGMENT_BIT; // TODO, add a method which sets the shader type in the pool
-			shaderStageInfo.module = shaderModule;
-			shaderStageInfo.pName = "main"; // This is the name of the shader entry point. NOT a user provided name of the shader.
-			shaderStages.push_back(shaderStageInfo);
-		}
+		VkPipelineVertexInputStateCreateInfo vertexInputInfo;
+		setVertexInputInfo(vertexInputInfo);
 
-		VkPipelineVertexInputStateCreateInfo vertexInputInfo = {};
-		vertexInputInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
+		VkPipelineInputAssemblyStateCreateInfo inputAssembly;
+		setInputAssembly(inputAssembly);
 
-		vertexInputInfo.vertexBindingDescriptionCount = 1;
-		vertexInputInfo.vertexAttributeDescriptionCount = static_cast<uint32_t>(_vertAttribDesc.size());
-		vertexInputInfo.pVertexBindingDescriptions = &_vertBindDesc;
-		vertexInputInfo.pVertexAttributeDescriptions = _vertAttribDesc.data();
+		VkViewport viewport;
+		setViewport(viewport);
 
-		VkPipelineInputAssemblyStateCreateInfo inputAssembly = {};
-		inputAssembly.sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
-		inputAssembly.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
-		inputAssembly.primitiveRestartEnable = VK_FALSE;
+		VkRect2D scissorRect;
+		setScissor(scissorRect);
 
-		VkViewport viewport = {};
-		viewport.x = 0.0f;
-		viewport.y = 0.0f;
-		const auto& swapChain = _app->getSwapChain();
-		viewport.width = (float)swapChain.swapChainExtent.width;
-		viewport.height = (float)swapChain.swapChainExtent.height;
-		viewport.minDepth = 0.0f;
-		viewport.maxDepth = 1.0f;
-
-		VkRect2D scissor = {};
-		scissor.offset = { 0, 0 };
-		scissor.extent = swapChain.swapChainExtent;
-
-		VkPipelineViewportStateCreateInfo viewportState = {};
-		viewportState.sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO;
-		viewportState.viewportCount = 1;
-		viewportState.pViewports = &viewport;
-		viewportState.scissorCount = 1;
-		viewportState.pScissors = &scissor;
+		VkPipelineViewportStateCreateInfo viewportState;
+		setViewportState(viewportState, &viewport, &scissorRect);
 
 		VkPipelineRasterizationStateCreateInfo rasterizer = {};
 		rasterizer.sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO;
@@ -191,6 +188,66 @@ namespace VK {
 		if (vkCreateGraphicsPipelines(device, VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &_graphicsPipeline) != VK_SUCCESS) {
 			throw std::runtime_error("failed to create graphics pipeline!");
 		}
+	}
+
+	void Pipeline::setShaderStages(vector<VkPipelineShaderStageCreateInfo>& shaderStages) {
+		auto& shader = _app->getShaderPool().getShader(getShaderIdMethod());
+		for (size_t i = 0; i < shader->_shaderModules.size(); i++) {
+			const auto& shaderModule = shader->_shaderModules[i];
+			VkPipelineShaderStageCreateInfo shaderStageInfo = {};
+			shaderStageInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
+			shaderStageInfo.stage = (i == 0) ? VK_SHADER_STAGE_VERTEX_BIT : VK_SHADER_STAGE_FRAGMENT_BIT; // TODO, add a method which sets the shader type in the pool
+			shaderStageInfo.module = shaderModule;
+			shaderStageInfo.pName = "main"; // This is the name of the shader entry point. NOT a user provided name of the shader.
+			shaderStages.push_back(shaderStageInfo);
+		}
+	}
+
+	void Pipeline::setVertexInputInfo(VkPipelineVertexInputStateCreateInfo& vertexInputInfo) {
+		vertexInputInfo = {};
+		vertexInputInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
+
+		vertexInputInfo.vertexBindingDescriptionCount = 1;
+		vertexInputInfo.vertexAttributeDescriptionCount = static_cast<uint32_t>(_vertAttribDesc.size());
+		vertexInputInfo.pVertexBindingDescriptions = &_vertBindDesc;
+		vertexInputInfo.pVertexAttributeDescriptions = _vertAttribDesc.data();
+	}
+
+	void Pipeline::setInputAssembly(VkPipelineInputAssemblyStateCreateInfo& inputAssembly) {
+		inputAssembly = {};
+		inputAssembly.sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
+		inputAssembly.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
+		inputAssembly.primitiveRestartEnable = VK_FALSE;
+	}
+
+	void Pipeline::setViewport(VkViewport& viewport) {
+		// TODO, we should be able to set this to values within the swap chain extent
+		const auto& extent = _app->getSwapChain().swapChainExtent;
+
+		viewport.x = 0.0f;
+		viewport.y = 0.0f;
+		viewport.width = (float)extent.width;
+		viewport.height = (float)extent.height;
+		viewport.minDepth = 0.0f;
+		viewport.maxDepth = 1.0f;
+	}
+
+	void Pipeline::setScissor(VkRect2D& scissorRect) {
+		// TODO, we should be able to set this to values within the swap chain extent
+		const auto& extent = _app->getSwapChain().swapChainExtent;
+
+		scissorRect.offset = { 0, 0 };
+		scissorRect.extent = extent;
+
+	}
+
+	void Pipeline::setViewportState(VkPipelineViewportStateCreateInfo& viewportState, VkViewport* viewportPtr, VkRect2D* scissorRect) {
+		viewportState = {};
+		viewportState.sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO;
+		viewportState.viewportCount = 1;
+		viewportState.pViewports = viewportPtr;
+		viewportState.scissorCount = 1;
+		viewportState.pScissors = scissorRect;
 	}
 
 	void Pipeline::createDescriptorPool() {
