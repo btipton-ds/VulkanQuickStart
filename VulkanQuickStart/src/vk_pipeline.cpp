@@ -48,6 +48,9 @@ namespace VK {
 	Pipeline::Pipeline(VulkanApp* app)
 		: _app(app)
 	{
+		_viewportRect.offset = { 0,0 };
+		_viewportRect.extent = _app->getSwapChain().swapChainExtent;
+		_scissorRect = _viewportRect;
 	}
 
 	Pipeline::~Pipeline() {
@@ -106,15 +109,15 @@ namespace VK {
 		Note: 
 		I chose to use the older style 'declare first, use after' pattern so the code flow is more visible.
 
-		TODO It's tempting to make this a class, possibly a singleton, just to keep the code organized. If all the methods are inlined and the class is on the stack, 
+		Note: It's tempting to make this a class, possibly a singleton, just to keep the code organized. If all the methods are inlined and the class is on the stack, 
 		there will be no performance hit.
+		However! There're a lot cross linking pointers and dependencies. Making this it's own class requires a bit too much untangling for now.
 		*/
 
 		vector<VkPipelineShaderStageCreateInfo> shaderStages;
 		VkPipelineVertexInputStateCreateInfo vertexInputInfo;
 		VkPipelineInputAssemblyStateCreateInfo inputAssembly;
 		VkViewport viewport;
-		VkRect2D scissorRect;
 		VkPipelineViewportStateCreateInfo viewportState;
 		VkPipelineRasterizationStateCreateInfo rasterizer;
 		VkPipelineMultisampleStateCreateInfo multisampling;
@@ -126,8 +129,7 @@ namespace VK {
 		setVertexInputInfo(vertexInputInfo);
 		setInputAssembly(inputAssembly);
 		setViewport(viewport);
-		setScissor(scissorRect);
-		setViewportState(viewportState, &viewport, &scissorRect);
+		setViewportState(viewportState, &viewport);
 		setRasterizer(rasterizer);
 		setMultisampling(multisampling);
 		setDepthStencil(depthStencil);
@@ -190,33 +192,21 @@ namespace VK {
 	}
 
 	inline void Pipeline::setViewport(VkViewport& viewport) {
-		// TODO, we should be able to set this to values within the swap chain extent
-		const auto& extent = _app->getSwapChain().swapChainExtent;
-
-		viewport.x = 0.0f;
-		viewport.y = 0.0f;
-		viewport.width = (float)extent.width;
-		viewport.height = (float)extent.height;
+		viewport.x = static_cast<float>(_viewportRect.offset.x);
+		viewport.y = static_cast<float>(_viewportRect.offset.y);
+		viewport.width = static_cast<float>(_viewportRect.extent.width);
+		viewport.height = static_cast<float>(_viewportRect.extent.height);
 		viewport.minDepth = 0.0f;
 		viewport.maxDepth = 1.0f;
 	}
 
-	inline void Pipeline::setScissor(VkRect2D& scissorRect) {
-		// TODO, we should be able to set this to values within the swap chain extent
-		const auto& extent = _app->getSwapChain().swapChainExtent;
-
-		scissorRect.offset = { 0, 0 };
-		scissorRect.extent = extent;
-
-	}
-
-	inline void Pipeline::setViewportState(VkPipelineViewportStateCreateInfo& viewportState, VkViewport* viewportPtr, VkRect2D* scissorRect) {
+	inline void Pipeline::setViewportState(VkPipelineViewportStateCreateInfo& viewportState, VkViewport* viewportPtr) {
 		viewportState = {};
 		viewportState.sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO;
 		viewportState.viewportCount = 1;
 		viewportState.pViewports = viewportPtr;
 		viewportState.scissorCount = 1;
-		viewportState.pScissors = scissorRect;
+		viewportState.pScissors = &_scissorRect;
 	}
 
 	inline void Pipeline::setRasterizer(VkPipelineRasterizationStateCreateInfo& rasterizer) {

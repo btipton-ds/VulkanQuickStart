@@ -69,6 +69,9 @@ namespace VK {
 		void addSceneNode(const SceneNodePtr& node);
 
 		void cleanupSwapChain();
+
+		void setViewportRect(const VkRect2D& rect);
+		void setScissorRect(const VkRect2D& rect);
 		void build();
 
 		VkPipeline getVKPipeline() const;
@@ -105,8 +108,7 @@ namespace VK {
 		void setVertexInputInfo(VkPipelineVertexInputStateCreateInfo& vertexInputInfo);
 		void setInputAssembly(VkPipelineInputAssemblyStateCreateInfo& inputAssembly);
 		void setViewport(VkViewport& viewPort);
-		void setScissor(VkRect2D& scissor);
-		void setViewportState(VkPipelineViewportStateCreateInfo& viewportState, VkViewport* viewportPtr, VkRect2D* scissor);
+		void setViewportState(VkPipelineViewportStateCreateInfo& viewportState, VkViewport* viewportPtr);
 		void setRasterizer(VkPipelineRasterizationStateCreateInfo& rasterizer);
 		void setMultisampling(VkPipelineMultisampleStateCreateInfo& multisampling);
 		void setDepthStencil(VkPipelineDepthStencilStateCreateInfo& depthStencil);
@@ -116,6 +118,7 @@ namespace VK {
 		VkCullModeFlagBits _cullMode = VK_CULL_MODE_NONE;
 		VkPolygonMode _polygonMode = VK_POLYGON_MODE_FILL;
 		float _lineWidth = 1.0f;
+		VkRect2D _viewportRect, _scissorRect;
 
 		VkPipelineLayout _pipelineLayout;
 		VkPipeline _graphicsPipeline;
@@ -131,6 +134,14 @@ namespace VK {
 
 	inline void Pipeline::setLineWidth(double width) {
 		_lineWidth = (float)width;
+	}
+
+	inline void Pipeline::setViewportRect(const VkRect2D& rect) {
+		_viewportRect = rect;
+	}
+
+	inline void Pipeline::setScissorRect(const VkRect2D& rect) {
+		_scissorRect = rect;
 	}
 
 	inline void Pipeline::addSceneNode(const SceneNodePtr& node) {
