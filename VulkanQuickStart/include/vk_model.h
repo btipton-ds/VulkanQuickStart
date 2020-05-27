@@ -43,10 +43,10 @@ This file is part of the VulkanQuickStart Project.
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/glm.hpp>
 
-#include "vk_device_context.h"
+#include "vk_deviceContext.h"
 #include "vk_buffer.h"
-#include "vk_texture_image.h"
-#include "vk_vertex_types.h"
+#include "vk_textureImage.h"
+#include "vk_vertexTypes.h"
 #include <vk_sceneNode3D.h>
 #include <vk_pipeline3D.h>
 

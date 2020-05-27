@@ -36,9 +36,9 @@ This file is part of the VulkanQuickStart Project.
 #include <fstream>
 #include <array>
 
-#include <vk_device_context.h>
+#include <vk_deviceContext.h>
 #include <vk_buffer.h>
-#include <vk_vertex_types.h>
+#include <vk_vertexTypes.h>
 #include <vk_app.h>
 
 namespace VK {

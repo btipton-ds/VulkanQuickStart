@@ -40,7 +40,7 @@ This file is part of the VulkanQuickStart Project.
 
 #include <boundingBox.h>
 #include <vulkan/vulkan_core.h>
-#include <vk_texture_image.h>
+#include <vk_textureImage.h>
 
 namespace VK {
 

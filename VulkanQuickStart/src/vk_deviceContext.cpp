@@ -33,8 +33,8 @@ This file is part of the VulkanQuickStart Project.
 
 #include "vk_buffer.h"
 #include "vk_image.h"
-#include "vk_texture_image.h"
-#include "vk_device_context.h"
+#include "vk_textureImage.h"
+#include "vk_deviceContext.h"
 
 using namespace std;
 using namespace VK;

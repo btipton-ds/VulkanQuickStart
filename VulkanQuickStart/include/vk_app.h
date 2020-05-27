@@ -44,7 +44,7 @@ This file is part of the VulkanQuickStart Project.
 #define GLM_FORCE_DEPTH_ZERO_TO_ONE
 #include <glm/glm.hpp>
 
-#include "vk_device_context.h"
+#include "vk_deviceContext.h"
 #include "vk_image.h"
 #include <vk_sceneNode.h>
 #include <vk_sceneNodeGroup.h>

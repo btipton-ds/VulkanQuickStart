@@ -32,7 +32,7 @@ This file is part of the VulkanQuickStart Project.
 #include <iostream>
 #include <cstring>
 
-#include "vk_device_context.h"
+#include "vk_deviceContext.h"
 #include "vk_buffer.h"
 
 using namespace std;

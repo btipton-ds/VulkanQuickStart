@@ -39,11 +39,11 @@ This file is part of the VulkanQuickStart Project.
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
-#include "vk_device_context.h"
+#include "vk_deviceContext.h"
 #include "vk_buffer.h"
 #include "vk_image.h"
-#include "vk_texture_image.h"
-#include "vk_vertex_types.h"
+#include "vk_textureImage.h"
+#include "vk_vertexTypes.h"
 #include "vk_model.h"
 #include <vk_modelObj.h>
 #include <vk_sceneNode.h>

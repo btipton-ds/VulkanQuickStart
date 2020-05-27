@@ -33,9 +33,9 @@ This file is part of the VulkanQuickStart Project.
 #include <algorithm>
 #include <iostream>
 
-#include "vk_device_context.h"
+#include "vk_deviceContext.h"
 #include "vk_buffer.h"
-#include "vk_texture_image.h"
+#include "vk_textureImage.h"
 
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb_image.h>

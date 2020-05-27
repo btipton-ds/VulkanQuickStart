@@ -38,7 +38,7 @@ This file is part of the VulkanQuickStart Project.
 
 #include <vulkan/vulkan_core.h>
 
-#include <vk_device_context.h>
+#include <vk_deviceContext.h>
 
 namespace VK {
 

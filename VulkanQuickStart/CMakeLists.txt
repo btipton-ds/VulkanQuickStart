@@ -58,7 +58,7 @@ add_executable (
 VulkanQuickStart
 "src/vk_app.cpp"
 "src/vk_buffer.cpp"
-"src/vk_device_context.cpp"
+"src/vk_deviceContext.cpp"
 "src/vk_image.cpp"
 "src/vk_model.cpp"  
 "src/vk_modelObj.cpp"
@@ -70,7 +70,7 @@ VulkanQuickStart
 "src/vk_sceneNodeGroup.cpp"
 "src/vk_sceneNode3d.cpp"
 "src/vk_shaderPool.cpp"
-"src/vk_texture_image.cpp"
+"src/vk_textureImage.cpp"
 "src/vk_ui_button.cpp" 
 "src/vk_ui_window.cpp"
 "src/VulkanQuickStart.cxx"
