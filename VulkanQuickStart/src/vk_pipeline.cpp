@@ -72,8 +72,6 @@ namespace VK {
 	}
 
 	void PipelineBase::build() {
-		if (_sceneNodes.empty())
-			return;
 
 		createDescriptorPool();
 		createUniformBuffers();
@@ -288,11 +286,6 @@ namespace VK {
 		if (vkCreateDescriptorPool(devCon, &poolInfo, nullptr, &_descriptorPool) != VK_SUCCESS) {
 			throw std::runtime_error("failed to create descriptor pool!");
 		}
-	}
-
-	void PipelineBase::addCommands(VkCommandBuffer cmdBuff, size_t swapChainIdx) const {
-		for (const auto& sceneNode : _sceneNodes)
-			sceneNode->addCommands(cmdBuff, _pipelineLayout, _descriptorSets[swapChainIdx]);
 	}
 
 }

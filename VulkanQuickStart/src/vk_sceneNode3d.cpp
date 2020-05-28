@@ -50,5 +50,5 @@ void SceneNode3D::updateUniformBuffer(Pipeline* pipeline, size_t swapChainIndex)
 	auto pipeline3D = dynamic_cast<PipelineVertex3D*>(pipeline);
 	auto ubo = pipeline3D->getUniformBuffer();
 	ubo.model *= _modelXForm;
-	pipeline->updateUniformBuffer(swapChainIndex, ubo);
+	pipeline->updateUniformBufferTempl(swapChainIndex, ubo);
 }

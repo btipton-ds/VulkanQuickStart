@@ -56,7 +56,7 @@ namespace VK {
 	inline void SceneNode2D::updateUniformBuffer(Pipeline* pipeline, size_t swapChainIndex) {
 		auto pipelineUi = dynamic_cast<PipelineUi*> (pipeline);
 		auto ubo = pipelineUi->getUniformBuffer();
-		pipeline->updateUniformBuffer(swapChainIndex, ubo);
+		pipeline->updateUniformBufferTempl(swapChainIndex, ubo);
 	}
 
 }

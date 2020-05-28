@@ -61,8 +61,6 @@ namespace VK {
 		void setPolygonMode(VkPolygonMode polygonMode);
 		void setLineWidth(double width);
 
-		void addSceneNode(const SceneNodePtr& node);
-
 		void cleanupSwapChain();
 
 		void setViewportRect(const VkRect2D& rect);
@@ -73,12 +71,6 @@ namespace VK {
 
 		virtual void updateUniformBuffer(size_t swapChainIndex) = 0;
 
-		template<class BUF_TYPE>
-		void updateUniformBuffer(size_t swapChainIndex, const BUF_TYPE& ubo);
-
-		void addCommands(VkCommandBuffer cmdBuff, size_t swapChainIdx) const;
-		size_t numSceneNodes() const;
-
 	protected:
 		void createDescriptorPool();
 		virtual void createDescriptorSetLayout() = 0;
@@ -87,7 +79,6 @@ namespace VK {
 		virtual std::string getShaderIdMethod() = 0;
 
 		VulkanApp* _app;
-		SceneNodeList _sceneNodes;
 
 		VkVertexInputBindingDescription _vertBindDesc;
 		std::vector<VkVertexInputAttributeDescription> _vertAttribDesc;
@@ -115,6 +106,7 @@ namespace VK {
 		float _lineWidth = 1.0f;
 		VkRect2D _viewportRect, _scissorRect;
 
+	protected:
 		VkPipelineLayout _pipelineLayout;
 		VkPipeline _graphicsPipeline;
 	};
@@ -139,21 +131,8 @@ namespace VK {
 		_scissorRect = rect;
 	}
 
-	inline void PipelineBase::addSceneNode(const SceneNodePtr& node) {
-		_sceneNodes.push_back(node);
-	}
-
 	inline VkPipeline PipelineBase::getVKPipeline() const {
 		return _graphicsPipeline;
-	}
-
-	inline size_t PipelineBase::numSceneNodes() const {
-		return _sceneNodes.size();
-	}
-
-	template<class BUF_TYPE>
-	inline void PipelineBase::updateUniformBuffer(size_t swapChainIndex, const BUF_TYPE& ubo) {
-		_uniformBuffers[swapChainIndex].update(ubo);
 	}
 
 	class Pipeline : public PipelineBase {
@@ -165,6 +144,17 @@ namespace VK {
 		static PipelinePtr create(VulkanApp* app);
 
 		Pipeline(VulkanApp* app);
+
+		void addSceneNode(const SceneNodePtr& node);
+		size_t numSceneNodes() const;
+
+		void addCommands(VkCommandBuffer cmdBuff, size_t swapChainIdx) const;
+
+		template<class BUF_TYPE>
+		void updateUniformBufferTempl(size_t swapChainIndex, const BUF_TYPE& ubo);
+
+	protected:
+		SceneNodeList _sceneNodes;
 	};
 
 	template<class PIPELINE_TYPE>
@@ -185,5 +175,24 @@ namespace VK {
 	inline Pipeline::Pipeline(VulkanApp* app)
 	: PipelineBase(app)
 	{ }
+
+	inline void Pipeline::addCommands(VkCommandBuffer cmdBuff, size_t swapChainIdx) const {
+		for (const auto& sceneNode : _sceneNodes)
+			sceneNode->addCommands(cmdBuff, _pipelineLayout, _descriptorSets[swapChainIdx]);
+	}
+
+
+	template<class BUF_TYPE>
+	inline void Pipeline::updateUniformBufferTempl(size_t swapChainIndex, const BUF_TYPE& ubo) {
+		_uniformBuffers[swapChainIndex].update(ubo);
+	}
+
+	inline void Pipeline::addSceneNode(const SceneNodePtr& node) {
+		_sceneNodes.push_back(node);
+	}
+
+	inline size_t Pipeline::numSceneNodes() const {
+		return _sceneNodes.size();
+	}
 
 }
