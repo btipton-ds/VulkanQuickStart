@@ -40,16 +40,12 @@ This file is part of the VulkanQuickStart Project.
 #include <glm/glm.hpp>
 
 #include <vulkan/vulkan_core.h>
+
+#include <vk_forwardDeclarations.h>
 #include <vk_buffer.h>
 #include <vk_sceneNode.h>
 
 namespace VK {
-
-	class VulkanApp;
-	using VulkanAppPtr = std::shared_ptr<class VulkanApp>;
-
-	class Pipeline;
-	using PipelinePtr = std::shared_ptr<Pipeline>;
 
 	class PipelineBase {
 	public:
@@ -70,6 +66,8 @@ namespace VK {
 		VkPipeline getVKPipeline() const;
 
 		virtual void updateUniformBuffer(size_t swapChainIndex) = 0;
+		template<class BUF_TYPE>
+		void updateUniformBufferTempl(size_t swapChainIndex, const BUF_TYPE& ubo);
 
 	protected:
 		void createDescriptorPool();
@@ -135,6 +133,11 @@ namespace VK {
 		return _graphicsPipeline;
 	}
 
+	template<class BUF_TYPE>
+	inline void PipelineBase::updateUniformBufferTempl(size_t swapChainIndex, const BUF_TYPE& ubo) {
+		_uniformBuffers[swapChainIndex].update(ubo);
+	}
+
 	class Pipeline : public PipelineBase {
 	public:
 		template<class PIPELINE_TYPE>
@@ -149,9 +152,6 @@ namespace VK {
 		size_t numSceneNodes() const;
 
 		void addCommands(VkCommandBuffer cmdBuff, size_t swapChainIdx) const;
-
-		template<class BUF_TYPE>
-		void updateUniformBufferTempl(size_t swapChainIndex, const BUF_TYPE& ubo);
 
 	protected:
 		SceneNodeList _sceneNodes;
@@ -181,11 +181,6 @@ namespace VK {
 			sceneNode->addCommands(cmdBuff, _pipelineLayout, _descriptorSets[swapChainIdx]);
 	}
 
-
-	template<class BUF_TYPE>
-	inline void Pipeline::updateUniformBufferTempl(size_t swapChainIndex, const BUF_TYPE& ubo) {
-		_uniformBuffers[swapChainIndex].update(ubo);
-	}
 
 	inline void Pipeline::addSceneNode(const SceneNodePtr& node) {
 		_sceneNodes.push_back(node);

@@ -45,7 +45,7 @@ void SceneNodeGroup::buildImageInfoList(std::vector<VkDescriptorImageInfo>& imag
 	}
 }
 
-void SceneNodeGroup::updateUniformBuffer(Pipeline* pipeline, size_t swapChainIndex) {
+void SceneNodeGroup::updateUniformBuffer(PipelineBase* pipeline, size_t swapChainIndex) {
 	for (const auto& child : _childScenes) {
 		child->updateUniformBuffer(pipeline, swapChainIndex);
 	}

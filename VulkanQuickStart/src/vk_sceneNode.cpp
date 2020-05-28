@@ -33,6 +33,8 @@ This file is part of the VulkanQuickStart Project.
 
 namespace VK {
 
+	void SceneNode::updateUniformBuffer(PipelineBase* pipeline, size_t swapChainIndex) {
 
+	}
 
 }

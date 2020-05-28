@@ -31,14 +31,11 @@ This file is part of the VulkanQuickStart Project.
 
 #include <defines.h>
 
+#include <vk_forwardDeclarations.h>
 #include <vk_sceneNode.h>
 
 namespace VK {
 
-
-	class SceneNodeGroup;
-	using SceneNodeGroupPtr = std::shared_ptr<SceneNodeGroup>;
-	using SceneNodeGroupConstPtr = std::shared_ptr<const SceneNodeGroup>;
 
 	class SceneNodeGroup : public SceneNode {
 	public:
@@ -47,7 +44,7 @@ namespace VK {
 
 		void addCommands(VkCommandBuffer cmdBuff, VkPipelineLayout pipelineLayout, const VkDescriptorSet& descSet) const override;
 		void buildImageInfoList(std::vector<VkDescriptorImageInfo>& imageInfoList) const override;
-		void updateUniformBuffer(Pipeline* pipeline, size_t swapChainIndex) override;
+		void updateUniformBuffer(PipelineBase* pipeline, size_t swapChainIndex) override;
 
 
 		template<typename FUNC_TYPE>

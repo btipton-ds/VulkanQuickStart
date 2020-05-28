@@ -43,6 +43,7 @@ This file is part of the VulkanQuickStart Project.
 #include <vk_textureImage.h>
 
 namespace VK {
+	class PipelineBase;
 
 	class Pipeline;
 	using PipelinePtr = std::shared_ptr<Pipeline>;
@@ -66,7 +67,7 @@ namespace VK {
 
 		virtual void addCommands(VkCommandBuffer cmdBuff, VkPipelineLayout pipelineLayout, const VkDescriptorSet& descSet) const = 0;
 		virtual void buildImageInfoList(std::vector<VkDescriptorImageInfo>& imageInfoList) const = 0;
-		virtual void updateUniformBuffer(Pipeline* pipeline, size_t swapChainIndex) = 0;
+		virtual void updateUniformBuffer(PipelineBase* pipeline, size_t swapChainIndex);
 
 	};
 

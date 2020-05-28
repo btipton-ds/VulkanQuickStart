@@ -41,7 +41,7 @@ namespace VK {
 		SceneNode2D();
 		virtual ~SceneNode2D();
 
-		void updateUniformBuffer(Pipeline* pipeline, size_t swapChainIndex) override;
+		void updateUniformBuffer(PipelineBase* pipeline, size_t swapChainIndex) override;
 
 	};
 	using SceneNode2DPtr = std::shared_ptr<SceneNode2D>;
@@ -53,7 +53,7 @@ namespace VK {
 	inline SceneNode2D::~SceneNode2D() {
 	}
 
-	inline void SceneNode2D::updateUniformBuffer(Pipeline* pipeline, size_t swapChainIndex) {
+	inline void SceneNode2D::updateUniformBuffer(PipelineBase* pipeline, size_t swapChainIndex) {
 		auto pipelineUi = dynamic_cast<PipelineUi*> (pipeline);
 		auto ubo = pipelineUi->getUniformBuffer();
 		pipeline->updateUniformBufferTempl(swapChainIndex, ubo);
