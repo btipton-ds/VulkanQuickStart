@@ -62,10 +62,7 @@ string PipelineVertex3D::getShaderIdMethod() {
 
 PipelineVertex3D::PipelineVertex3D(VulkanApp* app)
 	: Pipeline(app)
-{
-	_vertBindDesc = Vertex3_PNCTf::getBindingDescription();
-	_vertAttribDesc = Vertex3_PNCTf::getAttributeDescriptions();
-}
+{}
 
 namespace {
 	inline glm::vec3 conv(const Vector3f& pt) {

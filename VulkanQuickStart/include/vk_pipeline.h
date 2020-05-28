@@ -35,7 +35,7 @@ This file is part of the VulkanQuickStart Project.
 
 namespace VK {
 
-	template<class UBO_TYPE>
+	template<class UBO_TYPE, class VERT_TYPE>
 	class Pipeline : public PipelineBase {
 	public:
 		using SceneNode = SceneNode<Pipeline>;
@@ -68,25 +68,28 @@ namespace VK {
 		return PipelinePtr<PIPELINE_TYPE>(ptr);
 	}
 
-	template<class UBO_TYPE>
-	inline Pipeline<UBO_TYPE>::Pipeline(VulkanApp* app)
+	template<class UBO_TYPE, class VERT_TYPE>
+	inline Pipeline<UBO_TYPE, VERT_TYPE>::Pipeline(VulkanApp* app)
 	: PipelineBase(app)
-	{ }
+	{ 
+		_vertBindDesc = VERT_TYPE::getBindingDescription();
+		_vertAttribDesc = VERT_TYPE::getAttributeDescriptions();
+	}
 
-	template<class UBO_TYPE>
-	inline void Pipeline<UBO_TYPE>::addCommands(VkCommandBuffer cmdBuff, size_t swapChainIdx) const {
+	template<class UBO_TYPE, class VERT_TYPE>
+	inline void Pipeline<UBO_TYPE, VERT_TYPE>::addCommands(VkCommandBuffer cmdBuff, size_t swapChainIdx) const {
 		for (const auto& sceneNode : _sceneNodes)
 			sceneNode->addCommands(cmdBuff, _pipelineLayout, _descriptorSets[swapChainIdx]);
 	}
 
 
-	template<class UBO_TYPE>
-	inline void Pipeline<UBO_TYPE>::addSceneNode(const SceneNodePtr& node) {
+	template<class UBO_TYPE, class VERT_TYPE>
+	inline void Pipeline<UBO_TYPE, VERT_TYPE>::addSceneNode(const SceneNodePtr& node) {
 		_sceneNodes.push_back(node);
 	}
 
-	template<class UBO_TYPE>
-	inline size_t Pipeline<UBO_TYPE>::numSceneNodes() const {
+	template<class UBO_TYPE, class VERT_TYPE>
+	inline size_t Pipeline<UBO_TYPE, VERT_TYPE>::numSceneNodes() const {
 		return _sceneNodes.size();
 	}
 

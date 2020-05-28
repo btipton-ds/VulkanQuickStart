@@ -34,10 +34,11 @@ This file is part of the VulkanQuickStart Project.
 #include <boundingBox.h>
 #include <vk_pipeline.h>
 #include <vk_uniformBuffers.h>
+#include <vk_vertexTypes.h>
 
 namespace VK {
 
-	class PipelineVertex3D : public Pipeline<UniformBufferObject3D> {
+	class PipelineVertex3D : public Pipeline<UniformBufferObject3D, Vertex3_PNCTf> {
 	public:
 		using UniformBufferObject = UniformBufferObject3D;
 		using BoundingBox = CBoundingBox3D<float>;

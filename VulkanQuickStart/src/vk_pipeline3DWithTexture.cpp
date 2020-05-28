@@ -88,10 +88,7 @@ string PipelineVertex3DWSampler::getShaderIdMethod() {
 
 PipelineVertex3DWSampler::PipelineVertex3DWSampler(VulkanApp* app)
 	: Pipeline(app)
-{
-	_vertBindDesc = Vertex3_PNCTf::getBindingDescription();
-	_vertAttribDesc = Vertex3_PNCTf::getAttributeDescriptions();
-}
+{}
 
 void PipelineVertex3DWSampler::createUniformBuffers() {
 	auto& device = _app->getDeviceContext();

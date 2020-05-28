@@ -96,13 +96,13 @@ namespace VK::UI {
 
 	void Button::createGeometryBuffers(const VulkanAppPtr& app) {
 		using namespace glm;
-		vector<Vertex2D> vertices;
+		vector<VertexType> vertices;
 		vector<uint32_t> indices;
 
-		vertices.push_back(Vertex2D(vec2(_rect._left, _rect._bottom), vec2(0, 0)));
-		vertices.push_back(Vertex2D(vec2(_rect._right, _rect._bottom), vec2(1, 0)));
-		vertices.push_back(Vertex2D(vec2(_rect._right, _rect._top), vec2(1, 1)));
-		vertices.push_back(Vertex2D(vec2(_rect._left, _rect._top), vec2(0, 1)));
+		vertices.push_back(VertexType(vec2(_rect._left, _rect._bottom), vec2(0, 0)));
+		vertices.push_back(VertexType(vec2(_rect._right, _rect._bottom), vec2(1, 0)));
+		vertices.push_back(VertexType(vec2(_rect._right, _rect._top), vec2(1, 1)));
+		vertices.push_back(VertexType(vec2(_rect._left, _rect._top), vec2(0, 1)));
 
 		indices.push_back(0);
 		indices.push_back(1);

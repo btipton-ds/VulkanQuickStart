@@ -62,7 +62,7 @@ namespace VK {
 
 		class Button : public SceneNodeUi {
 		public:
-			using Vertex2D = PipelineUi::Vertex2D;
+			using VertexType = PipelineUi::VertexType;
 			enum ActionType {
 				ACT_ENTER,
 				ACT_EXIT,

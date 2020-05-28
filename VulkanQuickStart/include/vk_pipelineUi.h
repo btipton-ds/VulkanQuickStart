@@ -34,6 +34,7 @@ This file is part of the VulkanQuickStart Project.
 #include <memory>
 
 #include <vk_pipeline.h>
+#include <vk_vertexTypes.h>
 
 namespace VK {
 
@@ -43,23 +44,24 @@ namespace VK {
 		glm::vec4 _color;
 	};
 
-	class PipelineUi : public Pipeline<UniformBufferObjectUi> {
+	struct VertexUi {
+		VertexUi() = default;
+		VertexUi(const VertexUi& src) = default;
+		VertexUi(const glm::vec2& pos, const glm::vec2& tc);
+
+		static VkVertexInputBindingDescription getBindingDescription();
+		static std::vector<VkVertexInputAttributeDescription> getAttributeDescriptions();
+		bool operator==(const VertexUi& other) const;
+
+		glm::vec2 _pos;
+		glm::vec2 _texCoord;
+	};
+
+	class PipelineUi : public Pipeline<UniformBufferObjectUi, VertexUi> {
 	public:
 		using UniformBufferObject = UniformBufferObjectUi;
 		using PipelinePtr = std::shared_ptr<PipelineUi>;
-
-		struct Vertex2D {
-			Vertex2D() = default;
-			Vertex2D(const Vertex2D& src) = default;
-			Vertex2D(const glm::vec2& pos, const glm::vec2& tc);
-
-			static VkVertexInputBindingDescription getBindingDescription();
-			static std::vector<VkVertexInputAttributeDescription> getAttributeDescriptions();
-			bool operator==(const Vertex2D& other) const;
-
-			glm::vec2 _pos;
-			glm::vec2 _texCoord;
-		};
+		using VertexType = VertexUi;
 
 		static std::string getShaderId();
 		PipelineUi(VulkanApp* app);
@@ -75,7 +77,7 @@ namespace VK {
 		UniformBufferObject _ubo;
 	};
 	
-	inline PipelineUi::Vertex2D::Vertex2D(const glm::vec2& pos, const glm::vec2& tc)
+	inline VertexUi::VertexUi(const glm::vec2& pos, const glm::vec2& tc)
 		: _pos(pos)
 		, _texCoord(tc)
 	{ }

@@ -49,8 +49,6 @@ PipelineUi::PipelineUi(VulkanApp* app)
 	: Pipeline(app)
 {
 	_ubo._color = glm::vec4(1, 0, 0, 1);
-	_vertBindDesc = Vertex2D::getBindingDescription();
-	_vertAttribDesc = Vertex2D::getAttributeDescriptions();
 	auto& shaders = app->getShaderPool();
 	if (!shaders.getShader(getShaderId()))
 		shaders.addShader(getShaderId(), { "shaders/shader_ui_vert.spv", "shaders/shader_ui_frag.spv" });
@@ -181,23 +179,23 @@ void PipelineUi::createDescriptorSets() {
 	}
 }
 
-VkVertexInputBindingDescription PipelineUi::Vertex2D::getBindingDescription() {
+VkVertexInputBindingDescription VertexUi::getBindingDescription() {
 	VkVertexInputBindingDescription bindingDescription = {};
 	bindingDescription.binding = 0;
-	bindingDescription.stride = sizeof(Vertex2D);
+	bindingDescription.stride = sizeof(VertexUi);
 	bindingDescription.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
 
 	return bindingDescription;
 }
 
-std::vector<VkVertexInputAttributeDescription> PipelineUi::Vertex2D::getAttributeDescriptions() {
+std::vector<VkVertexInputAttributeDescription> VertexUi::getAttributeDescriptions() {
 	std::vector<VkVertexInputAttributeDescription> attributeDescriptions;
 
 	VkVertexInputAttributeDescription posDesc = {};
 	posDesc.binding = 0;
 	posDesc.location = 0;
 	posDesc.format = VK_FORMAT_R32G32_SFLOAT;
-	posDesc.offset = offsetof(Vertex2D, _pos);
+	posDesc.offset = offsetof(VertexUi, _pos);
 	attributeDescriptions.push_back(posDesc);
 
 #if 1
@@ -205,14 +203,14 @@ std::vector<VkVertexInputAttributeDescription> PipelineUi::Vertex2D::getAttribut
 	texDesc.binding = 0;
 	texDesc.location = 1;
 	texDesc.format = VK_FORMAT_R32G32_SFLOAT;
-	texDesc.offset = offsetof(Vertex2D, _texCoord);
+	texDesc.offset = offsetof(VertexUi, _texCoord);
 	attributeDescriptions.push_back(texDesc);
 #endif
 
 	return attributeDescriptions;
 }
 
-bool PipelineUi::Vertex2D::operator==(const Vertex2D& other) const {
+bool VertexUi::operator==(const VertexUi& other) const {
 	return _pos == other._pos /* && _texCoord == other._texCoord */;
 }
 

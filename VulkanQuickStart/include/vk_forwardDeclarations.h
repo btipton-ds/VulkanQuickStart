@@ -53,7 +53,7 @@ namespace VK {
 
 	class PipelineBase;
 	using PipelineBasePtr = std::shared_ptr<PipelineBase>;
-	template<class UBO_TYPE>
+	template<class UBO_TYPE, class VERT_TYPE>
 	class Pipeline;
 	template<class PIPELINE_TYPE>
 	using PipelinePtr = std::shared_ptr<PIPELINE_TYPE>;
