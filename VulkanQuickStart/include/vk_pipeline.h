@@ -65,6 +65,9 @@ namespace VK {
 
 		VkPipeline getVKPipeline() const;
 
+		virtual size_t numSceneNodes() const;
+		virtual void addCommands(VkCommandBuffer cmdBuff, size_t swapChainIdx) const = 0;
+
 		virtual void updateUniformBuffer(size_t swapChainIndex) = 0;
 		template<class BUF_TYPE>
 		void updateUniformBufferTempl(size_t swapChainIndex, const BUF_TYPE& ubo);
@@ -138,55 +141,59 @@ namespace VK {
 		_uniformBuffers[swapChainIndex].update(ubo);
 	}
 
+	template<class UBO_TYPE>
 	class Pipeline : public PipelineBase {
 	public:
-		template<class PIPELINE_TYPE>
-		static PipelinePtr createWithSource(VulkanApp* app, const std::string& vertShaderFilename, const std::string& fragShaderFilename);
-
-		template<class PIPELINE_TYPE>
-		static PipelinePtr create(VulkanApp* app);
+		using PipelinePtr = std::shared_ptr<Pipeline>;
+		using SceneNode = SceneNode<Pipeline>;
+		using SceneNodePtr = std::shared_ptr<SceneNode>;
+		using SceneNodeList = std::vector<SceneNodePtr>;
 
 		Pipeline(VulkanApp* app);
 
 		void addSceneNode(const SceneNodePtr& node);
-		size_t numSceneNodes() const;
+		size_t numSceneNodes() const override;
 
-		void addCommands(VkCommandBuffer cmdBuff, size_t swapChainIdx) const;
+		void addCommands(VkCommandBuffer cmdBuff, size_t swapChainIdx) const override;
 
 	protected:
 		SceneNodeList _sceneNodes;
 	};
 
 	template<class PIPELINE_TYPE>
-	inline PipelinePtr Pipeline::createWithSource(VulkanApp* app, const std::string& vertShaderFilename, const std::string& fragShaderFilename) {
+	inline typename PIPELINE_TYPE::PipelinePtr createPipelineWithSource(VulkanApp* app, const std::string& vertShaderFilename, const std::string& fragShaderFilename) {
 		auto& shaders = app->getShaderPool();
 		const std::string shaderId = PIPELINE_TYPE::getShaderId();
 		if (!shaders.getShader(shaderId))
 			shaders.addShader(shaderId, { vertShaderFilename , fragShaderFilename });
-		return create<PIPELINE_TYPE>(app);
+		return createPipeline<PIPELINE_TYPE>(app);
 	}
 
 	template<class PIPELINE_TYPE>
-	inline PipelinePtr Pipeline::create(VulkanApp* app) {
+	inline typename PIPELINE_TYPE::PipelinePtr createPipeline(VulkanApp* app) {
 		PIPELINE_TYPE* ptr = new PIPELINE_TYPE(app);
-		return std::shared_ptr<Pipeline>(ptr);
+		return PipelinePtr<PIPELINE_TYPE>(ptr);
 	}
 
-	inline Pipeline::Pipeline(VulkanApp* app)
+	template<class UBO_TYPE>
+	inline Pipeline<UBO_TYPE>::Pipeline(VulkanApp* app)
 	: PipelineBase(app)
 	{ }
 
-	inline void Pipeline::addCommands(VkCommandBuffer cmdBuff, size_t swapChainIdx) const {
+	template<class UBO_TYPE>
+	inline void Pipeline<UBO_TYPE>::addCommands(VkCommandBuffer cmdBuff, size_t swapChainIdx) const {
 		for (const auto& sceneNode : _sceneNodes)
 			sceneNode->addCommands(cmdBuff, _pipelineLayout, _descriptorSets[swapChainIdx]);
 	}
 
 
-	inline void Pipeline::addSceneNode(const SceneNodePtr& node) {
+	template<class UBO_TYPE>
+	inline void Pipeline<UBO_TYPE>::addSceneNode(const SceneNodePtr& node) {
 		_sceneNodes.push_back(node);
 	}
 
-	inline size_t Pipeline::numSceneNodes() const {
+	template<class UBO_TYPE>
+	inline size_t Pipeline<UBO_TYPE>::numSceneNodes() const {
 		return _sceneNodes.size();
 	}
 

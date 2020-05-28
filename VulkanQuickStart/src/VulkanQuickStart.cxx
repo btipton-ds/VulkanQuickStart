@@ -69,6 +69,7 @@ const std::string stlFilenameFine = "test_part_fine.stl";
 
 VulkanAppPtr gApp;
 
+#if TEST_GUI
 void buildUi(UI::Window& gui) {
 	glm::vec4 bkgColor(0.875f, 0.875f, 0.875f, 1);
 	uint32_t w = 80;
@@ -83,6 +84,7 @@ void buildUi(UI::Window& gui) {
 
 	gui.addButton(UI::Button(bkgColor, "Button 2", UI::Rect(row, 0, row + h, w)));
 }
+#endif
 
 int main(int numArgs, char** args) {
 	gApp = make_shared<VulkanApp>(1618, 1000);

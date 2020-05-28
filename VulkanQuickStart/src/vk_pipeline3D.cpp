@@ -96,15 +96,13 @@ namespace VK {
 
 	void PipelineVertex3D::updateUniformBuffer(size_t swapChainIndex) {
 		BoundingBox modelBounds;
-		_app->getRoot3D()->traverse([&](const SceneNodePtr& node) {
-			auto node3D = dynamic_pointer_cast<const SceneNode3D>(node);
-			if (node3D) {
-				auto bb = node3D->getBounds();
-				const auto& xform = node3D->getModelTransform();
-				bb = transform(bb, xform);
-				modelBounds.merge(bb);
-			}
-		});
+		for (auto& sceneNode : _sceneNodes) {
+			SceneNode3DPtr node3D = dynamic_pointer_cast<SceneNode3D> (sceneNode);
+			auto bb = node3D->getBounds();
+			const auto& xform = node3D->getModelTransform();
+			bb = transform(bb, xform);
+			modelBounds.merge(bb);
+		}
 
 		_ubo = {};
 		_ubo.ambient = 0.10f;

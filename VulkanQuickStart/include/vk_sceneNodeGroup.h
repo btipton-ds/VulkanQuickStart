@@ -46,40 +46,13 @@ namespace VK {
 		void buildImageInfoList(std::vector<VkDescriptorImageInfo>& imageInfoList) const override;
 		void updateUniformBuffer(PipelineBase* pipeline, size_t swapChainIndex) override;
 
-
-		template<typename FUNC_TYPE>
-		inline void traverse(FUNC_TYPE func) const {
-			for (const auto& child : _childScenes) {
-				SceneNodeGroupConstPtr gr = std::dynamic_pointer_cast<const SceneNodeGroup> (child);
-				if (gr) {
-					gr->traverse(func);
-				}
-				else {
-					func(child);
-				}
-			}
-		}
-
-		template<typename FUNC_TYPE>
-		inline void traverse(FUNC_TYPE func) {
-			for (auto& child : _childScenes) {
-				SceneNodeGroupConstPtr gr = std::dynamic_pointer_cast<const SceneNodeGroup> (child);
-				if (gr) {
-					gr->traverse(func);
-				}
-				else {
-					func(child);
-				}
-			}
-		}
-
 		size_t numChildNodes() const;
-		size_t addChild(const SceneNodePtr& child);
-		const SceneNodePtr& getChild(size_t index) const;
-		SceneNodePtr& getChild(size_t index);
+		size_t addChild(const SceneNodeBasePtr& child);
+		const SceneNodeBasePtr& getChild(size_t index) const;
+		SceneNodeBasePtr& getChild(size_t index);
 
 	private:
-		std::vector<SceneNodePtr> _childScenes;
+		std::vector<SceneNodeBasePtr> _childScenes;
 	};
 
 	inline SceneNodeGroup::SceneNodeGroup() {
@@ -94,17 +67,17 @@ namespace VK {
 		return _childScenes.size();
 	}
 
-	inline size_t SceneNodeGroup::addChild(const SceneNodePtr& child) {
+	inline size_t SceneNodeGroup::addChild(const SceneNodeBasePtr& child) {
 		size_t result = _childScenes.size();
 		_childScenes.push_back(child);
 		return result;
 	}
 
-	inline const SceneNodePtr& SceneNodeGroup::getChild(size_t index) const {
+	inline const SceneNodeBasePtr& SceneNodeGroup::getChild(size_t index) const {
 		return _childScenes[index];
 	}
 
-	inline SceneNodePtr& SceneNodeGroup::getChild(size_t index) {
+	inline SceneNodeBasePtr& SceneNodeGroup::getChild(size_t index) {
 		return _childScenes[index];
 	}
 

@@ -82,7 +82,9 @@ namespace VK {
 
 		SceneNode3DPtr addSceneNode3D(const std::string& modelFilename, const std::string& imageFilename);
 		SceneNode3DPtr addSceneNode3D(const TriMesh::CMeshPtr& mesh);
-		const PipelinePtr& addPipeline(const PipelinePtr& pipeline);
+
+		template<class UBO_TYPE>
+		const PipelinePtr<UBO_TYPE>& addPipeline(const PipelinePtr<UBO_TYPE>& pipeline);
 
 		const ScenePtr& getScene() const;
 		void setScene(const ScenePtr& scene);
@@ -158,7 +160,7 @@ namespace VK {
 		void createCommandBuffers();
 		void drawCmdBufferLoop(size_t swapChainIndex,
 			VkCommandBufferBeginInfo& beginInfo, VkRenderPassBeginInfo& renderPassInfo);
-		void drawPipeline(size_t swapChainIndex, const PipelinePtr& pipeline);
+		void drawPipeline(size_t swapChainIndex, const PipelineBasePtr& pipeline);
 		void createSyncObjects();
 		void updateUniformBuffer(uint32_t swapChainImageIndex);
 		void reportFPS();
@@ -197,7 +199,7 @@ namespace VK {
 			_pipelineSamplerIdx = stm1,
 			_pipelineUiIdx = stm1;
 		ShaderPoolPtr _shaderPool;
-		std::vector<PipelinePtr> _pipelines;
+		std::vector<PipelineBasePtr> _pipelines;
 
 		Image colorImage, depthImage;
 
@@ -288,6 +290,12 @@ namespace VK {
 
 	inline ShaderPool& VulkanApp::getShaderPool() {
 		return *_shaderPool;
+	}
+
+	template<class UBO_TYPE>
+	inline const PipelinePtr<UBO_TYPE>& VulkanApp::addPipeline(const PipelinePtr<UBO_TYPE>& pipeline) {
+		_pipelines.push_back(pipeline);
+		return pipeline;
 	}
 
 }

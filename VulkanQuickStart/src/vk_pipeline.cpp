@@ -57,6 +57,10 @@ namespace VK {
 		cleanupSwapChain();
 	}
 
+	size_t PipelineBase::numSceneNodes() const {
+		return 0;
+	}
+
 	void PipelineBase::cleanupSwapChain() {
 		if (_uniformBuffers.empty())
 			return;

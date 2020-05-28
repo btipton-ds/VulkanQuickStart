@@ -41,7 +41,7 @@ This file is part of the VulkanQuickStart Project.
 
 namespace VK {
 
-	class SceneNode3D : public SceneNode {
+	class SceneNode3D : public PipelineVertex3D::SceneNode {
 	public:
 		using BoundingBox = PipelineVertex3D::BoundingBox;
 		using UniformBufferObject = PipelineVertex3D::UniformBufferObject;

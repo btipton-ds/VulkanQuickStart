@@ -113,6 +113,8 @@ namespace VK {
 			Buffer _vertexBuffer, _indexBuffer;
 		};
 
+		using ButtonPtr = std::shared_ptr<Button>;
+
 		inline Rect::Rect(uint32_t bottom, uint32_t left, uint32_t top, uint32_t right) 
 			: _bottom(bottom)
 			, _left(left)

@@ -34,47 +34,58 @@ This file is part of the VulkanQuickStart Project.
 #include <memory>
 #include <vector>
 
-#define GLM_FORCE_RADIANS
-#define GLM_FORCE_DEPTH_ZERO_TO_ONE
-#include <glm/glm.hpp>
-
-#include <boundingBox.h>
-#include <vulkan/vulkan_core.h>
-
-#include <vk_forwardDeclarations.h>
-#include <vk_textureImage.h>
+/*
+	This file is not strictly required, but it reduces the work if the forward declrations change. You only have to change each one once.
+*/
 
 namespace VK {
+	struct DeviceContext;
+	struct Buffer;
 
-	class SceneNodeBase {
-	public:
-		SceneNodeBase();
-		virtual ~SceneNodeBase();
+	class TextureImage;
+	using TextureImagePtr = std::shared_ptr<TextureImage>;
 
-		virtual void addCommands(VkCommandBuffer cmdBuff, VkPipelineLayout pipelineLayout, const VkDescriptorSet& descSet) const = 0;
-		virtual void buildImageInfoList(std::vector<VkDescriptorImageInfo>& imageInfoList) const = 0;
-		virtual void updateUniformBuffer(PipelineBase* pipeline, size_t swapChainIndex);
+	class VulkanApp;
+	using VulkanAppPtr = std::shared_ptr<class VulkanApp>;
 
-	};
+	class ShaderPool;
+	using ShaderPoolPtr = std::shared_ptr<ShaderPool>;
 
-	inline SceneNodeBase::SceneNodeBase() {
-	}
+	class PipelineBase;
+	using PipelineBasePtr = std::shared_ptr<PipelineBase>;
+	template<class UBO_TYPE>
+	class Pipeline;
+	template<class PIPELINE_TYPE>
+	using PipelinePtr = std::shared_ptr<PIPELINE_TYPE>;
 
-	inline SceneNodeBase::~SceneNodeBase() {
-	}
+	struct UniformBufferObjectUi;
+	using PipelineUiPtr = std::shared_ptr<Pipeline<UniformBufferObjectUi>>;
 
-	/*********************************/
+	struct UniformBufferObject3D;
+	using PipelineVertex3DPtr = std::shared_ptr<Pipeline<UniformBufferObject3D>>;
+
+	class SceneNodeBase;
+	using SceneNodeBasePtr = std::shared_ptr<SceneNodeBase>;
 
 	template<class PIPELINE_TYPE>
-	class SceneNode : public SceneNodeBase {
-	public:
-		SceneNode();
+	class SceneNode;
 
-	};
+	class SceneNodeGroup;
+	using SceneNodeGroupPtr = std::shared_ptr<SceneNodeGroup>;
+	using SceneNodeGroupConstPtr = std::shared_ptr<const SceneNodeGroup>;
 
-	template<class PIPELINE_TYPE>
-	inline SceneNode<PIPELINE_TYPE>::SceneNode()
-	{
+	class Model;
+	using ModelPtr = std::shared_ptr<Model>;
+
+	class Scene;
+	using ScenePtr = std::shared_ptr<Scene>;
+
+	namespace UI {
+		class Window;
+		using WindowPtr = std::shared_ptr<Window>;
+
+		class Button;
+		using ButtonPtr = std::shared_ptr<Button>;
 	}
 
 }

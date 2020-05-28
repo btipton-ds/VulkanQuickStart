@@ -126,7 +126,7 @@ namespace VK {
 		return dynamic_pointer_cast<const SceneNodeGroup> (_scene->getRootSceneNode(_root3DNode));
 	}
 	SceneNodeGroupPtr VulkanApp::getRoot3D() {
-		SceneNodePtr n = _scene->getRootSceneNode(_root3DNode);
+		SceneNodeBasePtr n = _scene->getRootSceneNode(_root3DNode);
 		return dynamic_pointer_cast<SceneNodeGroup> (n);
 	}
 
@@ -155,10 +155,9 @@ namespace VK {
 	SceneNode3DPtr VulkanApp::addSceneNode3D(const std::string& modelFilename, const std::string& imageFilename) {
 		std::lock_guard<mutex> guard(_swapChainMutex);
 		ModelPtr result = ModelObj::create(deviceContext, modelFilename, imageFilename);
-		SceneNodePtr n = result;
 		getRoot3D()->addChild(result);
 
-		auto pipeline = addPipeline(Pipeline::createWithSource<PipelineVertex3DWSampler>(this, "shaders/shader_depth_vert.spv", "shaders/shader_depth_frag.spv"));
+		auto pipeline = createPipelineWithSource<PipelineVertex3DWSampler>(this, "shaders/shader_depth_vert.spv", "shaders/shader_depth_frag.spv");
 		pipeline->addSceneNode(result);
 
 		_changeNumber++;
@@ -168,20 +167,16 @@ namespace VK {
 
 	SceneNode3DPtr VulkanApp::addSceneNode3D(const TriMesh::CMeshPtr& mesh) {
 		std::lock_guard<mutex> guard(_swapChainMutex);
-		auto result = Model::create(deviceContext, mesh);
+		ModelPtr result = Model::create(deviceContext, mesh);
 		getRoot3D()->addChild(result);
 
-		auto pipeline = addPipeline(Pipeline::createWithSource<PipelineVertex3D>(this, "shaders/shader_vert.spv", "shaders/shader_frag.spv"));
+		auto p = createPipelineWithSource<PipelineVertex3D>(this, "shaders/shader_vert.spv", "shaders/shader_frag.spv");
+		auto pipeline = addPipeline(p);
 		pipeline->addSceneNode(result);
 
 		_changeNumber++;
 
 		return result;
-	}
-
-	const PipelinePtr& VulkanApp::addPipeline(const PipelinePtr& pipeline) {
-		_pipelines.push_back(pipeline);
-		return pipeline;
 	}
 
 	void VulkanApp::run() {
@@ -796,7 +791,7 @@ namespace VK {
 		}
 	}
 
-	void VulkanApp::drawPipeline(size_t swapChainIndex, const PipelinePtr& pipeline) {
+	void VulkanApp::drawPipeline(size_t swapChainIndex, const PipelineBasePtr& pipeline) {
 		auto& cmdBuff = commandBuffers[swapChainIndex];
 		pipeline->addCommands(cmdBuff, swapChainIndex);
 	}

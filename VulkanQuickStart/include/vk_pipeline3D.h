@@ -36,19 +36,21 @@ This file is part of the VulkanQuickStart Project.
 
 namespace VK {
 
-	class PipelineVertex3D : public Pipeline {
+	struct UniformBufferObject3D {
+		alignas(16) float ambient;
+
+		alignas(16) glm::mat4 model;
+		alignas(16) glm::mat4 view;
+		alignas(16) glm::mat4 proj;
+		alignas(16) int numLights;
+		alignas(16) glm::vec3 lightDir[2];
+	};
+
+	class PipelineVertex3D : public Pipeline<UniformBufferObject3D> {
 	public:
-		struct UniformBufferObject {
-			alignas(16) float ambient;
-
-			alignas(16) glm::mat4 model;
-			alignas(16) glm::mat4 view;
-			alignas(16) glm::mat4 proj;
-			alignas(16) int numLights;
-			alignas(16) glm::vec3 lightDir[2];
-		};
-
+		using UniformBufferObject = UniformBufferObject3D;
 		using BoundingBox = CBoundingBox3D<float>;
+
 
 		static std::string getShaderId();
 

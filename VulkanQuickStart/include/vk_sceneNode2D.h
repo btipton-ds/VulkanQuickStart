@@ -36,7 +36,7 @@ This file is part of the VulkanQuickStart Project.
 
 namespace VK {
 
-	class SceneNode2D : public SceneNode {
+	class SceneNode2D : public PipelineUi::SceneNode {
 	public:
 		SceneNode2D();
 		virtual ~SceneNode2D();
@@ -44,8 +44,6 @@ namespace VK {
 		void updateUniformBuffer(PipelineBase* pipeline, size_t swapChainIndex) override;
 
 	};
-	using SceneNode2DPtr = std::shared_ptr<SceneNode2D>;
-	using SceneNode2DConstPtr = std::shared_ptr<const SceneNode2D>;
 
 	inline SceneNode2D::SceneNode2D() {
 	}
@@ -58,5 +56,5 @@ namespace VK {
 		auto ubo = pipelineUi->getUniformBuffer();
 		pipeline->updateUniformBufferTempl(swapChainIndex, ubo);
 	}
-
+	using SceneNode2DPtr = std::shared_ptr<SceneNode2D>;
 }

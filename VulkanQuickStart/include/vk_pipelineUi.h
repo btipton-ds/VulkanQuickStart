@@ -37,13 +37,15 @@ This file is part of the VulkanQuickStart Project.
 
 namespace VK {
 
-	class PipelineUi : public Pipeline {
+	struct UniformBufferObjectUi {
+		glm::vec2 _offset;
+		glm::vec2 _scale;
+		glm::vec4 _color;
+	};
+
+	class PipelineUi : public Pipeline<UniformBufferObjectUi> {
 	public:
-		struct UniformBufferObject {
-			glm::vec2 _offset;
-			glm::vec2 _scale;
-			glm::vec4 _color;
-		};
+		using UniformBufferObject = UniformBufferObjectUi;
 
 		struct Vertex2D {
 			Vertex2D() = default;

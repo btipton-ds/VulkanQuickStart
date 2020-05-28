@@ -49,26 +49,26 @@ namespace VK {
 	
 		void buildImageInfoList(std::vector<VkDescriptorImageInfo>& imageInfoList);
 
-		size_t addRootSceneNode(const SceneNodePtr& node);
-		const SceneNodePtr& getRootSceneNode(size_t index) const;
-		SceneNodePtr& getRootSceneNode(size_t index);
+		size_t addRootSceneNode(const SceneNodeBasePtr& node);
+		const SceneNodeBasePtr& getRootSceneNode(size_t index) const;
+		SceneNodeBasePtr& getRootSceneNode(size_t index);
 
 	private:
-		std::vector<SceneNodePtr> _rootNodes;
+		std::vector<SceneNodeBasePtr> _rootNodes;
 	};
 	using ScenePtr = std::shared_ptr<Scene>;
 
-	inline size_t Scene::addRootSceneNode(const SceneNodePtr& node) {
+	inline size_t Scene::addRootSceneNode(const SceneNodeBasePtr& node) {
 		size_t result = _rootNodes.size();
 		_rootNodes.push_back(node);
 		return result;
 	}
 
-	inline const SceneNodePtr& Scene::getRootSceneNode(size_t index) const {
+	inline const SceneNodeBasePtr& Scene::getRootSceneNode(size_t index) const {
 		return _rootNodes[index];
 	}
 
-	inline SceneNodePtr& Scene::getRootSceneNode(size_t index) {
+	inline SceneNodeBasePtr& Scene::getRootSceneNode(size_t index) {
 		return _rootNodes[index];
 	}
 

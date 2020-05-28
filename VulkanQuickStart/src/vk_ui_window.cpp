@@ -37,6 +37,8 @@ This file is part of the VulkanQuickStart Project.
 #include <glm/gtc/matrix_transform.hpp>
 
 #include <vk_pipelineUi.h>
+#include <vk_sceneNode2D.h>
+#include <vk_ui_button.h>
 #include <vk_ui_window.h>
 #include <vk_app.h>
 
@@ -61,9 +63,10 @@ namespace VK::UI {
 		ButtonPtr btnPtr = make_shared<Button>(btn);
 		btnPtr->createBuffers(_app);
 		_buttons.push_back(btnPtr);
-		auto pipeline = _app->addPipeline(Pipeline::create<PipelineUi>(_app.get()));
+		PipelineUiPtr pipeline = _app->addPipeline(createPipeline<PipelineUi>(_app.get()));
 
-		pipeline->addSceneNode(btnPtr);
+		SceneNode2DPtr p = btnPtr;
+		pipeline->addSceneNode(p);
 	}
 
 	int Window::getPixelDPI() const {
