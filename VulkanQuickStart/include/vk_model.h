@@ -74,23 +74,23 @@ namespace VK {
 		BoundingBox getBounds() const override;
 
 		inline const std::vector<VertexType>& getVertices() const {
-			return vertices_;
+			return _vertices;
 		}
 
 		inline const std::vector<uint32_t>& getIndices() const {
-			return indices_;
+			return _indices;
 		}
 
 		inline const Buffer& getVertexBuffer() const {
-			return vertexBuffer_;
+			return _vertexBuffer;
 		}
 
 		inline const Buffer& getIndexBuffer() const {
-			return indexBuffer_;
+			return _indexBuffer;
 		}
 
 		inline uint32_t numIndices() const {
-			return static_cast<uint32_t>(indices_.size());
+			return static_cast<uint32_t>(_indices.size());
 		}
 
 	protected:
@@ -104,9 +104,9 @@ namespace VK {
 
 		DeviceContext* _dc = VK_NULL_HANDLE; // TODO I think this should be a parameter, not a member
 		BoundingBox _bounds;
-		std::vector<VertexType> vertices_;
-		std::vector<uint32_t> indices_;
-		Buffer vertexBuffer_, indexBuffer_;
+		std::vector<VertexType> _vertices;
+		std::vector<uint32_t> _indices;
+		Buffer _vertexBuffer, _indexBuffer;
 	};
 
 }

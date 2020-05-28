@@ -27,6 +27,10 @@ This file is part of the VulkanQuickStart Project.
 
 */
 
+#include <defines.h>
+
+#include <map>
+
 #include "vk_deviceContext.h"
 #include "vk_vertexTypes.h"
 #include "vk_model.h"
@@ -42,11 +46,25 @@ using namespace std;
 using namespace VK;
 
 namespace std {
-	template<> struct hash<Model::VertexType> {
-		size_t operator()(Model::VertexType const& vertex) const {
-			return ((hash<glm::vec3>()(vertex.pos) ^ (hash<glm::vec3>()(vertex.color) << 1)) >> 1);
+	struct compareFunc {
+		inline bool operator()(Model::VertexType const& lhs, Model::VertexType const& rhs) const {
+			for (int i = 0; i < 3; i++) {
+				if (lhs.pos[i] < rhs.pos[i])
+					return true;
+				else if (lhs.pos[i] > rhs.pos[i])
+					return false;
+			}
+			return false;
 		}
 	};
+
+	namespace {
+		template<class T>
+		inline glm::vec3 conv(const T& pt) {
+			return glm::vec3(static_cast<float>(pt[0]), static_cast<float>(pt[1]), static_cast<float>(pt[2]));
+		}
+
+	}
 }
 
 Model::Model(DeviceContext& dc, const TriMesh::CMeshPtr& meshPtr)
@@ -88,59 +106,78 @@ namespace {
 }
 
 void Model::loadModel(const TriMesh::CMeshPtr& meshPtr) {
+	const float matchAngle = 30.0; // Degrees. Set angle > 90 for flat shading.
+	const float matchCos = cosf(static_cast<float> (matchAngle * EIGEN_PI / 180.0));
 	_bounds.clear();
 
-	vertices_.resize(meshPtr->numVertices());
-	for (size_t vertIdx = 0; vertIdx < meshPtr->numVertices(); vertIdx++) {
-		const auto& scrVert = meshPtr->getVert(vertIdx);
-		VertexType& vertex = vertices_[vertIdx];
+	map<VertexType, size_t, compareFunc> vertMap;
+	_vertices.clear();
 
-		vertex.pos = {
-			(float) scrVert._pt[0],
-			(float) scrVert._pt[1],
-			(float) scrVert._pt[2],
+	size_t numFused = 0;
+	_indices.resize(3 * meshPtr->numTris());
+	for (size_t i = 0; i < meshPtr->numTris(); i++) {
+		const auto& srcTri = meshPtr->getTri(i);
+
+		TriMesh::CVertex verts[] = {
+			meshPtr->getVert(srcTri[0]),
+			meshPtr->getVert(srcTri[1]),
+			meshPtr->getVert(srcTri[2])
 		};
 
-		_bounds.merge(conv(vertex.pos));
+		auto v0 = verts[1]._pt - verts[0]._pt;
+		auto v1 = verts[2]._pt - verts[0]._pt;
+		auto n = v0.cross(v1);
+		checkNAN(n);
 
-		vertex.norm = { 0.0, 0.0, 0.0 };
-		vertex.color = { 1.0f, 1.0f, 1.0f };
+		for (size_t j = 0; j < 3; j++) {
+			VertexType vertex;
+			vertex.pos = conv(verts[j]._pt);
+			vertex.norm = conv(n.normalized());
+			vertex.color = glm::vec3(1.0f, 1.0f, 1.0f);
+
+			_bounds.merge(conv(vertex.pos));
+
+			uint32_t newIdx;
+			auto iter = vertMap.find(vertex);
+			if (iter == vertMap.end()) {
+				size_t idx = _vertices.size();
+				vertMap.insert(make_pair(vertex, idx));
+				_vertices.push_back(vertex);
+				newIdx = static_cast<uint32_t> (idx);
+			}
+			else {
+				const VertexType& curVert = iter->first;
+				float dp = glm::dot(vertex.norm, curVert.norm);
+				if (dp > matchCos) {
+					_vertices[iter->second].norm = curVert.norm + vertex.norm;
+					newIdx = static_cast<uint32_t> (iter->second);
+					numFused++;
+				}
+				else {
+					size_t idx = _vertices.size();
+					vertMap.insert(make_pair(vertex, idx));
+					_vertices.push_back(vertex);
+					newIdx = static_cast<uint32_t> (idx);
+				}
+			}
+			_indices[3 * i + j] = newIdx;
+		}
+
 	}
 
-	indices_.reserve(3 * meshPtr->numTris());
-	for (size_t i = 0; i < meshPtr->numTris(); i++) {
-		const auto& srcTri = meshPtr->getTri(i);
-		indices_.push_back((uint32_t)srcTri[0]);
-		indices_.push_back((uint32_t)srcTri[1]);
-		indices_.push_back((uint32_t)srcTri[2]);
-	}
+	cout << "numFused: " << numFused << "\n";
 
-	// Sharing vertices, so flat shading isn't working!
-	for (size_t i = 0; i < meshPtr->numTris(); i++) {
-		const auto& srcTri = meshPtr->getTri(i);
-		auto& vert0 = vertices_[srcTri[0]];
-		auto& vert1 = vertices_[srcTri[1]];
-		auto& vert2 = vertices_[srcTri[2]];
-
-		glm::vec3 v0 = vert1.pos - vert0.pos;
-		glm::vec3 v1 = vert2.pos - vert0.pos;
-		glm::vec3 n = glm::normalize(glm::cross(v0, v1));
-
-		vert0.norm += n;
-		vert1.norm += n;
-		vert2.norm += n;
-	}
-
-	for (auto& vert : vertices_) {
-		normalize(vert.norm);
+	for (size_t i = 0; i < _vertices.size(); i++) {
+		const auto& vert = _vertices[i];
+		_vertices[i].norm = normalize(vert.norm);
 	}
 }
 
 void Model::createVertexBuffer() {
-	vertexBuffer_.create(*_dc, vertices_, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+	_vertexBuffer.create(*_dc, _vertices, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
 }
 
 void Model::createIndexBuffer() {
-	indexBuffer_.create(*_dc, indices_, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+	_indexBuffer.create(*_dc, _indices, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
 }
 
