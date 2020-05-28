@@ -52,18 +52,10 @@ namespace VK {
 	using SceneNodePtr = std::shared_ptr<SceneNode>;
 	using SceneNodeList = std::vector<SceneNodePtr>;
 
-	class SceneNode {
+	class SceneNodeBase {
 	public:
-		struct MaterialProperties
-		{
-			glm::vec4 ambient;
-			glm::vec4 diffuse;
-			glm::vec4 specular;
-			float opacity;
-		};
-
-		SceneNode();
-		virtual ~SceneNode();
+		SceneNodeBase();
+		virtual ~SceneNodeBase();
 
 		virtual void addCommands(VkCommandBuffer cmdBuff, VkPipelineLayout pipelineLayout, const VkDescriptorSet& descSet) const = 0;
 		virtual void buildImageInfoList(std::vector<VkDescriptorImageInfo>& imageInfoList) const = 0;
@@ -71,10 +63,20 @@ namespace VK {
 
 	};
 
-	inline SceneNode::SceneNode() {
+	inline SceneNodeBase::SceneNodeBase() {
 	}
 
-	inline SceneNode::~SceneNode() {
+	inline SceneNodeBase::~SceneNodeBase() {
+	}
+
+	class SceneNode : public SceneNodeBase {
+	public:
+		SceneNode();
+
+	};
+
+	inline SceneNode::SceneNode()
+	{
 	}
 
 }
