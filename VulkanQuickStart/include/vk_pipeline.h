@@ -51,16 +51,11 @@ namespace VK {
 	class Pipeline;
 	using PipelinePtr = std::shared_ptr<Pipeline>;
 
-	class Pipeline {
+	class PipelineBase {
 	public:
-		template<class PIPELINE_TYPE>
-		static PipelinePtr createWithSource(VulkanApp* app, const std::string& vertShaderFilename, const std::string& fragShaderFilename);
 
-		template<class PIPELINE_TYPE>
-		static PipelinePtr create(VulkanApp* app);
-
-		Pipeline(VulkanApp* app);
-		virtual ~Pipeline();
+		PipelineBase(VulkanApp* app);
+		virtual ~PipelineBase();
 
 		void setCullMode(VkCullModeFlagBits cullMode);
 		void setPolygonMode(VkPolygonMode polygonMode);
@@ -124,37 +119,53 @@ namespace VK {
 		VkPipeline _graphicsPipeline;
 	};
 
-	inline void Pipeline::setCullMode(VkCullModeFlagBits cullMode) {
+	inline void PipelineBase::setCullMode(VkCullModeFlagBits cullMode) {
 		_cullMode = cullMode;
 	}
 
-	inline void Pipeline::setPolygonMode(VkPolygonMode polygonMode) {
+	inline void PipelineBase::setPolygonMode(VkPolygonMode polygonMode) {
 		_polygonMode = polygonMode;
 	}
 
-	inline void Pipeline::setLineWidth(double width) {
+	inline void PipelineBase::setLineWidth(double width) {
 		_lineWidth = (float)width;
 	}
 
-	inline void Pipeline::setViewportRect(const VkRect2D& rect) {
+	inline void PipelineBase::setViewportRect(const VkRect2D& rect) {
 		_viewportRect = rect;
 	}
 
-	inline void Pipeline::setScissorRect(const VkRect2D& rect) {
+	inline void PipelineBase::setScissorRect(const VkRect2D& rect) {
 		_scissorRect = rect;
 	}
 
-	inline void Pipeline::addSceneNode(const SceneNodePtr& node) {
+	inline void PipelineBase::addSceneNode(const SceneNodePtr& node) {
 		_sceneNodes.push_back(node);
 	}
 
-	inline VkPipeline Pipeline::getVKPipeline() const {
+	inline VkPipeline PipelineBase::getVKPipeline() const {
 		return _graphicsPipeline;
 	}
 
-	inline size_t Pipeline::numSceneNodes() const {
+	inline size_t PipelineBase::numSceneNodes() const {
 		return _sceneNodes.size();
 	}
+
+	template<class BUF_TYPE>
+	inline void PipelineBase::updateUniformBuffer(size_t swapChainIndex, const BUF_TYPE& ubo) {
+		_uniformBuffers[swapChainIndex].update(ubo);
+	}
+
+	class Pipeline : public PipelineBase {
+	public:
+		template<class PIPELINE_TYPE>
+		static PipelinePtr createWithSource(VulkanApp* app, const std::string& vertShaderFilename, const std::string& fragShaderFilename);
+
+		template<class PIPELINE_TYPE>
+		static PipelinePtr create(VulkanApp* app);
+
+		Pipeline(VulkanApp* app);
+	};
 
 	template<class PIPELINE_TYPE>
 	inline PipelinePtr Pipeline::createWithSource(VulkanApp* app, const std::string& vertShaderFilename, const std::string& fragShaderFilename) {
@@ -171,10 +182,8 @@ namespace VK {
 		return std::shared_ptr<Pipeline>(ptr);
 	}
 
-	template<class BUF_TYPE>
-	inline void Pipeline::updateUniformBuffer(size_t swapChainIndex, const BUF_TYPE& ubo) {
-		_uniformBuffers[swapChainIndex].update(ubo);
-	}
-
+	inline Pipeline::Pipeline(VulkanApp* app)
+	: PipelineBase(app)
+	{ }
 
 }

@@ -45,7 +45,7 @@ namespace VK {
 
 	using namespace std;
 
-	Pipeline::Pipeline(VulkanApp* app)
+	PipelineBase::PipelineBase(VulkanApp* app)
 		: _app(app)
 	{
 		_viewportRect.offset = { 0,0 };
@@ -53,11 +53,11 @@ namespace VK {
 		_scissorRect = _viewportRect;
 	}
 
-	Pipeline::~Pipeline() {
+	PipelineBase::~PipelineBase() {
 		cleanupSwapChain();
 	}
 
-	void Pipeline::cleanupSwapChain() {
+	void PipelineBase::cleanupSwapChain() {
 		if (_uniformBuffers.empty())
 			return;
 
@@ -71,7 +71,7 @@ namespace VK {
 		vkDestroyDescriptorPool(devCon, _descriptorPool, nullptr);
 	}
 
-	void Pipeline::build() {
+	void PipelineBase::build() {
 		if (_sceneNodes.empty())
 			return;
 
@@ -161,7 +161,7 @@ namespace VK {
 		}
 	}
 
-	inline void Pipeline::setShaderStages(vector<VkPipelineShaderStageCreateInfo>& shaderStages) {
+	inline void PipelineBase::setShaderStages(vector<VkPipelineShaderStageCreateInfo>& shaderStages) {
 		auto& shader = _app->getShaderPool().getShader(getShaderIdMethod());
 		for (size_t i = 0; i < shader->_shaderModules.size(); i++) {
 			const auto& shaderModule = shader->_shaderModules[i];
@@ -174,7 +174,7 @@ namespace VK {
 		}
 	}
 
-	inline void Pipeline::setVertexInputInfo(VkPipelineVertexInputStateCreateInfo& vertexInputInfo) {
+	inline void PipelineBase::setVertexInputInfo(VkPipelineVertexInputStateCreateInfo& vertexInputInfo) {
 		vertexInputInfo = {};
 		vertexInputInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
 
@@ -184,14 +184,14 @@ namespace VK {
 		vertexInputInfo.pVertexAttributeDescriptions = _vertAttribDesc.data();
 	}
 
-	inline void Pipeline::setInputAssembly(VkPipelineInputAssemblyStateCreateInfo& inputAssembly) {
+	inline void PipelineBase::setInputAssembly(VkPipelineInputAssemblyStateCreateInfo& inputAssembly) {
 		inputAssembly = {};
 		inputAssembly.sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
 		inputAssembly.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
 		inputAssembly.primitiveRestartEnable = VK_FALSE;
 	}
 
-	inline void Pipeline::setViewport(VkViewport& viewport) {
+	inline void PipelineBase::setViewport(VkViewport& viewport) {
 		viewport.x = static_cast<float>(_viewportRect.offset.x);
 		viewport.y = static_cast<float>(_viewportRect.offset.y);
 		viewport.width = static_cast<float>(_viewportRect.extent.width);
@@ -200,7 +200,7 @@ namespace VK {
 		viewport.maxDepth = 1.0f;
 	}
 
-	inline void Pipeline::setViewportState(VkPipelineViewportStateCreateInfo& viewportState, VkViewport* viewportPtr) {
+	inline void PipelineBase::setViewportState(VkPipelineViewportStateCreateInfo& viewportState, VkViewport* viewportPtr) {
 		viewportState = {};
 		viewportState.sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO;
 		viewportState.viewportCount = 1;
@@ -209,7 +209,7 @@ namespace VK {
 		viewportState.pScissors = &_scissorRect;
 	}
 
-	inline void Pipeline::setRasterizer(VkPipelineRasterizationStateCreateInfo& rasterizer) {
+	inline void PipelineBase::setRasterizer(VkPipelineRasterizationStateCreateInfo& rasterizer) {
 		rasterizer = {};
 		rasterizer.sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO;
 		rasterizer.depthClampEnable = VK_FALSE;
@@ -221,14 +221,14 @@ namespace VK {
 		rasterizer.depthBiasEnable = VK_FALSE;
 	}
 
-	inline void Pipeline::setMultisampling(VkPipelineMultisampleStateCreateInfo& multisampling) {
+	inline void PipelineBase::setMultisampling(VkPipelineMultisampleStateCreateInfo& multisampling) {
 		multisampling = {};
 		multisampling.sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO;
 		multisampling.sampleShadingEnable = VK_FALSE;
 		multisampling.rasterizationSamples = _app->getAntiAliasSamples();
 	}
 
-	inline void Pipeline::setDepthStencil(VkPipelineDepthStencilStateCreateInfo& depthStencil) {
+	inline void PipelineBase::setDepthStencil(VkPipelineDepthStencilStateCreateInfo& depthStencil) {
 		depthStencil = {};
 		depthStencil.sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO;
 		depthStencil.depthTestEnable = VK_TRUE;
@@ -238,13 +238,13 @@ namespace VK {
 		depthStencil.stencilTestEnable = VK_FALSE;
 	}
 
-	inline void Pipeline::setColorBlendAttachment(VkPipelineColorBlendAttachmentState& colorBlendAttachment) {
+	inline void PipelineBase::setColorBlendAttachment(VkPipelineColorBlendAttachmentState& colorBlendAttachment) {
 		colorBlendAttachment = {};
 		colorBlendAttachment.colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
 		colorBlendAttachment.blendEnable = VK_FALSE;
 	}
 
-	inline void Pipeline::setColorBlending(VkPipelineColorBlendStateCreateInfo& colorBlending, VkPipelineColorBlendAttachmentState* colorBlendAttachmentPtr) {
+	inline void PipelineBase::setColorBlending(VkPipelineColorBlendStateCreateInfo& colorBlending, VkPipelineColorBlendAttachmentState* colorBlendAttachmentPtr) {
 		colorBlending = {};
 		colorBlending.sType = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO;
 		colorBlending.logicOpEnable = VK_FALSE;
@@ -257,7 +257,7 @@ namespace VK {
 		colorBlending.blendConstants[3] = 0.0f;
 	}
 
-	inline void Pipeline::createPipelineLayout() {
+	inline void PipelineBase::createPipelineLayout() {
 		VkPipelineLayoutCreateInfo pipelineLayoutInfo = {};
 
 		pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
@@ -269,7 +269,7 @@ namespace VK {
 		}
 	}
 
-	void Pipeline::createDescriptorPool() {
+	void PipelineBase::createDescriptorPool() {
 		const auto& swap = _app->getSwapChain();
 		auto devCon = _app->getDeviceContext().device_;
 
@@ -290,7 +290,7 @@ namespace VK {
 		}
 	}
 
-	void Pipeline::addCommands(VkCommandBuffer cmdBuff, size_t swapChainIdx) const {
+	void PipelineBase::addCommands(VkCommandBuffer cmdBuff, size_t swapChainIdx) const {
 		for (const auto& sceneNode : _sceneNodes)
 			sceneNode->addCommands(cmdBuff, _pipelineLayout, _descriptorSets[swapChainIdx]);
 	}
