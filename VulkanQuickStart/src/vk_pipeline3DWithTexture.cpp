@@ -120,6 +120,22 @@ void PipelineVertex3DWSampler::updateUniformBuffer(size_t swapChainIndex) {
 	}
 }
 
+void PipelineVertex3DWSampler::addCommands(VkCommandBuffer cmdBuff, size_t swapChainIdx) const {
+	for (const auto& sceneNode : _sceneNodes) {
+		SceneNode3DWithTexturePtr node3D = dynamic_pointer_cast<SceneNode3DWTexture>(sceneNode);
+		node3D->addCommandsIdx(cmdBuff, _pipelineLayout, swapChainIdx);
+	}
+}
+
+void PipelineVertex3DWSampler::cleanupSwapChain() {
+	PipelineBase::cleanupSwapChain();
+
+	for (auto& sceneNode : _sceneNodes) {
+		SceneNode3DWithTexturePtr node3D = dynamic_pointer_cast<SceneNode3DWTexture>(sceneNode);
+		node3D->cleanupSwapChain(this);
+	}
+}
+
 void PipelineVertex3DWSampler::createDescriptorSetLayout() {
 	VkDescriptorSetLayoutBinding uboLayoutBinding = {};
 	uboLayoutBinding.binding = 0;
@@ -147,55 +163,10 @@ void PipelineVertex3DWSampler::createDescriptorSetLayout() {
 }
 
 void PipelineVertex3DWSampler::createDescriptorSets() {
-	auto dc = _app->getDeviceContext().device_;
-
-	const auto& swap = _app->getSwapChain();
-	size_t swapChainSize = (uint32_t)swap.swapChainImages.size();
-
-	std::vector<VkDescriptorSetLayout> layouts(swapChainSize, _descriptorSetLayout);
-	VkDescriptorSetAllocateInfo allocInfo = {};
-	allocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
-	allocInfo.descriptorPool = _descriptorPool;
-	allocInfo.descriptorSetCount = static_cast<uint32_t>(swapChainSize);
-	allocInfo.pSetLayouts = layouts.data();
-
-	_descriptorSets.resize(swapChainSize);
-
-	if (vkAllocateDescriptorSets(dc, &allocInfo, _descriptorSets.data()) != VK_SUCCESS) {
-		throw std::runtime_error("failed to allocate descriptor sets!");
-	}
-
-	for (size_t i = 0; i < swapChainSize; i++) {
-		VkDescriptorBufferInfo bufferInfo = {};
-
-		bufferInfo.buffer = _uniformBuffers[i];
-		bufferInfo.offset = 0;
-		bufferInfo.range = sizeof(UniformBufferObject);
-
-		std::vector<VkDescriptorImageInfo> imageInfoList;
-		for (const auto& sceneNode : _sceneNodes) {
-			sceneNode->buildImageInfoList(imageInfoList);
-		}
-
-		std::array<VkWriteDescriptorSet, 2> descriptorWrites = {};
-
-		descriptorWrites[0].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-		descriptorWrites[0].dstSet = _descriptorSets[i];
-		descriptorWrites[0].dstBinding = 0;
-		descriptorWrites[0].dstArrayElement = 0;
-		descriptorWrites[0].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-		descriptorWrites[0].descriptorCount = 1;
-		descriptorWrites[0].pBufferInfo = &bufferInfo;
-
-		descriptorWrites[1].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-		descriptorWrites[1].dstSet = _descriptorSets[i];
-		descriptorWrites[1].dstBinding = 1;
-		descriptorWrites[1].dstArrayElement = 0;
-		descriptorWrites[1].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-		descriptorWrites[1].descriptorCount = static_cast<uint32_t>(imageInfoList.size());
-		descriptorWrites[1].pImageInfo = imageInfoList.data();
-
-		vkUpdateDescriptorSets(dc, static_cast<uint32_t>(descriptorWrites.size()), descriptorWrites.data(), 0, nullptr);
+	for (auto sceneNode : _sceneNodes) {
+		SceneNode3DWithTexturePtr ptr = dynamic_pointer_cast<SceneNode3DWTexture>(sceneNode);
+		ptr->createDescriptorPool(this);
+		ptr->createDescriptorSets(this);
 	}
 }
 

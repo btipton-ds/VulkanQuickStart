@@ -31,8 +31,10 @@ This file is part of the VulkanQuickStart Project.
 
 #include <memory>
 
+#include <vk_pipeline3DWithTexture.h>
 #include <vk_sceneNode3DWTexture.h>
 #include <vk_pipeline3D.h>
+#include <vk_app.h>
 
 using namespace std;
 using namespace VK;
@@ -51,4 +53,96 @@ void SceneNode3DWTexture::updateUniformBuffer(PipelineBase* pipeline, size_t swa
 	auto ubo = pipeline3D->getUniformBuffer();
 	ubo.model *= _modelXForm;
 	pipeline->updateUniformBufferTempl(swapChainIndex, ubo);
+}
+
+
+void SceneNode3DWTexture::cleanupSwapChain(PipelineVertex3DWSampler* ownerPipeline) {
+	_descriptorSets.clear();
+
+	auto devCon = ownerPipeline->getApp()->getDeviceContext().device_;
+	if (_descriptorPool != VK_NULL_HANDLE)
+		vkDestroyDescriptorPool(devCon, _descriptorPool, nullptr);
+}
+
+void SceneNode3DWTexture::addCommandsIdx(VkCommandBuffer cmdBuff, VkPipelineLayout pipelineLayout, size_t swapChainIdx) {
+	addCommands(cmdBuff, pipelineLayout, _descriptorSets[swapChainIdx]);
+}
+
+
+void SceneNode3DWTexture::createDescriptorPool(PipelineVertex3DWSampler* ownerPipeline) {
+	auto app = ownerPipeline->getApp();
+	const auto& swap = app->getSwapChain();
+	auto devCon = app->getDeviceContext().device_;
+
+	std::array<VkDescriptorPoolSize, 2> poolSizes = {};
+	poolSizes[0].type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+	poolSizes[0].descriptorCount = static_cast<uint32_t>(swap.swapChainImages.size());
+	poolSizes[1].type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+	poolSizes[1].descriptorCount = static_cast<uint32_t>(swap.swapChainImages.size());
+
+	VkDescriptorPoolCreateInfo poolInfo = {};
+	poolInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
+	poolInfo.poolSizeCount = static_cast<uint32_t>(poolSizes.size());
+	poolInfo.pPoolSizes = poolSizes.data();
+	poolInfo.maxSets = static_cast<uint32_t>(swap.swapChainImages.size());
+
+	if (vkCreateDescriptorPool(devCon, &poolInfo, nullptr, &_descriptorPool) != VK_SUCCESS) {
+		throw std::runtime_error("failed to create descriptor pool!");
+	}
+}
+
+void SceneNode3DWTexture::createDescriptorSets(PipelineVertex3DWSampler* ownerPipeline) {
+	auto app = ownerPipeline->getApp();
+	auto dc = app->getDeviceContext().device_;
+
+	const auto& swap = app->getSwapChain();
+	size_t swapChainSize = (uint32_t)swap.swapChainImages.size();
+
+	std::vector<VkDescriptorSetLayout> layouts(swapChainSize, ownerPipeline->getDescriptorSetLayout());
+	VkDescriptorSetAllocateInfo allocInfo = {};
+	allocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
+	allocInfo.descriptorPool = _descriptorPool; // TODO I haven't figured out yet if there should be one pool for the entire pipeline or not. Attempts to do that all crashed.
+	allocInfo.descriptorSetCount = static_cast<uint32_t>(swapChainSize);
+	allocInfo.pSetLayouts = layouts.data();
+
+	_descriptorSets.resize(swapChainSize);
+
+	if (vkAllocateDescriptorSets(dc, &allocInfo, _descriptorSets.data()) != VK_SUCCESS) {
+		throw std::runtime_error("failed to allocate descriptor sets!");
+	}
+
+	for (size_t i = 0; i < swapChainSize; i++) {
+		VkDescriptorBufferInfo bufferInfo = {};
+
+		bufferInfo.buffer = ownerPipeline->getUniformBuffers()[i];
+		bufferInfo.offset = 0;
+		bufferInfo.range = sizeof(ownerPipeline->getUniformBuffers()[i]);
+
+		VkDescriptorImageInfo imageInfo;
+		getImageInfo(imageInfo);
+
+		std::vector<VkWriteDescriptorSet> descriptorWrites;
+
+		VkWriteDescriptorSet descUniform = {};
+		descUniform.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+		descUniform.dstSet = _descriptorSets[i];
+		descUniform.dstBinding = 0;
+		descUniform.dstArrayElement = 0;
+		descUniform.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+		descUniform.descriptorCount = 1;
+		descUniform.pBufferInfo = &bufferInfo;
+		descriptorWrites.push_back(descUniform);
+
+		VkWriteDescriptorSet descSampler = {};
+		descSampler.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+		descSampler.dstSet = _descriptorSets[i];
+		descSampler.dstBinding = 1;
+		descSampler.dstArrayElement = 0;
+		descSampler.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+		descSampler.descriptorCount = 1;
+		descSampler.pImageInfo = &imageInfo;
+		descriptorWrites.push_back(descSampler);
+
+		vkUpdateDescriptorSets(dc, static_cast<uint32_t>(descriptorWrites.size()), descriptorWrites.data(), 0, nullptr);
+	}
 }

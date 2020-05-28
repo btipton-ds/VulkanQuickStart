@@ -90,7 +90,7 @@ void SceneNodeUi::createDescriptorSets(PipelineUi* ownerPipeline) {
 	std::vector<VkDescriptorSetLayout> layouts(swapChainSize, ownerPipeline->getDescriptorSetLayout());
 	VkDescriptorSetAllocateInfo allocInfo = {};
 	allocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
-	allocInfo.descriptorPool = _descriptorPool;
+	allocInfo.descriptorPool = _descriptorPool; // TODO I haven't figured out yet if there should be one pool for the entire pipeline or not. Attempts to do that all crashed.
 	allocInfo.descriptorSetCount = static_cast<uint32_t>(swapChainSize);
 	allocInfo.pSetLayouts = layouts.data();
 

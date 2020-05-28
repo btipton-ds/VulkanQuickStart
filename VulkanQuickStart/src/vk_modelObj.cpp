@@ -80,13 +80,14 @@ void ModelObj::addCommands(VkCommandBuffer cmdBuff, VkPipelineLayout pipelineLay
 }
 
 void ModelObj::buildImageInfoList(std::vector<VkDescriptorImageInfo>& imageInfoList) const {
-	const auto& texture = getTexture();
-	VkDescriptorImageInfo info;
-	info.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-	info.imageView = *texture;
-	info.sampler = *texture;
+}
 
-	imageInfoList.push_back(info);
+void ModelObj::getImageInfo(VkDescriptorImageInfo& imageInfo) {
+	const auto& texture = getTexture();
+	imageInfo = {};
+	imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+	imageInfo.imageView = *texture;
+	imageInfo.sampler = *texture;
 }
 
 ModelObj::BoundingBox ModelObj::getBounds() const {

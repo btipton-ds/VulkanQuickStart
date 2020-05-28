@@ -51,6 +51,8 @@ namespace VK {
 		BoundingBox getBounds() const;
 
 		void updateUniformBuffer(size_t swapChainIndex) override;
+		void addCommands(VkCommandBuffer cmdBuff, size_t swapChainIdx) const override;
+		void cleanupSwapChain() override;
 
 		const UniformBufferObject& getUniformBuffer() const;
 

@@ -98,6 +98,7 @@ namespace VK {
 
 		void loadModel(const std::string& filename);
 
+		void getImageInfo(VkDescriptorImageInfo& imageInfo) override;
 		void createVertexBuffer();
 		void createIndexBuffer();
 
