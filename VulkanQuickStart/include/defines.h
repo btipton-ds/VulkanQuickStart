@@ -38,6 +38,24 @@ This file is part of the VulkanQuickStart Project.
 
 const int filePrecision = 17;
 
+constexpr size_t K_BYTE = 1024;
+constexpr size_t M_BYTE = 1024 * K_BYTE;
+
+/* 
+	DEV_MAX_BUF_SIZE is a development safety barrier. 
+	
+	On windows systems, if you pass an un initialized value for size when allocating a buffer (and it's huge 64 bit)
+	the OS will try to allocate it and over load your swap file. 
+	This causes your system to lockup.
+	This causes you to force powerdown your box before it fills the universe.
+	This causes Windows to very carefully down size your swap file on restart.
+	Which causes the operating system to suck up all disk resources for nearly one hour.
+
+	As you may guess, this happened and I lost a good chunk of an afternoon.
+
+*/
+constexpr size_t DEV_MAX_BUF_SIZE = 512 * M_BYTE;
+
 #ifndef stm1
 #define stm1 0xffffffffffffffff
 #endif

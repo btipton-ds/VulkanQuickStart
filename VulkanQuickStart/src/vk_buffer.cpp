@@ -62,6 +62,9 @@ void Buffer::update(const void* value, size_t size) {
 }
 
 void Buffer::create(DeviceContext& dc, VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties) {
+	if (size > DEV_MAX_BUF_SIZE) {
+		throw runtime_error("tryint to create a buffer larger than DEV_MAX_BUF_SIZE.");
+	}
 	destroy();
 	dc_ = &dc;
 	dc_->buffers_.insert(this);
@@ -95,6 +98,10 @@ void Buffer::create(DeviceContext& dc, VkDeviceSize size, VkBufferUsageFlags usa
 }
 
 void Buffer::create(DeviceContext& dc, const void* value, VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties) {
+	if (size > DEV_MAX_BUF_SIZE) {
+		throw runtime_error("tryint to create a buffer larger than DEV_MAX_BUF_SIZE.");
+	}
+
 	Buffer stagingBuffer;
 	stagingBuffer.create(dc, size, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
 	stagingBuffer.update(value, size);

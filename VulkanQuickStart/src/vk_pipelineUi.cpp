@@ -31,6 +31,7 @@ This file is part of the VulkanQuickStart Project.
 
 #include <array>
 #include <vk_pipelineUi.h>
+#include <vk_sceneNodeUi.h>
 #include <vk_shaderPool.h>
 #include <vk_app.h>
 
@@ -52,6 +53,22 @@ PipelineUi::PipelineUi(VulkanApp* app)
 	auto& shaders = app->getShaderPool();
 	if (!shaders.getShader(getShaderId()))
 		shaders.addShader(getShaderId(), { "shaders/shader_ui_vert.spv", "shaders/shader_ui_frag.spv" });
+}
+
+void PipelineUi::addCommands(VkCommandBuffer cmdBuff, size_t swapChainIdx) const {
+	for (const auto& sceneNode : _sceneNodes) {
+		SceneNodeUiPtr ptr = dynamic_pointer_cast<SceneNodeUi>(sceneNode);
+		ptr->addCommandsIdx(cmdBuff, _pipelineLayout, swapChainIdx);
+	}
+}
+
+void PipelineUi::cleanupSwapChain() {
+	PipelineBase::cleanupSwapChain();
+
+	for (auto& sceneNode : _sceneNodes) {
+		SceneNodeUiPtr ptr = dynamic_pointer_cast<SceneNodeUi>(sceneNode);
+		ptr->cleanupSwapChain(this);
+	}
 }
 
 void PipelineUi::updateUniformBuffer(size_t swapChainIndex) {
@@ -100,7 +117,6 @@ void PipelineUi::createDescriptorSetLayout() {
 	uboLayoutBinding.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
 	bindings.push_back(uboLayoutBinding);
 
-#if 1
 	VkDescriptorSetLayoutBinding samplerLayoutBinding = {};
 	samplerLayoutBinding.binding = 1;
 	samplerLayoutBinding.descriptorCount = 1;
@@ -108,7 +124,6 @@ void PipelineUi::createDescriptorSetLayout() {
 	samplerLayoutBinding.pImmutableSamplers = nullptr;
 	samplerLayoutBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
 	bindings.push_back(samplerLayoutBinding);
-#endif
 
 	VkDescriptorSetLayoutCreateInfo layoutInfo = {};
 	layoutInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
@@ -121,61 +136,10 @@ void PipelineUi::createDescriptorSetLayout() {
 }
 
 void PipelineUi::createDescriptorSets() {
-	auto dc = _app->getDeviceContext().device_;
-
-	const auto& swap = _app->getSwapChain();
-	size_t swapChainSize = (uint32_t)swap.swapChainImages.size();
-
-	std::vector<VkDescriptorSetLayout> layouts(swapChainSize, _descriptorSetLayout);
-	VkDescriptorSetAllocateInfo allocInfo = {};
-	allocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
-	allocInfo.descriptorPool = _descriptorPool;
-	allocInfo.descriptorSetCount = static_cast<uint32_t>(swapChainSize);
-	allocInfo.pSetLayouts = layouts.data();
-
-	_descriptorSets.resize(swapChainSize);
-
-	if (vkAllocateDescriptorSets(dc, &allocInfo, _descriptorSets.data()) != VK_SUCCESS) {
-		throw std::runtime_error("failed to allocate descriptor sets!");
-	}
-
-	for (size_t i = 0; i < swapChainSize; i++) {
-		VkDescriptorBufferInfo bufferInfo = {};
-
-		bufferInfo.buffer = _uniformBuffers[i];
-		bufferInfo.offset = 0;
-		bufferInfo.range = sizeof(UniformBufferObject);
-
-		std::vector<VkDescriptorImageInfo> imageInfoList;
-		for (const auto& sceneNode : _sceneNodes) {
-			sceneNode->buildImageInfoList(imageInfoList);
-		}
-
-		std::vector<VkWriteDescriptorSet> descriptorWrites;
-
-		VkWriteDescriptorSet descUniform = {};
-		descUniform.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-		descUniform.dstSet = _descriptorSets[i];
-		descUniform.dstBinding = 0;
-		descUniform.dstArrayElement = 0;
-		descUniform.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-		descUniform.descriptorCount = 1;
-		descUniform.pBufferInfo = &bufferInfo;
-		descriptorWrites.push_back(descUniform);
-
-#if 1
-		VkWriteDescriptorSet descSampler = {};
-		descSampler.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-		descSampler.dstSet = _descriptorSets[i];
-		descSampler.dstBinding = 1;
-		descSampler.dstArrayElement = 0;
-		descSampler.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-		descSampler.descriptorCount = static_cast<uint32_t>(imageInfoList.size());
-		descSampler.pImageInfo = imageInfoList.data();
-		descriptorWrites.push_back(descSampler);
-#endif
-
-		vkUpdateDescriptorSets(dc, static_cast<uint32_t>(descriptorWrites.size()), descriptorWrites.data(), 0, nullptr);
+	for (auto sceneNode : _sceneNodes) {
+		SceneNodeUiPtr ptr = dynamic_pointer_cast<SceneNodeUi>(sceneNode);
+		ptr->createDescriptorPool(this);
+		ptr->createDescriptorSets(this);
 	}
 }
 

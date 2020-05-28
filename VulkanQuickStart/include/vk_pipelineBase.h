@@ -57,13 +57,14 @@ namespace VK {
 		void setPolygonMode(VkPolygonMode polygonMode);
 		void setLineWidth(double width);
 
-		void cleanupSwapChain();
+		virtual void cleanupSwapChain();
+		void draw(VkCommandBuffer cmdBuff, size_t swapChainIndex);
 
 		void setViewportRect(const VkRect2D& rect);
 		void setScissorRect(const VkRect2D& rect);
 		void build();
 
-		VkPipeline getVKPipeline() const;
+		const VulkanApp* getApp() const;
 
 		virtual size_t numSceneNodes() const;
 		virtual void addCommands(VkCommandBuffer cmdBuff, size_t swapChainIdx) const = 0;
@@ -72,9 +73,12 @@ namespace VK {
 		template<class BUF_TYPE>
 		void updateUniformBufferTempl(size_t swapChainIndex, const BUF_TYPE& ubo);
 
+		VkDescriptorSetLayout getDescriptorSetLayout() const;
+		const std::vector<Buffer>& getUniformBuffers() const;
+
 	protected:
-		void createDescriptorPool();
 		virtual void createDescriptorSetLayout() = 0;
+		void createDescriptorPool();
 		virtual void createDescriptorSets() = 0;
 		virtual void createUniformBuffers() = 0;
 		virtual std::string getShaderIdMethod() = 0;
@@ -84,8 +88,9 @@ namespace VK {
 		VkVertexInputBindingDescription _vertBindDesc;
 		std::vector<VkVertexInputAttributeDescription> _vertAttribDesc;
 		std::vector<Buffer> _uniformBuffers;
-		VkDescriptorPool _descriptorPool;
 		VkDescriptorSetLayout _descriptorSetLayout;
+
+		VkDescriptorPool _descriptorPool = VK_NULL_HANDLE;
 		std::vector<VkDescriptorSet> _descriptorSets;
 
 	private:
@@ -112,6 +117,18 @@ namespace VK {
 		VkPipeline _graphicsPipeline;
 	};
 
+	inline const VulkanApp* PipelineBase::getApp() const {
+		return _app;
+	}
+
+	inline VkDescriptorSetLayout PipelineBase::getDescriptorSetLayout() const {
+		return _descriptorSetLayout;
+	}
+
+	inline const std::vector<Buffer>& PipelineBase::getUniformBuffers() const {
+		return _uniformBuffers;
+	}
+
 	inline void PipelineBase::setCullMode(VkCullModeFlagBits cullMode) {
 		_cullMode = cullMode;
 	}
@@ -130,10 +147,6 @@ namespace VK {
 
 	inline void PipelineBase::setScissorRect(const VkRect2D& rect) {
 		_scissorRect = rect;
-	}
-
-	inline VkPipeline PipelineBase::getVKPipeline() const {
-		return _graphicsPipeline;
 	}
 
 	template<class BUF_TYPE>

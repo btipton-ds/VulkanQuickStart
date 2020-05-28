@@ -262,7 +262,7 @@ void VulkanApp::cleanupSwapChain() {
 	for (auto& pipeline : _pipelines)
 		pipeline->cleanupSwapChain();
 
-	vkFreeCommandBuffers(deviceContext.device_, deviceContext.commandPool_, static_cast<uint32_t>(commandBuffers.size()), commandBuffers.data());
+	vkFreeCommandBuffers(deviceContext.device_, deviceContext.commandPool_, static_cast<uint32_t>(_commandBuffers.size()), _commandBuffers.data());
 
 	vkDestroyRenderPass(deviceContext.device_, renderPass, nullptr);
 
@@ -737,15 +737,15 @@ uint32_t VulkanApp::findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags pr
 }
 
 void VulkanApp::createCommandBuffers() {
-	commandBuffers.resize(_swapChain.swapChainFramebuffers.size());
+	_commandBuffers.resize(_swapChain.swapChainFramebuffers.size());
 
 	VkCommandBufferAllocateInfo allocInfo = {};
 	allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
 	allocInfo.commandPool = deviceContext.commandPool_;
 	allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
-	allocInfo.commandBufferCount = (uint32_t)commandBuffers.size();
+	allocInfo.commandBufferCount = (uint32_t)_commandBuffers.size();
 
-	if (vkAllocateCommandBuffers(deviceContext.device_, &allocInfo, commandBuffers.data()) != VK_SUCCESS) {
+	if (vkAllocateCommandBuffers(deviceContext.device_, &allocInfo, _commandBuffers.data()) != VK_SUCCESS) {
 		throw std::runtime_error("failed to allocate command buffers!");
 	}
 
@@ -765,7 +765,7 @@ void VulkanApp::createCommandBuffers() {
 	renderPassInfo.clearValueCount = static_cast<uint32_t>(clearValues.size());
 	renderPassInfo.pClearValues = clearValues.data();
 
-	for (size_t i = 0; i < commandBuffers.size(); i++) {
+	for (size_t i = 0; i < _commandBuffers.size(); i++) {
 		renderPassInfo.framebuffer = _swapChain.swapChainFramebuffers[i];
 		drawCmdBufferLoop(i, beginInfo, renderPassInfo);
 	}
@@ -773,17 +773,15 @@ void VulkanApp::createCommandBuffers() {
 
 void VulkanApp::drawCmdBufferLoop(size_t swapChainIndex,
 	VkCommandBufferBeginInfo& beginInfo, VkRenderPassBeginInfo& renderPassInfo) {
-	auto& cmdBuff = commandBuffers[swapChainIndex];
+	auto& cmdBuff = _commandBuffers[swapChainIndex];
 
 	if (vkBeginCommandBuffer(cmdBuff, &beginInfo) != VK_SUCCESS) {
 		throw std::runtime_error("failed to begin recording command buffer!");
 	}
 	vkCmdBeginRenderPass(cmdBuff, &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
+
 	for (auto& pipeline : _pipelines) {
-		if (pipeline->getVKPipeline()) {
-			vkCmdBindPipeline(cmdBuff, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline->getVKPipeline());
-			drawPipeline(swapChainIndex, pipeline);
-		}
+		pipeline->draw(cmdBuff, swapChainIndex);
 	}
 
 	vkCmdEndRenderPass(cmdBuff);
@@ -791,11 +789,6 @@ void VulkanApp::drawCmdBufferLoop(size_t swapChainIndex,
 	if (vkEndCommandBuffer(cmdBuff) != VK_SUCCESS) {
 		throw std::runtime_error("failed to record command buffer!");
 	}
-}
-
-void VulkanApp::drawPipeline(size_t swapChainIndex, const PipelineBasePtr& pipeline) {
-	auto& cmdBuff = commandBuffers[swapChainIndex];
-	pipeline->addCommands(cmdBuff, swapChainIndex);
 }
 
 void VulkanApp::createSyncObjects() {
@@ -948,7 +941,7 @@ void VulkanApp::drawFrame() {
 	submitInfo.pWaitDstStageMask = waitStages;
 
 	submitInfo.commandBufferCount = 1;
-	submitInfo.pCommandBuffers = &commandBuffers[swapChainImageIndex];
+	submitInfo.pCommandBuffers = &_commandBuffers[swapChainImageIndex];
 
 	VkSemaphore signalSemaphores[] = { renderFinishedSemaphores[currentFrame] };
 	submitInfo.signalSemaphoreCount = 1;

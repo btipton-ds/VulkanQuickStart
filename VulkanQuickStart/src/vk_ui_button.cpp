@@ -252,16 +252,16 @@ namespace VK::UI {
 	}
 
 	void Button::buildImageInfoList(std::vector<VkDescriptorImageInfo>& imageInfoList) const {
-
-		VkDescriptorImageInfo info;
-		info.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-		info.imageView = *_texture;
-		info.sampler = *_texture;
-
-		imageInfoList.push_back(info);
-
+		// TODO change base class version to a non pure virtual and delete this one.
 	}
 
+	void Button::getImageInfo(VkDescriptorImageInfo& imageInfo) {
+		imageInfo = {};
+		imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+		imageInfo.imageView = *_texture;
+		imageInfo.sampler = *_texture;
+	}
+	
 	void Button::setAction(ActionType action, const FuncMouse& f) {
 		_mouseFuncs[action] = f;
 	}

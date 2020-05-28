@@ -65,8 +65,7 @@ namespace VK::UI {
 		_buttons.push_back(btnPtr);
 		auto pipeline = _app->addPipeline(createPipeline<PipelineUi>(_app.get()));
 
-		SceneNode2DPtr p = btnPtr;
-		pipeline->addSceneNode(p);
+		pipeline->addSceneNode(btnPtr);
 	}
 
 	int Window::getPixelDPI() const {

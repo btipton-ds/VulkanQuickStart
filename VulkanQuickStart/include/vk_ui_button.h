@@ -82,6 +82,7 @@ namespace VK {
 
 			void createBuffers(const VulkanAppPtr& app);
 			void addCommands(VkCommandBuffer cmdBuff, VkPipelineLayout pipelineLayout, const VkDescriptorSet& descSet) const override;
+
 			void buildImageInfoList(std::vector<VkDescriptorImageInfo>& imageInfoList) const override;
 
 			void setAction(ActionType action, const FuncMouse& f);
@@ -90,6 +91,9 @@ namespace VK {
 			void handleMouseClick(int btnNum, int modifiers);
 			void handleMouseEnter();
 			void handleMouseExit();
+
+		protected:
+			void getImageInfo(VkDescriptorImageInfo& imageInfo) override;
 
 		private:
 			void init();

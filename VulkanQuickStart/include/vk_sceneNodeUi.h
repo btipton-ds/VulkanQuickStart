@@ -31,6 +31,7 @@ This file is part of the VulkanQuickStart Project.
 
 #include <defines.h>
 
+#include <vk_forwardDeclarations.h>
 #include <vk_sceneNode.h>
 #include <vk_pipelineUi.h>
 
@@ -39,22 +40,21 @@ namespace VK {
 	class SceneNodeUi : public PipelineUi::SceneNode {
 	public:
 		SceneNodeUi();
-		virtual ~SceneNodeUi();
 
 		void updateUniformBuffer(PipelineBase* pipeline, size_t swapChainIndex) override;
 
+		void createDescriptorPool(PipelineUi* ownerPipeline);
+		virtual void createDescriptorSets(PipelineUi* ownerPipeline);
+		void cleanupSwapChain(PipelineUi* ownerPipeline);
+		void addCommandsIdx(VkCommandBuffer cmdBuff, VkPipelineLayout pipelineLayout, size_t swapChainIdx);
+
+	protected:
+		virtual void getImageInfo(VkDescriptorImageInfo& imageInfo) = 0;
+
+	private:
+		VkDescriptorPool _descriptorPool = VK_NULL_HANDLE;
+		std::vector<VkDescriptorSet> _descriptorSets;
 	};
 
-	inline SceneNodeUi::SceneNodeUi() {
-	}
-
-	inline SceneNodeUi::~SceneNodeUi() {
-	}
-
-	inline void SceneNodeUi::updateUniformBuffer(PipelineBase* pipeline, size_t swapChainIndex) {
-		auto pipelineUi = dynamic_cast<PipelineUi*> (pipeline);
-		auto ubo = pipelineUi->getUniformBuffer();
-		pipeline->updateUniformBufferTempl(swapChainIndex, ubo);
-	}
-	using SceneNode2DPtr = std::shared_ptr<SceneNodeUi>;
+	using SceneNodeUiPtr = std::shared_ptr<SceneNodeUi>;
 }

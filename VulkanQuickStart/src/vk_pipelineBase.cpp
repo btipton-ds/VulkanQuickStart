@@ -68,10 +68,21 @@ void PipelineBase::cleanupSwapChain() {
 	_descriptorSets.clear();
 
 	auto devCon = _app->getDeviceContext().device_;
-	vkDestroyDescriptorSetLayout(devCon, _descriptorSetLayout, nullptr);
-	vkDestroyPipeline(devCon, _graphicsPipeline, nullptr);
-	vkDestroyPipelineLayout(devCon, _pipelineLayout, nullptr);
-	vkDestroyDescriptorPool(devCon, _descriptorPool, nullptr);
+	if (_descriptorSetLayout != VK_NULL_HANDLE)
+		vkDestroyDescriptorSetLayout(devCon, _descriptorSetLayout, nullptr);
+	if (_graphicsPipeline != VK_NULL_HANDLE)
+		vkDestroyPipeline(devCon, _graphicsPipeline, nullptr);
+	if (_pipelineLayout != VK_NULL_HANDLE)
+		vkDestroyPipelineLayout(devCon, _pipelineLayout, nullptr);
+	if (_descriptorPool != VK_NULL_HANDLE)
+		vkDestroyDescriptorPool(devCon, _descriptorPool, nullptr);
+}
+
+void PipelineBase::draw(VkCommandBuffer cmdBuff, size_t swapChainIndex) {
+	if (_graphicsPipeline) {
+		vkCmdBindPipeline(cmdBuff, VK_PIPELINE_BIND_POINT_GRAPHICS, _graphicsPipeline);
+		addCommands(cmdBuff, swapChainIndex);
+	}
 }
 
 void PipelineBase::build() {

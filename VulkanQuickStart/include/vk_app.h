@@ -161,7 +161,6 @@ namespace VK {
 		void createCommandBuffers();
 		void drawCmdBufferLoop(size_t swapChainIndex,
 			VkCommandBufferBeginInfo& beginInfo, VkRenderPassBeginInfo& renderPassInfo);
-		void drawPipeline(size_t swapChainIndex, const PipelineBasePtr& pipeline);
 		void createSyncObjects();
 		void updateUniformBuffer(uint32_t swapChainImageIndex);
 		void reportFPS();
@@ -209,7 +208,7 @@ namespace VK {
 		ScenePtr _scene;
 		size_t _root3DNode = stm1;
 
-		std::vector<VkCommandBuffer> commandBuffers;
+		std::vector<VkCommandBuffer> _commandBuffers;
 
 		std::vector<VkSemaphore> imageAvailableSemaphores;
 		std::vector<VkSemaphore> renderFinishedSemaphores;
