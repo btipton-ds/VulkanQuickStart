@@ -49,173 +49,172 @@ This file is part of the VulkanQuickStart Project.
 #include <vk_vertexTypes.h>
 #include <vk_app.h>
 
-namespace VK {
+using namespace VK;
+using namespace std;
 
-	using namespace std;
+string PipelineVertex3D::getShaderId() {
+	return "PipelineVertex3D";
+}
 
-	string PipelineVertex3D::getShaderId() {
-		return "PipelineVertex3D";
+string PipelineVertex3D::getShaderIdMethod() {
+	return getShaderId();
+}
+
+PipelineVertex3D::PipelineVertex3D(VulkanApp* app)
+	: Pipeline(app)
+{
+	_vertBindDesc = Vertex3_PNCTf::getBindingDescription();
+	_vertAttribDesc = Vertex3_PNCTf::getAttributeDescriptions();
+}
+
+namespace {
+	inline glm::vec3 conv(const Vector3f& pt) {
+		return glm::vec3(pt[0], pt[1], pt[2]);
+	}
+	inline glm::vec4 conv4(const Vector3f& pt) {
+		return glm::vec4(pt[0], pt[1], pt[2], 1);
 	}
 
-	string PipelineVertex3D::getShaderIdMethod() {
-		return getShaderId();
-	}
-
-	PipelineVertex3D::PipelineVertex3D(VulkanApp* app)
-		: Pipeline(app)
-	{
-		_vertBindDesc = Vertex3_PNCTf::getBindingDescription();
-		_vertAttribDesc = Vertex3_PNCTf::getAttributeDescriptions();
-	}
-
-	namespace {
-		inline glm::vec3 conv(const Vector3f& pt) {
-			return glm::vec3(pt[0], pt[1], pt[2]);
-		}
-		inline glm::vec4 conv4(const Vector3f& pt) {
-			return glm::vec4(pt[0], pt[1], pt[2], 1);
-		}
-
-		PipelineVertex3D::BoundingBox transform(const PipelineVertex3D::BoundingBox& bb, const glm::mat4& xform) {
-			PipelineVertex3D::BoundingBox result;
-			glm::vec4 pt(0, 0, 0, 1);
-			for (int i = 0; i < 2; i++) {
-				pt[0] = i == 0 ? bb.getMin()[0] : bb.getMax()[0];
-				for (int j = 0; j < 2; j++) {
-					pt[1] = j == 0 ? bb.getMin()[1] : bb.getMax()[1];
-					for (int k = 0; k < 2; k++) {
-						pt[2] = k == 0 ? bb.getMin()[2] : bb.getMax()[2];
-						pt = xform * pt;
-						result.merge(Vector3f(pt[0], pt[1], pt[2]));
-					}
+	PipelineVertex3D::BoundingBox transform(const PipelineVertex3D::BoundingBox& bb, const glm::mat4& xform) {
+		PipelineVertex3D::BoundingBox result;
+		glm::vec4 pt(0, 0, 0, 1);
+		for (int i = 0; i < 2; i++) {
+			pt[0] = i == 0 ? bb.getMin()[0] : bb.getMax()[0];
+			for (int j = 0; j < 2; j++) {
+				pt[1] = j == 0 ? bb.getMin()[1] : bb.getMax()[1];
+				for (int k = 0; k < 2; k++) {
+					pt[2] = k == 0 ? bb.getMin()[2] : bb.getMax()[2];
+					pt = xform * pt;
+					result.merge(Vector3f(pt[0], pt[1], pt[2]));
 				}
 			}
-			return result;
 		}
+		return result;
+	}
+}
+
+void PipelineVertex3D::updateUniformBuffer(size_t swapChainIndex) {
+	BoundingBox modelBounds;
+	for (auto& sceneNode : _sceneNodes) {
+		SceneNode3DPtr node3D = dynamic_pointer_cast<SceneNode3D> (sceneNode);
+		auto bb = node3D->getBounds();
+		const auto& xform = node3D->getModelTransform();
+		bb = transform(bb, xform);
+		modelBounds.merge(bb);
 	}
 
-	void PipelineVertex3D::updateUniformBuffer(size_t swapChainIndex) {
-		BoundingBox modelBounds;
-		for (auto& sceneNode : _sceneNodes) {
-			SceneNode3DPtr node3D = dynamic_pointer_cast<SceneNode3D> (sceneNode);
-			auto bb = node3D->getBounds();
-			const auto& xform = node3D->getModelTransform();
-			bb = transform(bb, xform);
-			modelBounds.merge(bb);
-		}
+	_ubo = {};
+	_ubo.ambient = 0.10f;
+	_ubo.numLights = 2;
+	_ubo.lightDir[0] = glm::normalize(glm::vec3(1, -0.5, 1));
+	_ubo.lightDir[1] = glm::normalize(glm::vec3(-1, -0.5, 3));
 
-		_ubo = {};
-		_ubo.ambient = 0.10f;
-		_ubo.numLights = 2;
-		_ubo.lightDir[0] = glm::normalize(glm::vec3(1, -0.5, 1));
-		_ubo.lightDir[1] = glm::normalize(glm::vec3(-1, -0.5, 3));
+	auto& swapChain = _app->getSwapChain();
 
-		auto& swapChain = _app->getSwapChain();
+	float w = (float)swapChain.swapChainExtent.width;
+	float h = (float)swapChain.swapChainExtent.height;
+	float maxDim = std::max(w, h);
+	float minDim = std::min(w, h);
+	w /= maxDim;
+	h /= maxDim;
 
-		float w = (float)swapChain.swapChainExtent.width;
-		float h = (float)swapChain.swapChainExtent.height;
-		float maxDim = std::max(w, h);
-		float minDim = std::min(w, h);
-		w /= maxDim;
-		h /= maxDim;
+	auto range = modelBounds.range();
+	float maxModelDim = max(max(range[0], range[1]), range[2]);
+	float scale = 1.0f * 1.0f / maxModelDim * minDim / maxDim;
+	scale *= (float)_app->getModelScale();
 
-		auto range = modelBounds.range();
-		float maxModelDim = max(max(range[0], range[1]), range[2]);
-		float scale = 1.0f * 1.0f / maxModelDim * minDim / maxDim;
-		scale *= (float)_app->getModelScale();
+	auto ctr = (modelBounds.getMin() + modelBounds.getMax()) / 2;
+	_ubo.model = _app->getModelToWorldTransform();
+	_ubo.model *= glm::scale(glm::mat4(1.0f), glm::vec3(scale, scale, scale));
+	_ubo.model *= glm::translate(glm::mat4(1.0f), -conv(ctr));
 
-		auto ctr = (modelBounds.getMin() + modelBounds.getMax()) / 2;
-		_ubo.model = _app->getModelToWorldTransform();
-		_ubo.model *= glm::scale(glm::mat4(1.0f), glm::vec3(scale, scale, scale));
-		_ubo.model *= glm::translate(glm::mat4(1.0f), -conv(ctr));
+	_ubo.view = glm::lookAt(glm::vec3(1.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+	//		auto proj = glm::perspective(glm::radians(45.0f), swapChainExtent.width / (float)swapChainExtent.height, 0.1f, 10.0f);
+	_ubo.proj = glm::ortho(-w / 2, w, -h / 2, h, 0.10f, 10.0f);
+	_ubo.proj[1][1] *= -1;
 
-		_ubo.view = glm::lookAt(glm::vec3(1.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
-		//		auto proj = glm::perspective(glm::radians(45.0f), swapChainExtent.width / (float)swapChainExtent.height, 0.1f, 10.0f);
-		_ubo.proj = glm::ortho(-w / 2, w, -h / 2, h, 0.10f, 10.0f);
-		_ubo.proj[1][1] *= -1;
-
-		for (auto& sceneNode : _sceneNodes) {
-			sceneNode->updateUniformBuffer(this, swapChainIndex);
-		}
-
-	}
-
-	void PipelineVertex3D::createDescriptorSetLayout() {
-		VkDescriptorSetLayoutBinding uboLayoutBinding = {};
-		uboLayoutBinding.binding = 0;
-		uboLayoutBinding.descriptorCount = 1;
-		uboLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-		uboLayoutBinding.pImmutableSamplers = nullptr;
-		uboLayoutBinding.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
-
-		std::array<VkDescriptorSetLayoutBinding, 1> bindings = { uboLayoutBinding };
-		VkDescriptorSetLayoutCreateInfo layoutInfo = {};
-		layoutInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
-		layoutInfo.bindingCount = static_cast<uint32_t>(bindings.size());
-		layoutInfo.pBindings = bindings.data();
-
-		if (vkCreateDescriptorSetLayout(_app->getDeviceContext().device_, &layoutInfo, nullptr, &_descriptorSetLayout) != VK_SUCCESS) {
-			throw std::runtime_error("failed to create descriptor set layout!");
-		}
-	}
-
-	void PipelineVertex3D::createDescriptorSets() {
-		auto dc = _app->getDeviceContext().device_;
-
-		const auto& swap = _app->getSwapChain();
-		size_t swapChainSize = (uint32_t)swap.swapChainImages.size();
-
-		std::vector<VkDescriptorSetLayout> layouts(swapChainSize, _descriptorSetLayout);
-		VkDescriptorSetAllocateInfo allocInfo = {};
-		allocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
-		allocInfo.descriptorPool = _descriptorPool;
-		allocInfo.descriptorSetCount = static_cast<uint32_t>(swapChainSize);
-		allocInfo.pSetLayouts = layouts.data();
-
-		_descriptorSets.resize(swapChainSize);
-
-		if (vkAllocateDescriptorSets(dc, &allocInfo, _descriptorSets.data()) != VK_SUCCESS) {
-			throw std::runtime_error("failed to allocate descriptor sets!");
-		}
-
-		for (size_t i = 0; i < swapChainSize; i++) {
-			VkDescriptorBufferInfo bufferInfo = {};
-
-			bufferInfo.buffer = _uniformBuffers[i];
-			bufferInfo.offset = 0;
-			bufferInfo.range = sizeof(UniformBufferObject);
-
-			std::vector<VkDescriptorImageInfo> imageInfoList;
-			for (const auto& sceneNode : _sceneNodes) {
-				sceneNode->buildImageInfoList(imageInfoList);
-			}
-
-			std::array<VkWriteDescriptorSet, 1> descriptorWrites = {};
-
-			descriptorWrites[0].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-			descriptorWrites[0].dstSet = _descriptorSets[i];
-			descriptorWrites[0].dstBinding = 0;
-			descriptorWrites[0].dstArrayElement = 0;
-			descriptorWrites[0].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-			descriptorWrites[0].descriptorCount = 1;
-			descriptorWrites[0].pBufferInfo = &bufferInfo;
-
-			vkUpdateDescriptorSets(dc, static_cast<uint32_t>(descriptorWrites.size()), descriptorWrites.data(), 0, nullptr);
-		}
-	}
-
-	void PipelineVertex3D::createUniformBuffers() {
-		auto& device = _app->getDeviceContext();
-		size_t bufferSize = sizeof(UniformBufferObject);
-		const auto& swap = _app->getSwapChain();
-		size_t swapChainSize = (uint32_t)swap.swapChainImages.size();
-
-		_uniformBuffers.resize(swapChainSize);
-
-		for (size_t i = 0; i < swapChainSize; i++) {
-			_uniformBuffers[i].create(device, bufferSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
-				VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
-		}
+	for (auto& sceneNode : _sceneNodes) {
+		sceneNode->updateUniformBuffer(this, swapChainIndex);
 	}
 
 }
+
+void PipelineVertex3D::createDescriptorSetLayout() {
+	VkDescriptorSetLayoutBinding uboLayoutBinding = {};
+	uboLayoutBinding.binding = 0;
+	uboLayoutBinding.descriptorCount = 1;
+	uboLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+	uboLayoutBinding.pImmutableSamplers = nullptr;
+	uboLayoutBinding.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
+
+	std::array<VkDescriptorSetLayoutBinding, 1> bindings = { uboLayoutBinding };
+	VkDescriptorSetLayoutCreateInfo layoutInfo = {};
+	layoutInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
+	layoutInfo.bindingCount = static_cast<uint32_t>(bindings.size());
+	layoutInfo.pBindings = bindings.data();
+
+	if (vkCreateDescriptorSetLayout(_app->getDeviceContext().device_, &layoutInfo, nullptr, &_descriptorSetLayout) != VK_SUCCESS) {
+		throw std::runtime_error("failed to create descriptor set layout!");
+	}
+}
+
+void PipelineVertex3D::createDescriptorSets() {
+	auto dc = _app->getDeviceContext().device_;
+
+	const auto& swap = _app->getSwapChain();
+	size_t swapChainSize = (uint32_t)swap.swapChainImages.size();
+
+	std::vector<VkDescriptorSetLayout> layouts(swapChainSize, _descriptorSetLayout);
+	VkDescriptorSetAllocateInfo allocInfo = {};
+	allocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
+	allocInfo.descriptorPool = _descriptorPool;
+	allocInfo.descriptorSetCount = static_cast<uint32_t>(swapChainSize);
+	allocInfo.pSetLayouts = layouts.data();
+
+	_descriptorSets.resize(swapChainSize);
+
+	if (vkAllocateDescriptorSets(dc, &allocInfo, _descriptorSets.data()) != VK_SUCCESS) {
+		throw std::runtime_error("failed to allocate descriptor sets!");
+	}
+
+	for (size_t i = 0; i < swapChainSize; i++) {
+		VkDescriptorBufferInfo bufferInfo = {};
+
+		bufferInfo.buffer = _uniformBuffers[i];
+		bufferInfo.offset = 0;
+		bufferInfo.range = sizeof(UniformBufferObject);
+
+		std::vector<VkDescriptorImageInfo> imageInfoList;
+		for (const auto& sceneNode : _sceneNodes) {
+			sceneNode->buildImageInfoList(imageInfoList);
+		}
+
+		std::array<VkWriteDescriptorSet, 1> descriptorWrites = {};
+
+		descriptorWrites[0].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+		descriptorWrites[0].dstSet = _descriptorSets[i];
+		descriptorWrites[0].dstBinding = 0;
+		descriptorWrites[0].dstArrayElement = 0;
+		descriptorWrites[0].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+		descriptorWrites[0].descriptorCount = 1;
+		descriptorWrites[0].pBufferInfo = &bufferInfo;
+
+		vkUpdateDescriptorSets(dc, static_cast<uint32_t>(descriptorWrites.size()), descriptorWrites.data(), 0, nullptr);
+	}
+}
+
+void PipelineVertex3D::createUniformBuffers() {
+	auto& device = _app->getDeviceContext();
+	size_t bufferSize = sizeof(UniformBufferObject);
+	const auto& swap = _app->getSwapChain();
+	size_t swapChainSize = (uint32_t)swap.swapChainImages.size();
+
+	_uniformBuffers.resize(swapChainSize);
+
+	for (size_t i = 0; i < swapChainSize; i++) {
+		_uniformBuffers[i].create(device, bufferSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
+			VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
+	}
+}
+
+

@@ -31,10 +31,8 @@ This file is part of the VulkanQuickStart Project.
 
 #include <vk_sceneNode.h>
 
-namespace VK {
+using namespace VK;
 
-	void SceneNodeBase::updateUniformBuffer(PipelineBase* pipeline, size_t swapChainIndex) {
-
-	}
+void SceneNodeBase::updateUniformBuffer(PipelineBase* pipeline, size_t swapChainIndex) {
 
 }

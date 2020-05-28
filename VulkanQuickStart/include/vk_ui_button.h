@@ -38,7 +38,7 @@ This file is part of the VulkanQuickStart Project.
 
 #include <vk_forwardDeclarations.h>
 #include <vk_buffer.h>
-#include <vk_sceneNode2D.h>
+#include <vk_sceneNodeUi.h>
 #include <vk_pipelineUi.h>
 
 namespace VK {
@@ -60,7 +60,7 @@ namespace VK {
 			int _modifers = 0;
 		};
 
-		class Button : public SceneNode2D {
+		class Button : public SceneNodeUi {
 		public:
 			using Vertex2D = PipelineUi::Vertex2D;
 			enum ActionType {

@@ -31,26 +31,23 @@ This file is part of the VulkanQuickStart Project.
 
 #include <vk_scene.h>
 
-namespace VK {
+using namespace std;
+using namespace VK;
 
-	using namespace std;
+Scene::Scene() {
+}
 
-	Scene::Scene() {
-	}
+Scene::~Scene() {
 
-	Scene::~Scene() {
+}
 
-	}
+void Scene::addCommands(VkCommandBuffer cmdBuff, VkPipelineLayout pipelineLayout, VkDescriptorSet& descSet) {
+	for (auto& node : _rootNodes)
+		node->addCommands(cmdBuff, pipelineLayout, descSet);
+}
 
-	void Scene::addCommands(VkCommandBuffer cmdBuff, VkPipelineLayout pipelineLayout, VkDescriptorSet& descSet) {
-		for (auto& node : _rootNodes)
-			node->addCommands(cmdBuff, pipelineLayout, descSet);
-	}
-
-	void Scene::buildImageInfoList(std::vector<VkDescriptorImageInfo>& imageInfoList) {
-		for (auto& node : _rootNodes)
-			node->buildImageInfoList(imageInfoList);
-	}
-
+void Scene::buildImageInfoList(std::vector<VkDescriptorImageInfo>& imageInfoList) {
+	for (auto& node : _rootNodes)
+		node->buildImageInfoList(imageInfoList);
 }
 
