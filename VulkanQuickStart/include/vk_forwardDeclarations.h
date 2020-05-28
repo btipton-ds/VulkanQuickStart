@@ -58,6 +58,9 @@ namespace VK {
 	template<class PIPELINE_TYPE>
 	using PipelinePtr = std::shared_ptr<PIPELINE_TYPE>;
 
+	class PipelineUi;
+	using PipelineUiPtr = std::shared_ptr<PipelineUi>;
+
 	class SceneNodeBase;
 	using SceneNodeBasePtr = std::shared_ptr<SceneNodeBase>;
 

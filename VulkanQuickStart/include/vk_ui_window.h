@@ -80,6 +80,7 @@ namespace VK {
 
 			void scroll(GLFWwindow* window, const glm::dvec2& pos);
 
+			PipelineUiPtr _pipeline;
 			size_t _changeNumber = 0;
 			glm::dvec2 _mouseStartPos[4];
 			glm::mat4 _initialMatrix;

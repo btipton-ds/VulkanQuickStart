@@ -63,9 +63,8 @@ namespace VK::UI {
 		ButtonPtr btnPtr = make_shared<Button>(btn);
 		btnPtr->createBuffers(_app);
 		_buttons.push_back(btnPtr);
-		auto pipeline = _app->addPipeline(createPipeline<PipelineUi>(_app.get()));
 
-		pipeline->addSceneNode(btnPtr);
+		_pipeline->addSceneNode(btnPtr);
 	}
 
 	int Window::getPixelDPI() const {
@@ -206,6 +205,8 @@ namespace VK::UI {
 
 	void Window::init() {
 		auto win = _app->getWindow();
+
+		_pipeline = _app->addPipeline(createPipeline<PipelineUi>(_app.get()));
 
 		glfwSetMouseButtonCallback(win, mouseButtonCB);
 		glfwSetCursorPosCallback(win, cursorPosCB);

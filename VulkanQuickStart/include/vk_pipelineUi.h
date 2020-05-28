@@ -80,6 +80,8 @@ namespace VK {
 
 		UniformBufferObject _ubo;
 	};
+
+	using PipelineUiPtr = std::shared_ptr<PipelineUi>;
 	
 	inline VertexUi::VertexUi(const glm::vec2& pos, const glm::vec2& tc)
 		: _pos(pos)
