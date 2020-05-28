@@ -43,6 +43,7 @@ This file is part of the VulkanQuickStart Project.
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/glm.hpp>
 
+#include <vk_forwardDeclarations.h>
 #include "vk_deviceContext.h"
 #include "vk_buffer.h"
 #include "vk_textureImage.h"
@@ -58,10 +59,6 @@ namespace TriMesh {
 }
 
 namespace VK {
-
-	struct DeviceContext;
-	class Model;
-	using ModelPtr = std::shared_ptr<Model>;
 
 	class Model : public SceneNode3D {
 	public:

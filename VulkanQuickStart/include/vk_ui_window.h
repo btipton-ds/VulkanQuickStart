@@ -38,22 +38,14 @@ This file is part of the VulkanQuickStart Project.
 #define GLM_FORCE_DEPTH_ZERO_TO_ONE
 #include <glm/glm.hpp>
 
+#include <vk_forwardDeclarations.h>
 #include <vk_ui_button.h>
 
 struct GLFWwindow;
 
 namespace VK {
 
-	class VulkanApp;
-	using VulkanAppPtr = std::shared_ptr<class VulkanApp>;
-
-	class PipelineUi;
-	using PipelineUiPtr = std::shared_ptr<PipelineUi>;
-
 	namespace UI {
-
-		class Window;
-		using WindowPtr = std::shared_ptr<Window>;
 
 		class Window {
 		public:

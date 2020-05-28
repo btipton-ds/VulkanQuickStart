@@ -34,9 +34,9 @@ This file is part of the VulkanQuickStart Project.
 #define GLFW_INCLUDE_VULKAN
 #include <GLFW/glfw3.h>
 
-namespace VK {
+#include <vk_forwardDeclarations.h>
 
-	struct DeviceContext;
+namespace VK {
 
 	class Image {
 	public:

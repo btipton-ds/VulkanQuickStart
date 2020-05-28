@@ -44,6 +44,7 @@ This file is part of the VulkanQuickStart Project.
 #define GLM_FORCE_DEPTH_ZERO_TO_ONE
 #include <glm/glm.hpp>
 
+#include <vk_forwardDeclarations.h>
 #include "vk_deviceContext.h"
 #include "vk_image.h"
 #include <vk_sceneNode.h>
@@ -59,11 +60,6 @@ namespace TriMesh {
 }
 
 namespace VK {
-	namespace UI {
-		class Window;
-		using WindowPtr = std::shared_ptr<Window>;
-	}
-
 	struct SwapChain {
 		VkSwapchainKHR swapChain;
 		std::vector<VkImage> swapChainImages;
@@ -72,15 +68,6 @@ namespace VK {
 		std::vector<VkImageView> swapChainImageViews;
 		std::vector<VkFramebuffer> swapChainFramebuffers;
 	};
-
-	class Scene;
-	using ScenePtr = std::shared_ptr<Scene>;
-
-	class Pipeline;
-	using PipelinePtr = std::shared_ptr<Pipeline>;
-
-	class VulkanApp;
-	using VulkanAppPtr = std::shared_ptr<class VulkanApp>;
 
 	class VulkanApp {
 	public:

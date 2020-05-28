@@ -37,7 +37,7 @@ This file is part of the VulkanQuickStart Project.
 namespace VK {
 
 
-	class SceneNodeGroup : public SceneNode {
+	class SceneNodeGroup : public SceneNodeBase {
 	public:
 		SceneNodeGroup();
 		virtual ~SceneNodeGroup();

@@ -40,17 +40,11 @@ This file is part of the VulkanQuickStart Project.
 
 #include <boundingBox.h>
 #include <vulkan/vulkan_core.h>
+
+#include <vk_forwardDeclarations.h>
 #include <vk_textureImage.h>
 
 namespace VK {
-	class PipelineBase;
-
-	class Pipeline;
-	using PipelinePtr = std::shared_ptr<Pipeline>;
-
-	class SceneNode;
-	using SceneNodePtr = std::shared_ptr<SceneNode>;
-	using SceneNodeList = std::vector<SceneNodePtr>;
 
 	class SceneNodeBase {
 	public:

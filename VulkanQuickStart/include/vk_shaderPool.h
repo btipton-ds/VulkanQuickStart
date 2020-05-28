@@ -38,12 +38,10 @@ This file is part of the VulkanQuickStart Project.
 
 #include <vulkan/vulkan_core.h>
 
+#include <vk_forwardDeclarations.h>
 #include <vk_deviceContext.h>
 
 namespace VK {
-
-	class ShaderPool;
-	using ShaderPoolPtr = std::shared_ptr<ShaderPool>;
 
 	class ShaderPool {
 	public:

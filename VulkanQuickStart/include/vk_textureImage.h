@@ -37,12 +37,10 @@ This file is part of the VulkanQuickStart Project.
 #include <string>
 #include <memory>
 
+#include <vk_forwardDeclarations.h>
 #include "vk_image.h"
 
 namespace VK {
-	struct Buffer;
-	class TextureImage;
-	using TextureImagePtr = std::shared_ptr<TextureImage>;
 
 	class TextureImage : public Image {
 	public:

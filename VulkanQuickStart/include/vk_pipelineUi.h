@@ -37,9 +37,6 @@ This file is part of the VulkanQuickStart Project.
 
 namespace VK {
 
-	class PipelineUi;
-	using PipelineUiPtr = std::shared_ptr<PipelineUi>;
-
 	class PipelineUi : public Pipeline {
 	public:
 		struct UniformBufferObject {

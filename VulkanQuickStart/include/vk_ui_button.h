@@ -36,6 +36,7 @@ This file is part of the VulkanQuickStart Project.
 #include <map>
 #include <vector>
 
+#include <vk_forwardDeclarations.h>
 #include <vk_buffer.h>
 #include <vk_sceneNode2D.h>
 #include <vk_pipelineUi.h>
@@ -58,9 +59,6 @@ namespace VK {
 			char _keyCode = 0;
 			int _modifers = 0;
 		};
-
-		class Button;
-		using ButtonPtr = std::shared_ptr<Button>;
 
 		class Button : public SceneNode2D {
 		public:
