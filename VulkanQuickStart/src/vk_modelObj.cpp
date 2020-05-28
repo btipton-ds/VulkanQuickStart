@@ -46,8 +46,8 @@ using namespace std;
 using namespace VK;
 
 namespace std {
-	template<> struct hash<Vertex3_PNCTf> {
-		size_t operator()(Vertex3_PNCTf const& vertex) const {
+	template<> struct hash<ModelObj::VertexType> {
+		size_t operator()(ModelObj::VertexType const& vertex) const {
 			return ((hash<glm::vec3>()(vertex.pos) ^ (hash<glm::vec3>()(vertex.color) << 1)) >> 1) ^ (hash<glm::vec2>()(vertex.texCoord) << 1);
 		}
 	};
@@ -105,11 +105,11 @@ void ModelObj::loadModel(const std::string& filename) {
 		throw std::runtime_error(warn + err);
 	}
 
-	std::unordered_map<Vertex3_PNCTf, uint32_t> uniqueVertices = {};
+	std::unordered_map<VertexType, uint32_t> uniqueVertices = {};
 
 	for (const auto& shape : shapes) {
 		for (const auto& index : shape.mesh.indices) {
-			Vertex3_PNCTf vertex = {};
+			VertexType vertex = {};
 
 			vertex.pos = {
 				attrib.vertices[3 * index.vertex_index + 0],

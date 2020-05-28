@@ -63,6 +63,7 @@ namespace VK {
 	class Model : public SceneNode3D {
 	public:
 		using BoundingBox = CBoundingBox3D<float>;
+		using VertexType = PipelineVertex3D::VertexType;
 
 		static inline ModelPtr create(DeviceContext& dc, const TriMesh::CMeshPtr& meshPtr) {
 			return std::shared_ptr<Model>(new Model(dc, meshPtr));
@@ -72,7 +73,7 @@ namespace VK {
 		void buildImageInfoList(std::vector<VkDescriptorImageInfo>& imageInfoList) const override;
 		BoundingBox getBounds() const override;
 
-		inline const std::vector<Vertex3_PNCTf>& getVertices() const {
+		inline const std::vector<VertexType>& getVertices() const {
 			return vertices_;
 		}
 
@@ -103,7 +104,7 @@ namespace VK {
 
 		DeviceContext* _dc = VK_NULL_HANDLE; // TODO I think this should be a parameter, not a member
 		BoundingBox _bounds;
-		std::vector<Vertex3_PNCTf> vertices_;
+		std::vector<VertexType> vertices_;
 		std::vector<uint32_t> indices_;
 		Buffer vertexBuffer_, indexBuffer_;
 	};

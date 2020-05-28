@@ -105,6 +105,49 @@ namespace VK {
 
 	};
 
+	struct Vertex3_PNCf {
+		glm::vec3 pos;
+		glm::vec3 norm;
+		glm::vec3 color;
+
+		static VkVertexInputBindingDescription getBindingDescription() {
+			VkVertexInputBindingDescription bindingDescription = {};
+			bindingDescription.binding = 0;
+			bindingDescription.stride = sizeof(Vertex3_PNCf);
+			bindingDescription.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
+
+			return bindingDescription;
+		}
+
+		static std::vector<VkVertexInputAttributeDescription> getAttributeDescriptions() {
+			std::vector<VkVertexInputAttributeDescription> attributeDescriptions;
+			attributeDescriptions.resize(3);
+
+			attributeDescriptions[0].binding = 0;
+			attributeDescriptions[0].location = 0;
+			attributeDescriptions[0].format = VK_FORMAT_R32G32B32_SFLOAT;
+			attributeDescriptions[0].offset = offsetof(Vertex3_PNCf, pos);
+
+			attributeDescriptions[1].binding = 0;
+			attributeDescriptions[1].location = 1;
+			attributeDescriptions[1].format = VK_FORMAT_R32G32B32_SFLOAT;
+			attributeDescriptions[1].offset = offsetof(Vertex3_PNCf, norm);
+
+			attributeDescriptions[2].binding = 0;
+			attributeDescriptions[2].location = 2;
+			attributeDescriptions[2].format = VK_FORMAT_R32G32B32_SFLOAT;
+			attributeDescriptions[2].offset = offsetof(Vertex3_PNCf, color);
+
+			return attributeDescriptions;
+		}
+
+		bool operator==(const Vertex3_PNCf& other) const {
+			return pos == other.pos &&
+				norm == other.norm &&
+				color == other.color;
+		}
+	};
+
 	struct Vertex3_PNCTf {
 		glm::vec3 pos;
 		glm::vec3 norm;

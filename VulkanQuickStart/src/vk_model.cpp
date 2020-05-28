@@ -42,9 +42,9 @@ using namespace std;
 using namespace VK;
 
 namespace std {
-	template<> struct hash<Vertex3_PNCTf> {
-		size_t operator()(Vertex3_PNCTf const& vertex) const {
-			return ((hash<glm::vec3>()(vertex.pos) ^ (hash<glm::vec3>()(vertex.color) << 1)) >> 1) ^ (hash<glm::vec2>()(vertex.texCoord) << 1);
+	template<> struct hash<Model::VertexType> {
+		size_t operator()(Model::VertexType const& vertex) const {
+			return ((hash<glm::vec3>()(vertex.pos) ^ (hash<glm::vec3>()(vertex.color) << 1)) >> 1);
 		}
 	};
 }
@@ -93,7 +93,7 @@ void Model::loadModel(const TriMesh::CMeshPtr& meshPtr) {
 	vertices_.resize(meshPtr->numVertices());
 	for (size_t vertIdx = 0; vertIdx < meshPtr->numVertices(); vertIdx++) {
 		const auto& scrVert = meshPtr->getVert(vertIdx);
-		Vertex3_PNCTf& vertex = vertices_[vertIdx];
+		VertexType& vertex = vertices_[vertIdx];
 
 		vertex.pos = {
 			(float) scrVert._pt[0],
@@ -102,8 +102,6 @@ void Model::loadModel(const TriMesh::CMeshPtr& meshPtr) {
 		};
 
 		_bounds.merge(conv(vertex.pos));
-
-		vertex.texCoord = { 0, 0 };
 
 		vertex.norm = { 0.0, 0.0, 0.0 };
 		vertex.color = { 1.0f, 1.0f, 1.0f };

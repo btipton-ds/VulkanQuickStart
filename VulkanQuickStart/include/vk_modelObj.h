@@ -59,6 +59,7 @@ namespace VK {
 	class ModelObj : public SceneNode3DWTexture {
 	public:
 		using BoundingBox = CBoundingBox3D<float>;
+		using VertexType = PipelineVertex3DWSampler::VertexType;
 
 		static inline ModelObjPtr create(DeviceContext& dc, const std::string& modelFilename, const std::string& imageFilename) {
 			return std::shared_ptr<ModelObj>(new ModelObj(dc, modelFilename, imageFilename));
@@ -68,7 +69,7 @@ namespace VK {
 		void buildImageInfoList(std::vector<VkDescriptorImageInfo>& imageInfoList) const override;
 		BoundingBox getBounds() const override;
 
-		inline const std::vector<Vertex3_PNCTf>& getVertices() const {
+		inline const std::vector<VertexType>& getVertices() const {
 			return vertices_;
 		}
 
@@ -102,7 +103,7 @@ namespace VK {
 
 		DeviceContext* _dc = VK_NULL_HANDLE; // TODO I think this should be a parameter, not a member
 		BoundingBox _bounds;
-		std::vector<Vertex3_PNCTf> vertices_;
+		std::vector<VertexType> vertices_;
 		std::vector<uint32_t> indices_;
 		Buffer vertexBuffer_, indexBuffer_;
 		TextureImagePtr _textureImage;

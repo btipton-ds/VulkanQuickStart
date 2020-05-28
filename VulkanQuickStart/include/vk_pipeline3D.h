@@ -38,7 +38,7 @@ This file is part of the VulkanQuickStart Project.
 
 namespace VK {
 
-	class PipelineVertex3D : public Pipeline<UniformBufferObject3D, Vertex3_PNCTf> {
+	class PipelineVertex3D : public Pipeline<UniformBufferObject3D, Vertex3_PNCf> {
 	public:
 		using UniformBufferObject = UniformBufferObject3D;
 		using BoundingBox = CBoundingBox3D<float>;
