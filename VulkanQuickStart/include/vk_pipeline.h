@@ -144,7 +144,6 @@ namespace VK {
 	template<class UBO_TYPE>
 	class Pipeline : public PipelineBase {
 	public:
-		using PipelinePtr = std::shared_ptr<Pipeline>;
 		using SceneNode = SceneNode<Pipeline>;
 		using SceneNodePtr = std::shared_ptr<SceneNode>;
 		using SceneNodeList = std::vector<SceneNodePtr>;

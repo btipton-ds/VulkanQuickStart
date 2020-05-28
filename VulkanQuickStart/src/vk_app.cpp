@@ -49,6 +49,7 @@ This file is part of the VulkanQuickStart Project.
 #include <vk_sceneNode.h>
 #include <vk_scene.h>
 #include <vk_pipeline3D.h>
+#include <vk_pipeline3DWithTexture.h>
 #include <vk_pipelineUi.h>
 #include <vk_ui_window.h>
 #include "vk_app.h"
@@ -158,6 +159,7 @@ SceneNode3DWithTexturePtr VulkanApp::addSceneNode3D(const std::string& modelFile
 	getRoot3D()->addChild(result);
 
 	auto pipeline = addPipeline(createPipelineWithSource<PipelineVertex3DWSampler>(this, "shaders/shader_depth_vert.spv", "shaders/shader_depth_frag.spv"));
+	pipeline->setUniformBufferPtr(&_ubo);
 	pipeline->addSceneNode(result);
 
 	_changeNumber++;
@@ -171,6 +173,7 @@ SceneNode3DPtr VulkanApp::addSceneNode3D(const TriMesh::CMeshPtr& mesh) {
 	getRoot3D()->addChild(result);
 
 	auto pipeline = addPipeline(createPipelineWithSource<PipelineVertex3D>(this, "shaders/shader_vert.spv", "shaders/shader_frag.spv"));
+	pipeline->setUniformBufferPtr(&_ubo);
 	pipeline->addSceneNode(result);
 
 	_changeNumber++;
@@ -839,9 +842,58 @@ void VulkanApp::reportFPS() {
 	}
 }
 
+namespace {
+	inline glm::vec3 conv(const Vector3f& pt) {
+		return glm::vec3(pt[0], pt[1], pt[2]);
+	}
+
+	inline glm::vec4 conv4(const Vector3f& pt) {
+		return glm::vec4(pt[0], pt[1], pt[2], 1);
+	}
+}
+
 void VulkanApp::updateUniformBuffer(uint32_t swapChainImageIndex) {
 	reportFPS();
 
+	BoundingBox modelBounds;
+	for (auto& pipeline : _pipelines) {
+
+		auto ptr3D = dynamic_pointer_cast<PipelineVertex3D>(pipeline);
+		if (ptr3D)
+			modelBounds.merge(ptr3D->getBounds());
+
+		auto ptr3DWTex = dynamic_pointer_cast<PipelineVertex3DWSampler>(pipeline);
+		if (ptr3DWTex)
+			modelBounds.merge(ptr3DWTex->getBounds());
+	}
+
+	_ubo = {};
+	_ubo.ambient = 0.10f;
+	_ubo.numLights = 2;
+	_ubo.lightDir[0] = glm::normalize(glm::vec3(1, -0.5, 1));
+	_ubo.lightDir[1] = glm::normalize(glm::vec3(-1, -0.5, 3));
+
+	float w = (float)_swapChain.swapChainExtent.width;
+	float h = (float)_swapChain.swapChainExtent.height;
+	float maxDim = std::max(w, h);
+	float minDim = std::min(w, h);
+	w /= maxDim;
+	h /= maxDim;
+
+	auto range = modelBounds.range();
+	float maxModelDim = max(max(range[0], range[1]), range[2]);
+	float scale = 1.0f * 1.0f / maxModelDim * minDim / maxDim;
+	scale *= (float)getModelScale();
+
+	auto ctr = (modelBounds.getMin() + modelBounds.getMax()) / 2;
+	_ubo.model = getModelToWorldTransform();
+	_ubo.model *= glm::scale(glm::mat4(1.0f), glm::vec3(scale, scale, scale));
+	_ubo.model *= glm::translate(glm::mat4(1.0f), -conv(ctr));
+
+	_ubo.view = glm::lookAt(glm::vec3(1.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+	//		auto proj = glm::perspective(glm::radians(45.0f), swapChainExtent.width / (float)swapChainExtent.height, 0.1f, 10.0f);
+	_ubo.proj = glm::ortho(-w / 2, w, -h / 2, h, 0.10f, 10.0f);
+	_ubo.proj[1][1] *= -1;
 
 	for (auto& pipeline : _pipelines) {
 		if (pipeline->numSceneNodes() > 0) {

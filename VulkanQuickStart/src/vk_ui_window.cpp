@@ -63,7 +63,7 @@ namespace VK::UI {
 		ButtonPtr btnPtr = make_shared<Button>(btn);
 		btnPtr->createBuffers(_app);
 		_buttons.push_back(btnPtr);
-		PipelineUiPtr pipeline = _app->addPipeline(createPipeline<PipelineUi>(_app.get()));
+		auto pipeline = _app->addPipeline(createPipeline<PipelineUi>(_app.get()));
 
 		SceneNode2DPtr p = btnPtr;
 		pipeline->addSceneNode(p);

@@ -58,12 +58,6 @@ namespace VK {
 	template<class PIPELINE_TYPE>
 	using PipelinePtr = std::shared_ptr<PIPELINE_TYPE>;
 
-	struct UniformBufferObjectUi;
-	using PipelineUiPtr = std::shared_ptr<Pipeline<UniformBufferObjectUi>>;
-
-	struct UniformBufferObject3D;
-	using PipelineVertex3DPtr = std::shared_ptr<Pipeline<UniformBufferObject3D>>;
-
 	class SceneNodeBase;
 	using SceneNodeBasePtr = std::shared_ptr<SceneNodeBase>;
 

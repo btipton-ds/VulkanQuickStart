@@ -46,6 +46,7 @@ namespace VK {
 	class PipelineUi : public Pipeline<UniformBufferObjectUi> {
 	public:
 		using UniformBufferObject = UniformBufferObjectUi;
+		using PipelinePtr = std::shared_ptr<PipelineUi>;
 
 		struct Vertex2D {
 			Vertex2D() = default;

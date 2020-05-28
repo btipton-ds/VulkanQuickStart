@@ -84,8 +84,8 @@ namespace VK {
 		SceneNode3DWithTexturePtr addSceneNode3D(const std::string& modelFilename, const std::string& imageFilename);
 		SceneNode3DPtr addSceneNode3D(const TriMesh::CMeshPtr& mesh);
 
-		template<class UBO_TYPE>
-		const PipelinePtr<UBO_TYPE>& addPipeline(const PipelinePtr<UBO_TYPE>& pipeline);
+		template<class PIPELINE_TYPE>
+		const PipelinePtr<PIPELINE_TYPE>& addPipeline(const PipelinePtr<PIPELINE_TYPE>& pipeline);
 
 		const ScenePtr& getScene() const;
 		void setScene(const ScenePtr& scene);
@@ -200,6 +200,8 @@ namespace VK {
 			_pipelineSamplerIdx = stm1,
 			_pipelineUiIdx = stm1;
 		ShaderPoolPtr _shaderPool;
+
+		UniformBufferObject3D _ubo;
 		std::vector<PipelineBasePtr> _pipelines;
 
 		Image colorImage, depthImage;

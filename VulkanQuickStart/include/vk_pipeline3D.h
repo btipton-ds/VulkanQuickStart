@@ -41,14 +41,18 @@ namespace VK {
 	public:
 		using UniformBufferObject = UniformBufferObject3D;
 		using BoundingBox = CBoundingBox3D<float>;
+		using PipelinePtr = std::shared_ptr<PipelineVertex3D>;
 
 		static std::string getShaderId();
 
 		PipelineVertex3D(VulkanApp* app);
+
+		void setUniformBufferPtr(const UniformBufferObject* ubo);
+		BoundingBox getBounds() const;
+
 		void updateUniformBuffer(size_t swapChainIndex) override;
 
 		const UniformBufferObject& getUniformBuffer() const;
-		UniformBufferObject& getUniformBuffer();
 
 	protected:
 		std::string getShaderIdMethod() override;
@@ -56,15 +60,15 @@ namespace VK {
 		virtual void createDescriptorSets() override;
 		virtual void createUniformBuffers() override;
 
-		UniformBufferObject _ubo;
+		const UniformBufferObject* _ubo;
 	};
 
-	inline const PipelineVertex3D::UniformBufferObject& PipelineVertex3D::getUniformBuffer() const {
-		return _ubo;
+	inline void PipelineVertex3D::setUniformBufferPtr(const UniformBufferObject* ubo) {
+		_ubo = ubo;
 	}
 
-	inline PipelineVertex3D::UniformBufferObject& PipelineVertex3D::getUniformBuffer() {
-		return _ubo;
+	inline const PipelineVertex3D::UniformBufferObject& PipelineVertex3D::getUniformBuffer() const {
+		return *_ubo;
 	}
 
 }
