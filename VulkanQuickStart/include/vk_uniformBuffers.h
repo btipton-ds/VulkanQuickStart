@@ -31,40 +31,21 @@ This file is part of the VulkanQuickStart Project.
 
 #include <defines.h>
 
-#include <boundingBox.h>
-#include <vk_pipeline.h>
-#include <vk_uniformBuffers.h>
+#define GLM_FORCE_RADIANS
+#define GLM_FORCE_DEPTH_ZERO_TO_ONE
+#include <glm/glm.hpp>
 
 namespace VK {
 
-	class PipelineVertex3D : public Pipeline<UniformBufferObject3D> {
-	public:
-		using UniformBufferObject = UniformBufferObject3D;
-		using BoundingBox = CBoundingBox3D<float>;
+	struct UniformBufferObject3D {
+		alignas(16) float ambient;
 
-		static std::string getShaderId();
-
-		PipelineVertex3D(VulkanApp* app);
-		void updateUniformBuffer(size_t swapChainIndex) override;
-
-		const UniformBufferObject& getUniformBuffer() const;
-		UniformBufferObject& getUniformBuffer();
-
-	protected:
-		std::string getShaderIdMethod() override;
-		virtual void createDescriptorSetLayout() override;
-		virtual void createDescriptorSets() override;
-		virtual void createUniformBuffers() override;
-
-		UniformBufferObject _ubo;
+		alignas(16) glm::mat4 model;
+		alignas(16) glm::mat4 view;
+		alignas(16) glm::mat4 proj;
+		alignas(16) int numLights;
+		alignas(16) glm::vec3 lightDir[2];
 	};
 
-	inline const PipelineVertex3D::UniformBufferObject& PipelineVertex3D::getUniformBuffer() const {
-		return _ubo;
-	}
-
-	inline PipelineVertex3D::UniformBufferObject& PipelineVertex3D::getUniformBuffer() {
-		return _ubo;
-	}
-
 }
+

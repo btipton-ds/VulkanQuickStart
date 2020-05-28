@@ -1,5 +1,3 @@
-#pragma once
-
 /*
 
 This file is part of the VulkanQuickStart Project.
@@ -31,40 +29,26 @@ This file is part of the VulkanQuickStart Project.
 
 #include <defines.h>
 
-#include <boundingBox.h>
-#include <vk_pipeline.h>
-#include <vk_uniformBuffers.h>
+#include <memory>
 
-namespace VK {
+#include <vk_sceneNode3DWTexture.h>
+#include <vk_pipeline3D.h>
 
-	class PipelineVertex3D : public Pipeline<UniformBufferObject3D> {
-	public:
-		using UniformBufferObject = UniformBufferObject3D;
-		using BoundingBox = CBoundingBox3D<float>;
+using namespace std;
+using namespace VK;
 
-		static std::string getShaderId();
+SceneNode3DWTexture::SceneNode3DWTexture()
+	: _modelXForm(glm::mat4(1.0f))
+{
+}
 
-		PipelineVertex3D(VulkanApp* app);
-		void updateUniformBuffer(size_t swapChainIndex) override;
+SceneNode3DWTexture::~SceneNode3DWTexture() {
+}
 
-		const UniformBufferObject& getUniformBuffer() const;
-		UniformBufferObject& getUniformBuffer();
 
-	protected:
-		std::string getShaderIdMethod() override;
-		virtual void createDescriptorSetLayout() override;
-		virtual void createDescriptorSets() override;
-		virtual void createUniformBuffers() override;
-
-		UniformBufferObject _ubo;
-	};
-
-	inline const PipelineVertex3D::UniformBufferObject& PipelineVertex3D::getUniformBuffer() const {
-		return _ubo;
-	}
-
-	inline PipelineVertex3D::UniformBufferObject& PipelineVertex3D::getUniformBuffer() {
-		return _ubo;
-	}
-
+void SceneNode3DWTexture::updateUniformBuffer(PipelineBase* pipeline, size_t swapChainIndex) {
+	auto pipeline3D = dynamic_cast<PipelineVertex3DWSampler*>(pipeline);
+	auto ubo = pipeline3D->getUniformBuffer();
+	ubo.model *= _modelXForm;
+	pipeline->updateUniformBufferTempl(swapChainIndex, ubo);
 }

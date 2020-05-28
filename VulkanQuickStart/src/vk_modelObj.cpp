@@ -59,7 +59,7 @@ namespace std {
 
 
 ModelObj::ModelObj(DeviceContext& dc, const std::string& modelFilename, const std::string& imageFilename)
-	: Model(dc)
+	: _dc(&dc)
 {
 	loadModel(modelFilename);
 	createVertexBuffer();
@@ -87,6 +87,10 @@ void ModelObj::buildImageInfoList(std::vector<VkDescriptorImageInfo>& imageInfoL
 	info.sampler = *texture;
 
 	imageInfoList.push_back(info);
+}
+
+ModelObj::BoundingBox ModelObj::getBounds() const {
+	return _bounds;
 }
 
 void ModelObj::loadModel(const std::string& filename) {
@@ -145,6 +149,14 @@ void ModelObj::loadModel(const std::string& filename) {
 
 		}
 	}
+}
+
+void ModelObj::createVertexBuffer() {
+	vertexBuffer_.create(*_dc, vertices_, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+}
+
+void ModelObj::createIndexBuffer() {
+	indexBuffer_.create(*_dc, indices_, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
 }
 
 

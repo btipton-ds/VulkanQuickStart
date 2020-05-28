@@ -31,20 +31,62 @@ This file is part of the VulkanQuickStart Project.
 
 #include <defines.h>
 
-#include <vk_model.h>
+#include <vector>
+#include <memory>
+#include <string>
+
+#define GLFW_INCLUDE_VULKAN
+#include <GLFW/glfw3.h>
+
+#define GLM_FORCE_RADIANS
+#define GLM_FORCE_DEPTH_ZERO_TO_ONE
+#define GLM_ENABLE_EXPERIMENTAL
+#include <glm/glm.hpp>
+
+#include <vk_forwardDeclarations.h>
+#include "vk_deviceContext.h"
+#include "vk_buffer.h"
+#include "vk_textureImage.h"
+#include "vk_vertexTypes.h"
+#include <vk_sceneNode3DWTexture.h>
+#include <vk_pipeline3D.h>
+
+#include <boundingBox.h>
+
 
 namespace VK {
 
-	class ModelObj : public Model {
+	class ModelObj : public SceneNode3DWTexture {
 	public:
 		using BoundingBox = CBoundingBox3D<float>;
 
-		static inline ModelPtr create(DeviceContext& dc, const std::string& modelFilename, const std::string& imageFilename) {
-			return std::shared_ptr<Model>(new ModelObj(dc, modelFilename, imageFilename));
+		static inline ModelObjPtr create(DeviceContext& dc, const std::string& modelFilename, const std::string& imageFilename) {
+			return std::shared_ptr<ModelObj>(new ModelObj(dc, modelFilename, imageFilename));
 		}
 
 		void addCommands(VkCommandBuffer cmdBuff, VkPipelineLayout pipelineLayout, const VkDescriptorSet& descSet) const override;
 		void buildImageInfoList(std::vector<VkDescriptorImageInfo>& imageInfoList) const override;
+		BoundingBox getBounds() const override;
+
+		inline const std::vector<Vertex3_PNCTf>& getVertices() const {
+			return vertices_;
+		}
+
+		inline const std::vector<uint32_t>& getIndices() const {
+			return indices_;
+		}
+
+		inline const Buffer& getVertexBuffer() const {
+			return vertexBuffer_;
+		}
+
+		inline const Buffer& getIndexBuffer() const {
+			return indexBuffer_;
+		}
+
+		inline uint32_t numIndices() const {
+			return static_cast<uint32_t>(indices_.size());
+		}
 
 		inline const TextureImagePtr& getTexture() const {
 			return _textureImage;
@@ -55,6 +97,14 @@ namespace VK {
 
 		void loadModel(const std::string& filename);
 
+		void createVertexBuffer();
+		void createIndexBuffer();
+
+		DeviceContext* _dc = VK_NULL_HANDLE; // TODO I think this should be a parameter, not a member
+		BoundingBox _bounds;
+		std::vector<Vertex3_PNCTf> vertices_;
+		std::vector<uint32_t> indices_;
+		Buffer vertexBuffer_, indexBuffer_;
 		TextureImagePtr _textureImage;
 	};
 

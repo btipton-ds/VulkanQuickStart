@@ -31,64 +31,41 @@ This file is part of the VulkanQuickStart Project.
 
 #include <defines.h>
 
-#include <memory>
-#include <vector>
-
-/*
-	This file is not strictly required, but it reduces the work if the forward declrations change. You only have to change each one once.
-*/
+#include <boundingBox.h>
+#include <vk_pipeline.h>
+#include <vk_uniformBuffers.h>
 
 namespace VK {
-	struct DeviceContext;
-	struct Buffer;
 
-	class TextureImage;
-	using TextureImagePtr = std::shared_ptr<TextureImage>;
+	class PipelineVertex3DWSampler : public Pipeline<UniformBufferObject3D> {
+	public:
+		using UniformBufferObject = UniformBufferObject3D;
+		using BoundingBox = CBoundingBox3D<float>;
 
-	class VulkanApp;
-	using VulkanAppPtr = std::shared_ptr<class VulkanApp>;
+		static std::string getShaderId();
+		PipelineVertex3DWSampler(VulkanApp* app);
 
-	class ShaderPool;
-	using ShaderPoolPtr = std::shared_ptr<ShaderPool>;
+		void updateUniformBuffer(size_t swapChainIndex) override;
 
-	class PipelineBase;
-	using PipelineBasePtr = std::shared_ptr<PipelineBase>;
-	template<class UBO_TYPE>
-	class Pipeline;
-	template<class PIPELINE_TYPE>
-	using PipelinePtr = std::shared_ptr<PIPELINE_TYPE>;
+		const UniformBufferObject& getUniformBuffer() const;
+		UniformBufferObject& getUniformBuffer();
 
-	struct UniformBufferObjectUi;
-	using PipelineUiPtr = std::shared_ptr<Pipeline<UniformBufferObjectUi>>;
+	protected:
+		std::string getShaderIdMethod() override;
+		virtual void createDescriptorSetLayout() override;
+		virtual void createDescriptorSets() override;
+		virtual void createUniformBuffers() override;
 
-	struct UniformBufferObject3D;
-	using PipelineVertex3DPtr = std::shared_ptr<Pipeline<UniformBufferObject3D>>;
+		UniformBufferObject _ubo;
 
-	class SceneNodeBase;
-	using SceneNodeBasePtr = std::shared_ptr<SceneNodeBase>;
+	};
 
-	template<class PIPELINE_TYPE>
-	class SceneNode;
+	inline const PipelineVertex3DWSampler::UniformBufferObject& PipelineVertex3DWSampler::getUniformBuffer() const {
+		return _ubo;
+	}
 
-	class SceneNodeGroup;
-	using SceneNodeGroupPtr = std::shared_ptr<SceneNodeGroup>;
-	using SceneNodeGroupConstPtr = std::shared_ptr<const SceneNodeGroup>;
-
-	class Model;
-	using ModelPtr = std::shared_ptr<Model>;
-
-	class ModelObj;
-	using ModelObjPtr = std::shared_ptr<ModelObj>;
-
-	class Scene;
-	using ScenePtr = std::shared_ptr<Scene>;
-
-	namespace UI {
-		class Window;
-		using WindowPtr = std::shared_ptr<Window>;
-
-		class Button;
-		using ButtonPtr = std::shared_ptr<Button>;
+	inline PipelineVertex3DWSampler::UniformBufferObject& PipelineVertex3DWSampler::getUniformBuffer() {
+		return _ubo;
 	}
 
 }

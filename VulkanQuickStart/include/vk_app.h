@@ -50,6 +50,7 @@ This file is part of the VulkanQuickStart Project.
 #include <vk_sceneNode.h>
 #include <vk_sceneNodeGroup.h>
 #include <vk_sceneNode3D.h>
+#include <vk_sceneNode3DWTexture.h>
 #include <vk_scene.h>
 #include <vk_pipeline3D.h>
 #include <vk_shaderPool.h>
@@ -80,7 +81,7 @@ namespace VK {
 
 		void setUiWindow(UI::Window* uiWindow );
 
-		SceneNode3DPtr addSceneNode3D(const std::string& modelFilename, const std::string& imageFilename);
+		SceneNode3DWithTexturePtr addSceneNode3D(const std::string& modelFilename, const std::string& imageFilename);
 		SceneNode3DPtr addSceneNode3D(const TriMesh::CMeshPtr& mesh);
 
 		template<class UBO_TYPE>

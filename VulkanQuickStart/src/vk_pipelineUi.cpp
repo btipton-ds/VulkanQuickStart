@@ -39,7 +39,7 @@ namespace VK {
 	using namespace std;
 
 	string PipelineUi::getShaderId() {
-		return "ShaderUi";
+		return "PipelineUi";
 	}
 
 	string PipelineUi::getShaderIdMethod() {

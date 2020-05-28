@@ -31,40 +31,46 @@ This file is part of the VulkanQuickStart Project.
 
 #include <defines.h>
 
-#include <boundingBox.h>
-#include <vk_pipeline.h>
-#include <vk_uniformBuffers.h>
+
+#define GLM_FORCE_RADIANS
+#define GLM_FORCE_DEPTH_ZERO_TO_ONE
+#include <glm/glm.hpp>
+
+#include <vk_sceneNode.h>
+#include <vk_pipeline3DWithTexture.h>
 
 namespace VK {
 
-	class PipelineVertex3D : public Pipeline<UniformBufferObject3D> {
+	class SceneNode3DWTexture : public PipelineVertex3DWSampler::SceneNode {
 	public:
-		using UniformBufferObject = UniformBufferObject3D;
-		using BoundingBox = CBoundingBox3D<float>;
+		using BoundingBox = PipelineVertex3DWSampler::BoundingBox;
+		using UniformBufferObject = PipelineVertex3DWSampler::UniformBufferObject;
 
-		static std::string getShaderId();
+		SceneNode3DWTexture();
+		virtual ~SceneNode3DWTexture();
 
-		PipelineVertex3D(VulkanApp* app);
-		void updateUniformBuffer(size_t swapChainIndex) override;
+		virtual BoundingBox getBounds() const = 0;
+		void updateUniformBuffer(PipelineBase* pipeline, size_t swapChainIndex) override;
 
-		const UniformBufferObject& getUniformBuffer() const;
-		UniformBufferObject& getUniformBuffer();
+		void setModelTransform(const glm::mat4& xform);
+		const glm::mat4& getModelTransform() const;
+		glm::mat4& getModelTransform();
 
-	protected:
-		std::string getShaderIdMethod() override;
-		virtual void createDescriptorSetLayout() override;
-		virtual void createDescriptorSets() override;
-		virtual void createUniformBuffers() override;
-
-		UniformBufferObject _ubo;
+	private:
+		glm::mat4 _modelXForm;
 	};
+	using SceneNode3DWithTexturePtr = std::shared_ptr<SceneNode3DWTexture>;
 
-	inline const PipelineVertex3D::UniformBufferObject& PipelineVertex3D::getUniformBuffer() const {
-		return _ubo;
+	inline void SceneNode3DWTexture::setModelTransform(const glm::mat4& xform) {
+		_modelXForm = xform;
 	}
 
-	inline PipelineVertex3D::UniformBufferObject& PipelineVertex3D::getUniformBuffer() {
-		return _ubo;
+	inline const glm::mat4& SceneNode3DWTexture::getModelTransform() const {
+		return _modelXForm;
+	}
+
+	inline glm::mat4& SceneNode3DWTexture::getModelTransform() {
+		return _modelXForm;
 	}
 
 }

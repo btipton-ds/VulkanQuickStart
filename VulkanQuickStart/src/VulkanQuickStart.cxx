@@ -40,6 +40,7 @@ This file is part of the VulkanQuickStart Project.
 #include <glm/gtc/matrix_transform.hpp>
 
 #include "vk_model.h"
+#include "vk_modelObj.h"
 #include <vk_pipelineUi.h>
 #include <vk_ui_button.h>
 #include <vk_ui_window.h>
@@ -101,7 +102,7 @@ int main(int numArgs, char** args) {
 	glfwSetWindowTitle(gApp->getWindow(), "Vulkan Quick Start");
 
 #if TEST_OBJ
-	ModelPtr plant = std::dynamic_pointer_cast<Model> (gApp->addSceneNode3D(pottedPlantFilename, pottedPlantTextureFilename));
+	ModelObjPtr plant = std::dynamic_pointer_cast<ModelObj> (gApp->addSceneNode3D(pottedPlantFilename, pottedPlantTextureFilename));
 	plant->setModelTransform(glm::rotate(glm::mat4(1.0f), glm::radians(90.0f), glm::vec3(1.0f, 0.0f, 0.0f)));
 #endif
 

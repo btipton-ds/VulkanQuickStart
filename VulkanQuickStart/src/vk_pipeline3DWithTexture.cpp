@@ -42,8 +42,8 @@ This file is part of the VulkanQuickStart Project.
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
-#include <vk_pipeline3D.h>
-#include <vk_sceneNode3D.h>
+#include <vk_pipeline3DWithTexture.h>
+#include <vk_sceneNode3DWTexture.h>
 #include <vk_deviceContext.h>
 #include <vk_buffer.h>
 #include <vk_vertexTypes.h>
@@ -52,21 +52,6 @@ This file is part of the VulkanQuickStart Project.
 namespace VK {
 
 	using namespace std;
-
-	string PipelineVertex3D::getShaderId() {
-		return "PipelineVertex3D";
-	}
-
-	string PipelineVertex3D::getShaderIdMethod() {
-		return getShaderId();
-	}
-
-	PipelineVertex3D::PipelineVertex3D(VulkanApp* app)
-		: Pipeline(app)
-	{
-		_vertBindDesc = Vertex3_PNCTf::getBindingDescription();
-		_vertAttribDesc = Vertex3_PNCTf::getAttributeDescriptions();
-	}
 
 	namespace {
 		inline glm::vec3 conv(const Vector3f& pt) {
@@ -94,10 +79,39 @@ namespace VK {
 		}
 	}
 
-	void PipelineVertex3D::updateUniformBuffer(size_t swapChainIndex) {
+	string PipelineVertex3DWSampler::getShaderId() {
+		return "PipelineVertex3DWSampler";
+	}
+
+	string PipelineVertex3DWSampler::getShaderIdMethod() {
+		return getShaderId();
+	}
+
+	PipelineVertex3DWSampler::PipelineVertex3DWSampler(VulkanApp* app)
+		: Pipeline(app)
+	{
+		_vertBindDesc = Vertex3_PNCTf::getBindingDescription();
+		_vertAttribDesc = Vertex3_PNCTf::getAttributeDescriptions();
+	}
+
+	void PipelineVertex3DWSampler::createUniformBuffers() {
+		auto& device = _app->getDeviceContext();
+		size_t bufferSize = sizeof(UniformBufferObject);
+		const auto& swap = _app->getSwapChain();
+		size_t swapChainSize = (uint32_t)swap.swapChainImages.size();
+
+		_uniformBuffers.resize(swapChainSize);
+
+		for (size_t i = 0; i < swapChainSize; i++) {
+			_uniformBuffers[i].create(device, bufferSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
+				VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
+		}
+	}
+
+	void PipelineVertex3DWSampler::updateUniformBuffer(size_t swapChainIndex) {
 		BoundingBox modelBounds;
 		for (auto& sceneNode : _sceneNodes) {
-			SceneNode3DPtr node3D = dynamic_pointer_cast<SceneNode3D> (sceneNode);
+			SceneNode3DWithTexturePtr node3D = dynamic_pointer_cast<SceneNode3DWTexture> (sceneNode);
 			auto bb = node3D->getBounds();
 			const auto& xform = node3D->getModelTransform();
 			bb = transform(bb, xform);
@@ -140,7 +154,7 @@ namespace VK {
 
 	}
 
-	void PipelineVertex3D::createDescriptorSetLayout() {
+	void PipelineVertex3DWSampler::createDescriptorSetLayout() {
 		VkDescriptorSetLayoutBinding uboLayoutBinding = {};
 		uboLayoutBinding.binding = 0;
 		uboLayoutBinding.descriptorCount = 1;
@@ -148,7 +162,14 @@ namespace VK {
 		uboLayoutBinding.pImmutableSamplers = nullptr;
 		uboLayoutBinding.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
 
-		std::array<VkDescriptorSetLayoutBinding, 1> bindings = { uboLayoutBinding };
+		VkDescriptorSetLayoutBinding samplerLayoutBinding = {};
+		samplerLayoutBinding.binding = 1;
+		samplerLayoutBinding.descriptorCount = 1;
+		samplerLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+		samplerLayoutBinding.pImmutableSamplers = nullptr;
+		samplerLayoutBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
+
+		std::array<VkDescriptorSetLayoutBinding, 2> bindings = { uboLayoutBinding, samplerLayoutBinding };
 		VkDescriptorSetLayoutCreateInfo layoutInfo = {};
 		layoutInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
 		layoutInfo.bindingCount = static_cast<uint32_t>(bindings.size());
@@ -159,7 +180,7 @@ namespace VK {
 		}
 	}
 
-	void PipelineVertex3D::createDescriptorSets() {
+	void PipelineVertex3DWSampler::createDescriptorSets() {
 		auto dc = _app->getDeviceContext().device_;
 
 		const auto& swap = _app->getSwapChain();
@@ -190,7 +211,7 @@ namespace VK {
 				sceneNode->buildImageInfoList(imageInfoList);
 			}
 
-			std::array<VkWriteDescriptorSet, 1> descriptorWrites = {};
+			std::array<VkWriteDescriptorSet, 2> descriptorWrites = {};
 
 			descriptorWrites[0].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
 			descriptorWrites[0].dstSet = _descriptorSets[i];
@@ -200,22 +221,17 @@ namespace VK {
 			descriptorWrites[0].descriptorCount = 1;
 			descriptorWrites[0].pBufferInfo = &bufferInfo;
 
+			descriptorWrites[1].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+			descriptorWrites[1].dstSet = _descriptorSets[i];
+			descriptorWrites[1].dstBinding = 1;
+			descriptorWrites[1].dstArrayElement = 0;
+			descriptorWrites[1].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+			descriptorWrites[1].descriptorCount = static_cast<uint32_t>(imageInfoList.size());
+			descriptorWrites[1].pImageInfo = imageInfoList.data();
+
 			vkUpdateDescriptorSets(dc, static_cast<uint32_t>(descriptorWrites.size()), descriptorWrites.data(), 0, nullptr);
 		}
 	}
 
-	void PipelineVertex3D::createUniformBuffers() {
-		auto& device = _app->getDeviceContext();
-		size_t bufferSize = sizeof(UniformBufferObject);
-		const auto& swap = _app->getSwapChain();
-		size_t swapChainSize = (uint32_t)swap.swapChainImages.size();
-
-		_uniformBuffers.resize(swapChainSize);
-
-		for (size_t i = 0; i < swapChainSize; i++) {
-			_uniformBuffers[i].create(device, bufferSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
-				VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
-		}
-	}
 
 }

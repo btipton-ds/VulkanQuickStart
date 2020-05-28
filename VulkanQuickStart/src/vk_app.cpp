@@ -152,12 +152,12 @@ namespace VK {
 		std::vector<VkPresentModeKHR> presentModes;
 	};
 
-	SceneNode3DPtr VulkanApp::addSceneNode3D(const std::string& modelFilename, const std::string& imageFilename) {
+	SceneNode3DWithTexturePtr VulkanApp::addSceneNode3D(const std::string& modelFilename, const std::string& imageFilename) {
 		std::lock_guard<mutex> guard(_swapChainMutex);
-		ModelPtr result = ModelObj::create(deviceContext, modelFilename, imageFilename);
+		ModelObjPtr result = ModelObj::create(deviceContext, modelFilename, imageFilename);
 		getRoot3D()->addChild(result);
 
-		auto pipeline = createPipelineWithSource<PipelineVertex3DWSampler>(this, "shaders/shader_depth_vert.spv", "shaders/shader_depth_frag.spv");
+		auto pipeline = addPipeline(createPipelineWithSource<PipelineVertex3DWSampler>(this, "shaders/shader_depth_vert.spv", "shaders/shader_depth_frag.spv"));
 		pipeline->addSceneNode(result);
 
 		_changeNumber++;
@@ -170,8 +170,7 @@ namespace VK {
 		ModelPtr result = Model::create(deviceContext, mesh);
 		getRoot3D()->addChild(result);
 
-		auto p = createPipelineWithSource<PipelineVertex3D>(this, "shaders/shader_vert.spv", "shaders/shader_frag.spv");
-		auto pipeline = addPipeline(p);
+		auto pipeline = addPipeline(createPipelineWithSource<PipelineVertex3D>(this, "shaders/shader_vert.spv", "shaders/shader_frag.spv"));
 		pipeline->addSceneNode(result);
 
 		_changeNumber++;
