@@ -61,20 +61,6 @@ namespace VK {
 			float opacity;
 		};
 
-		// Stores info on the materials used in the scene
-		struct Material
-		{
-			std::string name;
-			// Material properties
-			MaterialProperties properties;
-			// The example only uses a diffuse channel
-			VK::TextureImagePtr diffuseTexture;
-			// The material's descriptor contains the material descriptors
-			VkDescriptorSet descriptorSet;
-			// Pointer to the pipeline used by this material
-			VkPipeline* pipeline;
-		};
-
 		SceneNode();
 		virtual ~SceneNode();
 
@@ -82,29 +68,12 @@ namespace VK {
 		virtual void buildImageInfoList(std::vector<VkDescriptorImageInfo>& imageInfoList) const = 0;
 		virtual void updateUniformBuffer(Pipeline* pipeline, size_t swapChainIndex) = 0;
 
-		void setMaterial(const Material& material);
-		const Material& getMaterial() const;
-		Material& getMaterial();
-
-		Material _material;
 	};
 
 	inline SceneNode::SceneNode() {
 	}
 
 	inline SceneNode::~SceneNode() {
-	}
-
-	inline void SceneNode::setMaterial(const Material& material) {
-		_material = material;
-	}
-
-	inline const SceneNode::Material& SceneNode::getMaterial() const {
-		return _material;
-	}
-
-	inline SceneNode::Material& SceneNode::getMaterial() {
-		return _material;
 	}
 
 }
