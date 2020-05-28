@@ -29,7 +29,7 @@ This file is part of the VulkanQuickStart Project.
 
 #include <defines.h>
 
-#include <vk_sceneNode.h>
+#include <vk_sceneNodeBase.h>
 
 using namespace VK;
 

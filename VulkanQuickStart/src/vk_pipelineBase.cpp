@@ -29,7 +29,7 @@ This file is part of the VulkanQuickStart Project.
 
 #include <defines.h>
 
-#include <vk_pipeline.h>
+#include <vk_pipelineBase.h>
 
 #include <stdexcept>
 #include <string>

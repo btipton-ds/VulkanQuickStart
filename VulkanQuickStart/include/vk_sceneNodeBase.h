@@ -31,20 +31,36 @@ This file is part of the VulkanQuickStart Project.
 
 #include <defines.h>
 
-#include <vk_sceneNodeBase.h>
+#include <memory>
+#include <vector>
+
+#define GLM_FORCE_RADIANS
+#define GLM_FORCE_DEPTH_ZERO_TO_ONE
+#include <glm/glm.hpp>
+
+#include <boundingBox.h>
+#include <vulkan/vulkan_core.h>
+
+#include <vk_forwardDeclarations.h>
+#include <vk_textureImage.h>
 
 namespace VK {
 
-	template<class PIPELINE_TYPE>
-	class SceneNode : public SceneNodeBase {
+	class SceneNodeBase {
 	public:
-		SceneNode();
+		SceneNodeBase();
+		virtual ~SceneNodeBase();
+
+		virtual void addCommands(VkCommandBuffer cmdBuff, VkPipelineLayout pipelineLayout, const VkDescriptorSet& descSet) const = 0;
+		virtual void buildImageInfoList(std::vector<VkDescriptorImageInfo>& imageInfoList) const = 0;
+		virtual void updateUniformBuffer(PipelineBase* pipeline, size_t swapChainIndex);
 
 	};
 
-	template<class PIPELINE_TYPE>
-	inline SceneNode<PIPELINE_TYPE>::SceneNode()
-	{
+	inline SceneNodeBase::SceneNodeBase() {
+	}
+
+	inline SceneNodeBase::~SceneNodeBase() {
 	}
 
 }
