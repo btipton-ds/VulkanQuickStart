@@ -61,8 +61,8 @@ namespace VK {
 		using BoundingBox = CBoundingBox3D<float>;
 		using VertexType = PipelineVertex3DWSampler::VertexType;
 
-		static inline ModelObjPtr create(DeviceContext& dc, const std::string& modelFilename, const std::string& imageFilename) {
-			return std::shared_ptr<ModelObj>(new ModelObj(dc, modelFilename, imageFilename));
+		static inline ModelObjPtr create(DeviceContext& dc, const std::string& path, const std::string& filename) {
+			return std::shared_ptr<ModelObj>(new ModelObj(dc, path, filename));
 		}
 
 		void addCommands(VkCommandBuffer cmdBuff, VkPipelineLayout pipelineLayout, const VkDescriptorSet& descSet) const override;
@@ -94,9 +94,9 @@ namespace VK {
 		}
 
 	protected:
-		ModelObj(DeviceContext& dc, const std::string& modelFilename, const std::string& imageFilename);
+		ModelObj(DeviceContext& dc, const std::string& path, const std::string& filename);
 
-		void loadModel(const std::string& filename);
+		void loadModel(std::string path, std::string filename);
 
 		void getImageInfo(VkDescriptorImageInfo& imageInfo) override;
 		void createVertexBuffer();

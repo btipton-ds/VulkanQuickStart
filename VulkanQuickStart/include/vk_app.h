@@ -81,7 +81,7 @@ namespace VK {
 
 		void setUiWindow(UI::Window* uiWindow );
 
-		SceneNode3DWithTexturePtr addSceneNode3D(const std::string& modelFilename, const std::string& imageFilename);
+		SceneNode3DWithTexturePtr addSceneNode3D(const std::string& path, const std::string& filename);
 		SceneNode3DPtr addSceneNode3D(const TriMesh::CMeshPtr& mesh);
 
 		template<class PIPELINE_TYPE>

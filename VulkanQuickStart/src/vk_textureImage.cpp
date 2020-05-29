@@ -64,6 +64,8 @@ void TextureImage::init(DeviceContext& dc, const string& filename) {
 	dc_->textureImages_.insert(this);
 	int texWidth, texHeight, texChannels;
 	stbi_uc* pixels = stbi_load(filename.c_str(), &texWidth, &texHeight, &texChannels, STBI_rgb_alpha);
+	if (!pixels)
+		throw runtime_error("Unable to read image file");
 	init(dc, texWidth, texHeight, pixels);
 	stbi_image_free(pixels);
 }

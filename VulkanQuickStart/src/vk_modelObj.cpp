@@ -58,13 +58,12 @@ namespace std {
 }
 
 
-ModelObj::ModelObj(DeviceContext& dc, const std::string& modelFilename, const std::string& imageFilename)
+ModelObj::ModelObj(DeviceContext& dc, const std::string& path, const std::string& filename)
 	: _dc(&dc)
 {
-	loadModel(modelFilename);
+	loadModel(path, filename);
 	createVertexBuffer();
 	createIndexBuffer();
-	_textureImage = TextureImage::create(dc, imageFilename);
 }
 
 void ModelObj::addCommands(VkCommandBuffer cmdBuff, VkPipelineLayout pipelineLayout, const VkDescriptorSet& descSet) const {
@@ -79,7 +78,7 @@ void ModelObj::addCommands(VkCommandBuffer cmdBuff, VkPipelineLayout pipelineLay
 	vkCmdDrawIndexed(cmdBuff, numIndices(), 1, 0, 0, 0);
 }
 
-void ModelObj::buildImageInfoList(std::vector<VkDescriptorImageInfo>& imageInfoList) const {
+void ModelObj::buildImageInfoList(vector<VkDescriptorImageInfo>& imageInfoList) const {
 }
 
 void ModelObj::getImageInfo(VkDescriptorImageInfo& imageInfo) {
@@ -94,19 +93,54 @@ ModelObj::BoundingBox ModelObj::getBounds() const {
 	return _bounds;
 }
 
-void ModelObj::loadModel(const std::string& filename) {
+namespace {
+	void replaceAllDirTokens(string& data)
+	{
+		string toSearch;
+		string replaceStr;
+#ifndef _WIN32
+		toSearch = "\\";
+		replaceStr = "/";
+#else
+		toSearch = "/";
+		replaceStr = "\\";
+#endif
+		// Get the first occurrence
+		size_t pos = data.find(toSearch);
+
+		// Repeat till end is reached
+		while (pos != string::npos)
+		{
+			// Replace this occurrence of Sub String
+			data.replace(pos, toSearch.size(), replaceStr);
+			// Get the next occurrence from the current position
+			pos = data.find(toSearch, pos + replaceStr.size());
+		}
+	}
+
+}
+
+void ModelObj::loadModel(string path, string filename) {
 	_bounds.clear();
 
 	tinyobj::attrib_t attrib;
-	std::vector<tinyobj::shape_t> shapes;
-	std::vector<tinyobj::material_t> materials;
-	std::string warn, err;
+	vector<tinyobj::shape_t> shapes;
+	vector<tinyobj::material_t> materials;
+	string warn, err;
 
-	if (!tinyobj::LoadObj(&attrib, &shapes, &materials, &warn, &err, filename.c_str())) {
-		throw std::runtime_error(warn + err);
+#ifndef _WIN32
+	replaceAllDirTokens(path);
+	replaceAllDirTokens(filename);
+#else
+	replaceAllDirTokens(path);
+	replaceAllDirTokens(filename);
+#endif
+
+	if (!tinyobj::LoadObj(&attrib, &shapes, &materials, &warn, &err, (path + filename).c_str(), path.c_str())) {
+		throw runtime_error(warn + err);
 	}
 
-	std::unordered_map<VertexType, uint32_t> uniqueVertices = {};
+	unordered_map<VertexType, uint32_t> uniqueVertices = {};
 
 	for (const auto& shape : shapes) {
 		for (const auto& index : shape.mesh.indices) {
@@ -150,6 +184,13 @@ void ModelObj::loadModel(const std::string& filename) {
 
 		}
 	}
+
+	if (!materials.empty()) {
+		string texName = materials.front().diffuse_texname;
+		replaceAllDirTokens(texName);
+		_textureImage = TextureImage::create(*_dc, path + texName);
+	}
+
 }
 
 void ModelObj::createVertexBuffer() {

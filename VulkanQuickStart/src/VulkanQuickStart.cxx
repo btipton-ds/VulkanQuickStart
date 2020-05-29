@@ -59,8 +59,8 @@ using namespace std;
 const std::string modelPath = "../../../../resources/models/";
 
 #if TEST_OBJ
-const std::string pottedPlantFilename = modelPath + "IndoorPotPlant/indoor plant_02.obj";
-const std::string pottedPlantTextureFilename = modelPath + "IndoorPotPlant/textures/indoor plant_2_vl.jpg"; // TODO. tinyObjReader should be getting this from the material file.
+const std::string pottedPlantPath = modelPath + "IndoorPotPlant/";
+const std::string pottedPlantFilename = "indoor_plant_02.obj";
 #endif
 
 #if TEST_STL
@@ -102,7 +102,7 @@ int main(int numArgs, char** args) {
 	glfwSetWindowTitle(gApp->getWindow(), "Vulkan Quick Start");
 
 #if TEST_OBJ
-	ModelObjPtr plant = std::dynamic_pointer_cast<ModelObj> (gApp->addSceneNode3D(pottedPlantFilename, pottedPlantTextureFilename));
+	ModelObjPtr plant = std::dynamic_pointer_cast<ModelObj> (gApp->addSceneNode3D(pottedPlantPath, pottedPlantFilename));
 	plant->setModelTransform(glm::rotate(glm::mat4(1.0f), glm::radians(90.0f), glm::vec3(1.0f, 0.0f, 0.0f)));
 #endif
 

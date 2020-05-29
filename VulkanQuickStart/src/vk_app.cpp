@@ -153,9 +153,9 @@ struct VulkanApp::SwapChainSupportDetails {
 	std::vector<VkPresentModeKHR> presentModes;
 };
 
-SceneNode3DWithTexturePtr VulkanApp::addSceneNode3D(const std::string& modelFilename, const std::string& imageFilename) {
+SceneNode3DWithTexturePtr VulkanApp::addSceneNode3D(const std::string& path, const std::string& filename) {
 	std::lock_guard<mutex> guard(_swapChainMutex);
-	ModelObjPtr result = ModelObj::create(deviceContext, modelFilename, imageFilename);
+	ModelObjPtr result = ModelObj::create(deviceContext, path, filename);
 	getRoot3D()->addChild(result);
 
 	auto pipeline = addPipeline(createPipelineWithSource<PipelineVertex3DWSampler>(this, "shaders/shader_depth_vert.spv", "shaders/shader_depth_frag.spv"));
