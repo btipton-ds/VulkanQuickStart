@@ -87,7 +87,7 @@ namespace VK {
 
 			void setAction(ActionType action, const FuncMouse& f);
 
-			bool isPointInside(double x, double y) const;
+			bool isPointInside(const glm::ivec2& pt) const;
 			void handleMouseClick(int btnNum, int modifiers);
 			void handleMouseEnter();
 			void handleMouseExit();

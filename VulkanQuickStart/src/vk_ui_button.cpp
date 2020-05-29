@@ -264,11 +264,11 @@ namespace VK::UI {
 		_mouseFuncs[action] = f;
 	}
 
-	bool Button::isPointInside(double x, double y) const {
-		if (x < _rect._left || _rect._right < x)
+	bool Button::isPointInside(const glm::ivec2& pt) const {
+		if (pt.x < _rect._left || _rect._right < pt.x)
 			return false;
 		
-		if (y < _rect._bottom || _rect._top < y)
+		if (pt.y < _rect._bottom || _rect._top < pt.y)
 			return false;
 
 		return true;

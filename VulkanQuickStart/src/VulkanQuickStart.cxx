@@ -51,7 +51,7 @@ This file is part of the VulkanQuickStart Project.
 using namespace VK;
 using namespace std;
 
-#define TEST_OBJ 1
+#define TEST_OBJ 0
 #define TEST_STL 1
 #define TEST_GUI 1
 
@@ -110,8 +110,8 @@ int main(int numArgs, char** args) {
 
 	glfwSetWindowTitle(gApp->getWindow(), "Vulkan Quick Start");
 
-#if TEST_OBJ
 	glm::mat4 xform;
+#if TEST_OBJ
 
 	ModelObjPtr plant = std::dynamic_pointer_cast<ModelObj> (gApp->addSceneNode3D(pottedPlantPath, pottedPlantFilename));
 	xform = glm::rotate(glm::mat4(1.0f), glm::radians(90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
@@ -140,7 +140,7 @@ int main(int numArgs, char** args) {
 		meshModel->setModelTransform(glm::scale(glm::mat4(1.0f), glm::vec3(.05f, .05f, .05f)));
 	}
 
-	{
+	if (false) {
 		TriMesh::CMeshPtr meshPtr = std::make_shared<TriMesh::CMesh>();
 		CReadSTL readStl(meshPtr);
 		if (!readStl.read(modelPath, "Vase.stl"))

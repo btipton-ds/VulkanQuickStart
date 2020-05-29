@@ -68,22 +68,27 @@ namespace VK {
 			static void scrollCB(GLFWwindow* window, double dx, double dy);
 			static void cursorPosCB(GLFWwindow* window, double xPos, double yPos);
 
-			void mouseButton(GLFWwindow* window, int btnNum, bool pressed, int modifiers);
+			glm::ivec2 toUi(const glm::dvec2& pt) const;
 
-			void mouseMoved(GLFWwindow* window, const glm::dvec2& pos);
+			bool mouseButtonUi(const glm::ivec2& pt, int btnNum, bool pressed, int modifiers);
+			bool mouseButton3D(const glm::dvec2& pt, int btnNum, bool pressed, int modifiers);
+
+			bool mouseMovedUi(const glm::ivec2& pos, int btnNum);
+			bool mouseMoved3D(const glm::dvec2& pos, int btnNum);
+
 			void doMouseRotate(const glm::dvec2& startPos, const glm::dvec2& curPos);
 			void startMouseRotate();
 			void endMouseRotate();
 
-			bool handleButtonClick(double xPos, double yPos, int btnNum, bool pressed, int modifiers);
-			bool handleButtonMove(double xPos, double yPos);
+			bool handleButtonClick(const glm::ivec2& pt, int btnNum, bool pressed, int modifiers);
+			bool handleButtonMove(const glm::ivec2& pt, int btnNum);
 
 			void scroll(GLFWwindow* window, const glm::dvec2& pos);
 
 			PipelineUiPtr _pipeline;
 			size_t _changeNumber = 0;
 			glm::dvec2 _mouseStartPos[4];
-			glm::mat4 _initialMatrix;
+			glm::mat4 _initialMatrix3D;
 			VulkanAppPtr _app;
 			GLFWwindow* _window;
 

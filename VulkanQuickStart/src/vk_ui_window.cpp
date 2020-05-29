@@ -56,10 +56,31 @@ namespace VK::UI {
 		init();
 	}
 
-	void Window::addButton(const Button& btn) {
+	inline dvec2 Window::scaleCursorPos(GLFWwindow* window, double xPos, double yPos) {
+		dvec2 result;
 		int width, height;
-		glfwGetWindowSize(_app->getWindow(), &width, &height);
+		glfwGetWindowSize(window, &width, &height);
+		result[0] = (2 * xPos / (double)width) - 1;
+		result[1] = (2 * yPos / (double)height) - 1;
+		return result;
+	}
 
+	ivec2 Window::toUi(const dvec2& pt) const {
+		vec2 p(static_cast<float> (pt.x), static_cast<float> (pt.y));
+		const auto& ubo = _pipeline->getUniformBuffer();
+		/*
+	vec2 p = inPosition;
+	p = p * ubo.scale;
+	p = p + ubo.offset;
+		*/
+		p -= ubo._offset;
+		vec2 scale(1.0f / ubo._scale.x, 1.0f / ubo._scale.y);
+		p *= scale;
+
+		return ivec2(static_cast<int>(p.x + 0.5), static_cast<int>(p.y + 0.5));
+	}
+
+	void Window::addButton(const Button& btn) {
 		ButtonPtr btnPtr = make_shared<Button>(btn);
 		btnPtr->createBuffers(_app);
 		_buttons.push_back(btnPtr);
@@ -73,11 +94,12 @@ namespace VK::UI {
 
 	const int leftBtn = 0;
 	const int rightBtn = 1;
+	const int middleBtn = 2;
 
-	bool Window::handleButtonClick(double xPos, double yPos, int btnNum, bool pressed, int modifiers) {
+	bool Window::handleButtonClick(const glm::ivec2& pt, int btnNum, bool pressed, int modifiers) {
 		for (size_t idx = 0; idx < _buttons.size(); idx++) {
 			const auto& btn = _buttons[idx];
-			if (btn->isPointInside(xPos, yPos)) {
+			if (btn->isPointInside(pt)) {
 				if (pressed) {
 					_lastButtonDownIdx = idx;
 				}
@@ -91,12 +113,12 @@ namespace VK::UI {
 		return false;
 	}
 
-	bool Window::handleButtonMove(double xPos, double yPos) {
+	bool Window::handleButtonMove(const glm::ivec2& pt, int btnNum) {
 		size_t nextBtnIdx = stm1;
 
 		for (size_t idx = 0; idx < _buttons.size(); idx++) {
 			const auto& btn = _buttons[idx];
-			if (btn->isPointInside(xPos, yPos)) {
+			if (btn->isPointInside(pt)) {
 				nextBtnIdx = idx;
 				break;
 			}
@@ -117,34 +139,44 @@ namespace VK::UI {
 		return nextBtnIdx != stm1;
 	}
 
-	void Window::mouseButton(GLFWwindow* window, int btnNum, bool pressed, int modifiers) {
-		double xPos, yPos;
-		glfwGetCursorPos(window, &xPos, &yPos);
-		if (handleButtonClick(xPos, yPos, btnNum, pressed, modifiers))
-			return;
-		_mouseStartPos[btnNum] = scaleCursorPos(window, xPos, yPos);
+	bool Window::mouseButtonUi(const glm::ivec2& pt, int btnNum, bool pressed, int modifiers) {
+		if (handleButtonClick(pt, btnNum, pressed, modifiers))
+			return true;
 
+		return false;
+	}
+
+	bool Window::mouseButton3D(const glm::dvec2& pt, int btnNum, bool pressed, int modifiers) {
+		_mouseStartPos[btnNum] = pt;
 
 		if (btnNum == rightBtn) {
 			if (pressed)
 				startMouseRotate();
 			else
 				endMouseRotate();
+			return true;
 		}
+
+		return false;
 	}
 
-	void Window::mouseMoved(GLFWwindow* window, const dvec2& pos) {
-		double xPos, yPos;
-		glfwGetCursorPos(window, &xPos, &yPos);
-		if (handleButtonMove(xPos, yPos)) {
-			return;
+	bool Window::mouseMovedUi(const glm::ivec2& pos, int btnNum) {
+		if (handleButtonMove(pos, btnNum)) {
+			return true;
 		}
-		if (glfwGetMouseButton(window, rightBtn) == GLFW_PRESS)
+
+		return false;
+	}
+
+	bool Window::mouseMoved3D(const glm::dvec2& pos, int btnNum) {
+		if (btnNum == rightBtn)
 			doMouseRotate(_mouseStartPos[rightBtn], pos);
+
+		return false;
 	}
 
 	void Window::startMouseRotate() {
-		_initialMatrix = _app->getModelToWorldTransform();
+		_initialMatrix3D = _app->getModelToWorldTransform();
 	}
 
 	void Window::endMouseRotate() {
@@ -153,13 +185,13 @@ namespace VK::UI {
 
 	void Window::doMouseRotate(const dvec2& startPos, const dvec2& curPos) {
 		auto delta = curPos - startPos;
-		auto rot = mat3(_initialMatrix);
+		auto rot = mat3(_initialMatrix3D);
 		auto invRot = inverse(rot);
 		vec3 xAxis = invRot * vec3(0, 0, 1);
 		vec3 yAxis = invRot * vec3(0, 1, 0);
 		float theta = (float)(EIGEN_PI * delta[0]);
 		float phi = (float)(EIGEN_PI * delta[1]);
-		auto xform = _initialMatrix;
+		auto xform = _initialMatrix3D;
 		xform *= rotate(mat4(1.0f), theta, xAxis);
 		xform *= rotate(mat4(1.0f), -phi, yAxis);
 		_app->setModelToWorldTransform(xform);
@@ -174,22 +206,35 @@ namespace VK::UI {
 	}
 
 	void Window::mouseButtonCB(GLFWwindow* window, int btnNum, int pressed, int modifiers) {
+		double xPos, yPos;
+		glfwGetCursorPos(window, &xPos, &yPos);
+		dvec2 pt = scaleCursorPos(window, xPos, yPos);
+
 		Window* self = static_cast<Window*>(glfwGetWindowUserPointer(window));
-		self->mouseButton(window, btnNum, pressed == GLFW_PRESS, modifiers);
+
+		auto ptUi = self->toUi(pt);
+		if (self->mouseButtonUi(ptUi, btnNum, pressed == GLFW_PRESS, modifiers))
+			return;
+
+		self->mouseButton3D(pt, btnNum, pressed == GLFW_PRESS, modifiers);
 	}
 
-	inline dvec2 Window::scaleCursorPos(GLFWwindow* window, double xPos, double yPos) {
-		dvec2 result;
-		int width, height;
-		glfwGetWindowSize(window, &width, &height);
-		result[0] = xPos / (double)width;
-		result[1] = 1.0 - yPos / (double)height;
-		return result;
-	}
 	void Window::cursorPosCB(GLFWwindow* window, double xPos, double yPos) {
+		dvec2 pt = scaleCursorPos(window, xPos, yPos);
+
+		int btnNum = -1;
+		if (glfwGetMouseButton(window, leftBtn) == GLFW_PRESS)
+			btnNum = leftBtn;
+		else if (glfwGetMouseButton(window, middleBtn) == GLFW_PRESS)
+			btnNum = middleBtn;
+		else if (glfwGetMouseButton(window, rightBtn) == GLFW_PRESS)
+			btnNum = rightBtn;
 
 		Window* self = static_cast<Window*>(glfwGetWindowUserPointer(window));
-		self->mouseMoved(window, scaleCursorPos(window, xPos, yPos));
+
+		if (self->mouseMovedUi(pt, btnNum))
+			return;
+		self->mouseMoved3D(pt, btnNum);
 	}
 
 	void Window::scrollCB(GLFWwindow* window, double dx, double dy) {
