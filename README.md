@@ -23,13 +23,13 @@ Unlike other examples and tutorials, it can create multiple objects of various t
 
 I plan to grow it into a light weight development platform which can be used to start projects.
 
-1 Skeleton obj reader - material file support is limited.
-2 stl reader
-3 Piplelines and scene nodes are templated based on uniform buffer and vertex type. It's difficult to mismatch shaders etc.
-4 230+ fps on a generic HP Envy laptop
-5 Makefile based in VS 2019 so it's written on windows in a unix fashion. 
-6 Compiles under gcc.
-7 No target application, file format type. Add what you need.
+1 Skeleton obj reader - material file support is limited.  
+2 stl reader  
+3 Piplelines and scene nodes are templated based on uniform buffer and vertex type. It's difficult to mismatch shaders etc.  
+4 230+ fps on a generic HP Envy laptop  
+5 Makefile based in VS 2019 so it's written on windows in a unix fashion.  
+6 Compiles under gcc.  
+7 No target application, file format type. Add what you need.  
 
 The source code is available under GPLv3. I don't plan to, or have the resources to, pursue violators. It's yours to use. 
 However, if you use it for commercial purposes I expect fare compensation for the value you received.
