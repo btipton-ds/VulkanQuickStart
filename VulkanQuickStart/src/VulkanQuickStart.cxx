@@ -51,7 +51,7 @@ This file is part of the VulkanQuickStart Project.
 using namespace VK;
 using namespace std;
 
-#define TEST_OBJ 0
+#define TEST_OBJ 1
 #define TEST_STL 1
 #define TEST_GUI 1
 
@@ -86,12 +86,18 @@ void buildUi(UI::Window& gui) {
 	uint32_t h = 22;
 	uint32_t row = 0;
 
-	gui.addButton(UI::Button(bkgColor, "Button 0", UI::Rect(row, 0, row + h, w)));
-	row += h;
+	auto btn1 = gui.addButton(UI::Button(bkgColor, "Button 0", UI::Rect(row, 0, row + h, w)));
+	btn1->setAction(UI::Button::ActionType::ACT_CLICK, [&](int btnNum, int modifiers) {
+		if (btnNum == 0) {
+			glm::mat4 xform = glm::mat4(1.0f);
+			gApp->setModelToWorldTransform(xform);
+		}
+	});
 
+	row += h;
 	gui.addButton(UI::Button(bkgColor, "Button 1", UI::Rect(row, 0, row + h, w)));
-	row += h;
 
+	row += h;
 	gui.addButton(UI::Button(bkgColor, "Button 2", UI::Rect(row, 0, row + h, w)));
 }
 #endif
@@ -140,7 +146,7 @@ int main(int numArgs, char** args) {
 		meshModel->setModelTransform(glm::scale(glm::mat4(1.0f), glm::vec3(.05f, .05f, .05f)));
 	}
 
-	if (false) {
+	{
 		TriMesh::CMeshPtr meshPtr = std::make_shared<TriMesh::CMesh>();
 		CReadSTL readStl(meshPtr);
 		if (!readStl.read(modelPath, "Vase.stl"))

@@ -233,7 +233,7 @@ namespace VK::UI {
 	void Button::init() {
 		// Make sure all button are set so we don't get segfault/nullptr exceptions.
 		// TODO. This probably isn't required, according to something I read. Test and remove in possible.
-		auto nullFunc = [](int btnNum, int modifiers, double x, double y) {};
+		auto nullFunc = [](int btnNum, int modifiers) {};
 		for (int i = 0; i < (int)ACT_UNKNOWN; i++) {
 			_mouseFuncs[(ActionType) i] = nullFunc;
 		}
@@ -275,15 +275,15 @@ namespace VK::UI {
 	}
 
 	void Button::handleMouseClick(int btnNum, int modifiers) {
-		_mouseFuncs[ACT_CLICK](btnNum, modifiers, 0, 0);
+		_mouseFuncs[ACT_CLICK](btnNum, modifiers);
 	}
 
 	void Button::handleMouseEnter() {
-		_mouseFuncs[ACT_ENTER](0, 0, 0, 0);
+		_mouseFuncs[ACT_ENTER](-1, 0);
 	}
 
 	void Button::handleMouseExit() {
-		_mouseFuncs[ACT_EXIT](0, 0, 0, 0);
+		_mouseFuncs[ACT_EXIT](-1, 0);
 	}
 
 

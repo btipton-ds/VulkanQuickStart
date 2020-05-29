@@ -80,12 +80,13 @@ namespace VK::UI {
 		return ivec2(static_cast<int>(p.x + 0.5), static_cast<int>(p.y + 0.5));
 	}
 
-	void Window::addButton(const Button& btn) {
+	ButtonPtr Window::addButton(const Button& btn) {
 		ButtonPtr btnPtr = make_shared<Button>(btn);
 		btnPtr->createBuffers(_app);
 		_buttons.push_back(btnPtr);
 
 		_pipeline->addSceneNode(btnPtr);
+		return btnPtr;
 	}
 
 	int Window::getPixelDPI() const {
@@ -190,7 +191,7 @@ namespace VK::UI {
 		vec3 xAxis = invRot * vec3(0, 0, 1);
 		vec3 yAxis = invRot * vec3(0, 1, 0);
 		float theta = (float)(EIGEN_PI * delta[0]);
-		float phi = (float)(EIGEN_PI * delta[1]);
+		float phi = (float)(EIGEN_PI * -delta[1]);
 		auto xform = _initialMatrix3D;
 		xform *= rotate(mat4(1.0f), theta, xAxis);
 		xform *= rotate(mat4(1.0f), -phi, yAxis);
@@ -232,7 +233,8 @@ namespace VK::UI {
 
 		Window* self = static_cast<Window*>(glfwGetWindowUserPointer(window));
 
-		if (self->mouseMovedUi(pt, btnNum))
+		auto ptUi = self->toUi(pt);
+		if (self->mouseMovedUi(ptUi, btnNum))
 			return;
 		self->mouseMoved3D(pt, btnNum);
 	}

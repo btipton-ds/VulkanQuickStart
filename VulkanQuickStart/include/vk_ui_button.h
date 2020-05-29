@@ -72,7 +72,7 @@ namespace VK {
 			};
 
 			// Currently using one, over featured, generic callback
-			using FuncMouse = std::function<void(int btnNum, int modifiers, double x, double y)>;
+			using FuncMouse = std::function<void(int btnNum, int modifiers)>;
 
 			Button();
 			Button(const glm::vec4& backgroundColor, const std::string& label, const Rect& rect, const Accel& accel = Accel());
