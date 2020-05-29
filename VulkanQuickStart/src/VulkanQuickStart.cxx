@@ -135,7 +135,7 @@ int main(int numArgs, char** args) {
 
 #if TEST_STL
 	{
-		bool fine = false;
+		bool fine = true;
 		std::string filename = fine ? stlFilenameFine : stlFilenameCourse;
 
 		TriMesh::CMeshPtr meshPtr = std::make_shared<TriMesh::CMesh>();
@@ -153,7 +153,7 @@ int main(int numArgs, char** args) {
 			return 1;
 		auto meshModel = gApp->addSceneNode3D(meshPtr);
 		xform = glm::translate(glm::mat4(1.0f), glm::vec3(-5, -5, 0));
-		xform *= glm::scale(glm::mat4(1.0f), glm::vec3(.1f, .1f, .1f));
+		xform *= glm::scale(glm::mat4(1.0f), glm::vec3(.25f, .25f, .25f));
 		meshModel->setModelTransform(xform);
 	}
 #endif

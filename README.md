@@ -30,6 +30,7 @@ I plan to grow it into a light weight development platform which can be used to 
 5 Makefile based in VS 2019 so it's written on windows in a unix fashion.  
 6 Compiles under gcc.  
 7 No target application, file format type. Add what you need.  
+8 Button clicks are handled by c++11 lambda functions. This makes event handling look like Javascript annoymous arrow functions.  
 
 The source code is available under GPLv3. I don't plan to, or have the resources to, pursue violators. It's yours to use. 
 However, if you use it for commercial purposes I expect fare compensation for the value you received.

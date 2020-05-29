@@ -875,7 +875,7 @@ void VulkanApp::updateUniformBuffer(uint32_t swapChainImageIndex) {
 
 	auto range = modelBounds.range();
 	float maxModelDim = max(max(range[0], range[1]), range[2]);
-	float scale = 1.0f * 1.0f / maxModelDim * minDim / maxDim;
+	float scale = 2.0f * 1.0f / maxModelDim * minDim / maxDim;
 	scale *= (float)getModelScale();
 
 	auto ctr = (modelBounds.getMin() + modelBounds.getMax()) / 2;
@@ -885,7 +885,7 @@ void VulkanApp::updateUniformBuffer(uint32_t swapChainImageIndex) {
 
 	_ubo.view = glm::lookAt(glm::vec3(1.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
 	//		auto proj = glm::perspective(glm::radians(45.0f), swapChainExtent.width / (float)swapChainExtent.height, 0.1f, 10.0f);
-	_ubo.proj = glm::ortho(-w / 2, w, -h / 2, h, 0.10f, 10.0f);
+	_ubo.proj = glm::ortho(-w, w, -h, h, -10.0f, 10.0f);
 	_ubo.proj[1][1] *= -1;
 
 	for (auto& pipeline : _pipelines) {
