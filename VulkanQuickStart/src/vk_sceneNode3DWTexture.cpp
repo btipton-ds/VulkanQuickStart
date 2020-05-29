@@ -118,8 +118,8 @@ void SceneNode3DWTexture::createDescriptorSets(PipelineVertex3DWSampler* ownerPi
 		bufferInfo.offset = 0;
 		bufferInfo.range = sizeof(ownerPipeline->getUniformBuffers()[i]);
 
-		VkDescriptorImageInfo imageInfo;
-		getImageInfo(imageInfo);
+		vector<VkDescriptorImageInfo> imageInfoList;
+		buildImageInfoList(imageInfoList);
 
 		std::vector<VkWriteDescriptorSet> descriptorWrites;
 
@@ -133,14 +133,16 @@ void SceneNode3DWTexture::createDescriptorSets(PipelineVertex3DWSampler* ownerPi
 		descUniform.pBufferInfo = &bufferInfo;
 		descriptorWrites.push_back(descUniform);
 
+		uint32_t imageCount = min(PipelineVertex3DWSampler::getMaxSamplers(), static_cast<uint32_t> (imageInfoList.size()));
+
 		VkWriteDescriptorSet descSampler = {};
 		descSampler.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
 		descSampler.dstSet = _descriptorSets[i];
 		descSampler.dstBinding = 1;
 		descSampler.dstArrayElement = 0;
 		descSampler.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-		descSampler.descriptorCount = 1;
-		descSampler.pImageInfo = &imageInfo;
+		descSampler.descriptorCount = imageCount;
+		descSampler.pImageInfo = imageInfoList.data();
 		descriptorWrites.push_back(descSampler);
 
 		vkUpdateDescriptorSets(dc, static_cast<uint32_t>(descriptorWrites.size()), descriptorWrites.data(), 0, nullptr);

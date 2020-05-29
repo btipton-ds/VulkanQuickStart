@@ -37,14 +37,15 @@ struct Lights {
     float ambient;
 };
 
-layout(binding = 1) uniform sampler2D texSampler;
+layout(binding = 1) uniform sampler2D texSampler[7]; // Must match getMaxSamplers in Pipeline
 
 layout(location = 0) in vec3 fragColor;
 layout(location = 1) in vec3 fragNormal;
-layout(location = 2) in vec2 fragTexCoord;
-layout(location = 3) flat in float fragAmbient;
-layout(location = 4) flat in int fragNumLights;
-layout(location = 5) flat in vec3 fragLights[2];
+layout(location = 2) flat in int fragTexId;
+layout(location = 3) in vec2 fragTexCoord;
+layout(location = 4) flat in float fragAmbient;
+layout(location = 5) flat in int fragNumLights;
+layout(location = 6) flat in vec3 fragLights[2];
 
 layout(location = 0) out vec4 outColor;
 
@@ -61,5 +62,5 @@ void main() {
     float ambient = fragAmbient;
     intensity = ambient + (1.0 - ambient) * intensity;
 
-    outColor = intensity * texture(texSampler, fragTexCoord);
+    outColor = intensity * texture(texSampler[fragTexId], fragTexCoord);
 }

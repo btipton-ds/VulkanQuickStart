@@ -48,9 +48,6 @@ namespace VK {
 		void cleanupSwapChain(PipelineUi* ownerPipeline);
 		void addCommandsIdx(VkCommandBuffer cmdBuff, VkPipelineLayout pipelineLayout, size_t swapChainIdx);
 
-	protected:
-		virtual void getImageInfo(VkDescriptorImageInfo& imageInfo) = 0;
-
 	private:
 		VkDescriptorPool _descriptorPool = VK_NULL_HANDLE;
 		std::vector<VkDescriptorSet> _descriptorSets;

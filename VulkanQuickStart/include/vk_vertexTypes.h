@@ -153,6 +153,7 @@ namespace VK {
 		glm::vec3 norm;
 		glm::vec3 color;
 		glm::vec2 texCoord;
+		int texId; // negative value means no texture bound
 
 		static VkVertexInputBindingDescription getBindingDescription() {
 			VkVertexInputBindingDescription bindingDescription = {};
@@ -165,27 +166,37 @@ namespace VK {
 
 		static std::vector<VkVertexInputAttributeDescription> getAttributeDescriptions() {
 			std::vector<VkVertexInputAttributeDescription> attributeDescriptions;
-			attributeDescriptions.resize(4);
+			attributeDescriptions.resize(5);
 
-			attributeDescriptions[0].binding = 0;
-			attributeDescriptions[0].location = 0;
-			attributeDescriptions[0].format = VK_FORMAT_R32G32B32_SFLOAT;
-			attributeDescriptions[0].offset = offsetof(Vertex3_PNCTf, pos);
+			uint32_t idx = 0;
+			attributeDescriptions[idx].binding = 0;
+			attributeDescriptions[idx].location = idx;
+			attributeDescriptions[idx].format = VK_FORMAT_R32G32B32_SFLOAT;
+			attributeDescriptions[idx].offset = offsetof(Vertex3_PNCTf, pos);
 
-			attributeDescriptions[1].binding = 0;
-			attributeDescriptions[1].location = 1;
-			attributeDescriptions[1].format = VK_FORMAT_R32G32B32_SFLOAT;
-			attributeDescriptions[1].offset = offsetof(Vertex3_PNCTf, norm);
+			idx++;
+			attributeDescriptions[idx].binding = 0;
+			attributeDescriptions[idx].location = idx;
+			attributeDescriptions[idx].format = VK_FORMAT_R32G32B32_SFLOAT;
+			attributeDescriptions[idx].offset = offsetof(Vertex3_PNCTf, norm);
 
-			attributeDescriptions[2].binding = 0;
-			attributeDescriptions[2].location = 2;
-			attributeDescriptions[2].format = VK_FORMAT_R32G32B32_SFLOAT;
-			attributeDescriptions[2].offset = offsetof(Vertex3_PNCTf, color);
+			idx++;
+			attributeDescriptions[idx].binding = 0;
+			attributeDescriptions[idx].location = idx;
+			attributeDescriptions[idx].format = VK_FORMAT_R32G32B32_SFLOAT;
+			attributeDescriptions[idx].offset = offsetof(Vertex3_PNCTf, color);
 
-			attributeDescriptions[3].binding = 0;
-			attributeDescriptions[3].location = 3;
-			attributeDescriptions[3].format = VK_FORMAT_R32G32_SFLOAT;
-			attributeDescriptions[3].offset = offsetof(Vertex3_PNCTf, texCoord);
+			idx++;
+			attributeDescriptions[idx].binding = 0;
+			attributeDescriptions[idx].location = idx;
+			attributeDescriptions[idx].format = VK_FORMAT_R32G32_SFLOAT;
+			attributeDescriptions[idx].offset = offsetof(Vertex3_PNCTf, texCoord);
+
+			idx++;
+			attributeDescriptions[idx].binding = 0;
+			attributeDescriptions[idx].location = idx;
+			attributeDescriptions[idx].format = VK_FORMAT_R32_SINT;
+			attributeDescriptions[idx].offset = offsetof(Vertex3_PNCTf, texId);
 
 			return attributeDescriptions;
 		}
@@ -194,7 +205,8 @@ namespace VK {
 			return pos == other.pos && 
 				norm == other.norm &&
 				color == other.color &&
-				texCoord == other.texCoord;
+				texCoord == other.texCoord &&
+				texId == other.texId;
 		}
 	};
 }

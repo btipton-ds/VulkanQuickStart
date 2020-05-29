@@ -4,7 +4,8 @@ VulkanQuickStart is intended as a tutorial, example and foundation for building 
 
 If you have been looking for the next generation of cross platform graphics engines, Vulkan looks like one of the better choices. Possibly the best or only choice.
 
-The core of Vulkan offers tremendous advantages in cross platform development, speed, flexibility and customizability. It is under development by the Khronos group (https://www.khronos.org/vulkan/), a consortium of the top graphics companies in the world.
+The core of Vulkan offers tremendous advantages in cross platform development, speed, flexibility and customizability. It is under development by the Khronos group (https://www.khronos.org/vulkan/), 
+a consortium of the top graphics companies in the world.
 
 It achieves this at the cost of ease of starting a project. This has been a nearly universal comment by the graphics developers I work with. 
 I'm sure there is a large cadre of low level, graphics pipeline gurus who can pick up Vulkan in a few days. 
@@ -12,15 +13,23 @@ But for myself and those I work with, "You have to write 2,000 lines of code to 
 
 If you've been wanting to learn or apply Vulkan in your projects, VulkanQuickStart is the answer.
 
-Unlike other examples and tutorials, it creates multiple objects of various types. Currently it reads textured obj and stl files and has support for a simple 2D button layer on top of the 3D layer.
+Unlike other examples and tutorials, it can create multiple objects of various types - like real applications do.
 
-[YouTube video of VulkanQuickStart](https://youtu.be/PCE05P8i4VE)
+[YouTube video of VulkanQuickStart](https://youtu.be/TF_OYqCb9qA)
 
 **It is by no means an out of the box solution!** It is not intended to be one. It doesn't make best use of Vulkan's high performance optimizations, such as multiple uniform buffers etc.
 
-**It is** a quick way to get several thousand lines of Vulkan code up an running so you can modify it.
+**It is** a quick way to get several thousand lines of Vulkan code up and running so you can modify it.
 
 I plan to grow it into a light weight development platform which can be used to start projects.
+
+1 Skeleton obj reader - material file support is limited.
+2 stl reader
+3 Piplelines and scene nodes are templated based on uniform buffer and vertex type. It's difficult to mismatch shaders etc.
+4 230+ fps on a generic HP Envy laptop
+5 Makefile based in VS 2019 so it's written on windows in a unix fashion. 
+6 Compiles under gcc.
+7 No target application, file format type. Add what you need.
 
 The source code is available under GPLv3. I don't plan to, or have the resources to, pursue violators. It's yours to use. 
 However, if you use it for commercial purposes I expect fare compensation for the value you received.

@@ -79,14 +79,15 @@ void ModelObj::addCommands(VkCommandBuffer cmdBuff, VkPipelineLayout pipelineLay
 }
 
 void ModelObj::buildImageInfoList(vector<VkDescriptorImageInfo>& imageInfoList) const {
-}
+	imageInfoList.clear();
 
-void ModelObj::getImageInfo(VkDescriptorImageInfo& imageInfo) {
-	const auto& texture = getTexture();
-	imageInfo = {};
-	imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-	imageInfo.imageView = *texture;
-	imageInfo.sampler = *texture;
+	for (const auto& texture : _textureImagesDiffuse) {
+		VkDescriptorImageInfo imageInfo = {};
+		imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+		imageInfo.imageView = *texture;
+		imageInfo.sampler = *texture;
+		imageInfoList.push_back(imageInfo);
+	}
 }
 
 ModelObj::BoundingBox ModelObj::getBounds() const {
@@ -146,6 +147,7 @@ void ModelObj::loadModel(string path, string filename) {
 		for (const auto& index : shape.mesh.indices) {
 			VertexType vertex = {};
 
+			vertex.texId = shape.mesh.material_ids[index.vertex_index];
 			vertex.pos = {
 				attrib.vertices[3 * index.vertex_index + 0],
 				attrib.vertices[3 * index.vertex_index + 1],
@@ -185,10 +187,18 @@ void ModelObj::loadModel(string path, string filename) {
 		}
 	}
 
-	if (!materials.empty()) {
-		string texName = materials.front().diffuse_texname;
-		replaceAllDirTokens(texName);
-		_textureImage = TextureImage::create(*_dc, path + texName);
+	for (auto mat : materials) {
+		string fName = "";
+		if (mat.diffuse_texname.length() > 0) {
+			fName = mat.diffuse_texname;
+		} else if (mat.bump_texname.length() > 0) {
+			fName = mat.bump_texname;
+		} else {
+			throw runtime_error("This option is not supported yet.");
+		}
+		replaceAllDirTokens(fName);
+		auto tex = TextureImage::create(*_dc, path + fName);
+		_textureImagesDiffuse.push_back(tex);
 	}
 
 }

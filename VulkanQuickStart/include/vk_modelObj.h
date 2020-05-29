@@ -56,10 +56,25 @@ This file is part of the VulkanQuickStart Project.
 
 namespace VK {
 
+	/*
+		Lots to do here.
+		Vulkan has the same hardware limits as everyone else. You can only bind so many shaders at once.
+		Obj can arrive with hundreds of textures. So the image must be decomposed into shapes/chunks with as few textures as you can get
+		away with. 
+
+		The current ModelObj is near the texture bining limit and isn't even loading specular or bump maps.
+
+		Current project focus is on scientific visualization which is mostly about vertex colors. Off to work on that first.
+	*/
+
 	class ModelObj : public SceneNode3DWTexture {
 	public:
 		using BoundingBox = CBoundingBox3D<float>;
 		using VertexType = PipelineVertex3DWSampler::VertexType;
+
+		/*
+		Tiny obj doesn't handle file names with spaces. It thinks material file names with spaces are multiple files. Remove the spaces.
+		*/
 
 		static inline ModelObjPtr create(DeviceContext& dc, const std::string& path, const std::string& filename) {
 			return std::shared_ptr<ModelObj>(new ModelObj(dc, path, filename));
@@ -89,16 +104,11 @@ namespace VK {
 			return static_cast<uint32_t>(indices_.size());
 		}
 
-		inline const TextureImagePtr& getTexture() const {
-			return _textureImage;
-		}
-
 	protected:
 		ModelObj(DeviceContext& dc, const std::string& path, const std::string& filename);
 
 		void loadModel(std::string path, std::string filename);
 
-		void getImageInfo(VkDescriptorImageInfo& imageInfo) override;
 		void createVertexBuffer();
 		void createIndexBuffer();
 
@@ -107,7 +117,7 @@ namespace VK {
 		std::vector<VertexType> vertices_;
 		std::vector<uint32_t> indices_;
 		Buffer vertexBuffer_, indexBuffer_;
-		TextureImagePtr _textureImage;
+		std::vector<TextureImagePtr> _textureImagesDiffuse;
 	};
 
 }

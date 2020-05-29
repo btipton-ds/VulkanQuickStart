@@ -92,9 +92,6 @@ namespace VK {
 			void handleMouseEnter();
 			void handleMouseExit();
 
-		protected:
-			void getImageInfo(VkDescriptorImageInfo& imageInfo) override;
-
 		private:
 			void init();
 			void createGeometryBuffers(const VulkanAppPtr& app);

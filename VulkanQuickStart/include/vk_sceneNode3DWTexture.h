@@ -61,9 +61,6 @@ namespace VK {
 		void cleanupSwapChain(PipelineVertex3DWSampler* ownerPipeline);
 		void addCommandsIdx(VkCommandBuffer cmdBuff, VkPipelineLayout pipelineLayout, size_t swapChainIdx);
 
-	protected:
-		virtual void getImageInfo(VkDescriptorImageInfo& imageInfo) = 0;
-
 	private:
 		glm::mat4 _modelXForm;
 

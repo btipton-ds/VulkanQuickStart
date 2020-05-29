@@ -107,8 +107,8 @@ void SceneNodeUi::createDescriptorSets(PipelineUi* ownerPipeline) {
 		bufferInfo.offset = 0;
 		bufferInfo.range = sizeof(ownerPipeline->getUniformBuffers()[i]);
 
-		VkDescriptorImageInfo imageInfo;
-		getImageInfo(imageInfo);
+		vector<VkDescriptorImageInfo> imageInfoList;
+		buildImageInfoList(imageInfoList);
 
 		std::vector<VkWriteDescriptorSet> descriptorWrites;
 
@@ -128,8 +128,8 @@ void SceneNodeUi::createDescriptorSets(PipelineUi* ownerPipeline) {
 		descSampler.dstBinding = 1;
 		descSampler.dstArrayElement = 0;
 		descSampler.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-		descSampler.descriptorCount = 1;
-		descSampler.pImageInfo = &imageInfo;
+		descSampler.descriptorCount = static_cast<uint32_t> (imageInfoList.size());
+		descSampler.pImageInfo = imageInfoList.data();
 		descriptorWrites.push_back(descSampler);
 
 		vkUpdateDescriptorSets(dc, static_cast<uint32_t>(descriptorWrites.size()), descriptorWrites.data(), 0, nullptr);
