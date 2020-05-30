@@ -130,7 +130,7 @@ void PipelineVertex3D::createDescriptorSets() {
 	auto dc = _app->getDeviceContext().device_;
 
 	const auto& swap = _app->getSwapChain();
-	size_t swapChainSize = (uint32_t)swap.swapChainImages.size();
+	size_t swapChainSize = (uint32_t)swap._vkImages.size();
 
 	std::vector<VkDescriptorSetLayout> layouts(swapChainSize, _descriptorSetLayout);
 	VkDescriptorSetAllocateInfo allocInfo = {};
@@ -175,7 +175,7 @@ void PipelineVertex3D::createUniformBuffers() {
 	auto& device = _app->getDeviceContext();
 	size_t bufferSize = sizeof(UniformBufferObject);
 	const auto& swap = _app->getSwapChain();
-	size_t swapChainSize = (uint32_t)swap.swapChainImages.size();
+	size_t swapChainSize = (uint32_t)swap._vkImages.size();
 
 	_uniformBuffers.resize(swapChainSize);
 

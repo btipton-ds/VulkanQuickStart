@@ -32,6 +32,8 @@ This file is part of the VulkanQuickStart Project.
 
 #include <defines.h>
 
+#include <fstream>
+
 #include "vk_app.h"
 
 #define GLM_FORCE_RADIANS
@@ -82,12 +84,12 @@ VulkanAppPtr gApp;
 #if TEST_GUI
 void buildUi(UI::Window& gui) {
 	glm::vec4 bkgColor(0.875f, 0.875f, 0.875f, 1);
-	uint32_t w = 80;
+	uint32_t w = 120;
 	uint32_t h = 22;
 	uint32_t row = 0;
 
-	auto btn1 = gui.addButton(UI::Button(bkgColor, "Button 0", UI::Rect(row, 0, row + h, w)));
-	btn1->setAction(UI::Button::ActionType::ACT_CLICK, [&](int btnNum, int modifiers) {
+	gui.addButton(UI::Button(bkgColor, "Reset View", UI::Rect(row, 0, row + h, w)))->
+		setAction(UI::Button::ActionType::ACT_CLICK, [&](int btnNum, int modifiers) {
 		if (btnNum == 0) {
 			glm::mat4 xform = glm::mat4(1.0f);
 			gApp->setModelToWorldTransform(xform);
@@ -95,7 +97,15 @@ void buildUi(UI::Window& gui) {
 	});
 
 	row += h;
-	gui.addButton(UI::Button(bkgColor, "Button 1", UI::Rect(row, 0, row + h, w)));
+	gui.addButton(UI::Button(bkgColor, "Screenshot", UI::Rect(row, 0, row + h, w)))->
+		setAction(UI::Button::ActionType::ACT_CLICK, [&](int btnNum, int modifiers) {
+		if (btnNum == 0) {
+			const auto& swapChain = gApp->getSwapChain();
+			const auto& images = swapChain._vkImages;
+			auto image = images[gApp->getSwapChainIndex()];
+			Image::saveImage("C:/Users/Bob/Documents/Projects/ElectroFish/HexMeshTests/screenshot.bmp", gApp, image, swapChain._extent, swapChain._imageFormat);
+		}
+	});
 
 	row += h;
 	gui.addButton(UI::Button(bkgColor, "Button 2", UI::Rect(row, 0, row + h, w)));
@@ -135,7 +145,7 @@ int main(int numArgs, char** args) {
 
 #if TEST_STL
 	{
-		bool fine = true;
+		bool fine = false;
 		std::string filename = fine ? stlFilenameFine : stlFilenameCourse;
 
 		TriMesh::CMeshPtr meshPtr = std::make_shared<TriMesh::CMesh>();

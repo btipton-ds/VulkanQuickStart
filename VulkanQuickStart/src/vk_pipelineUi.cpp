@@ -96,7 +96,7 @@ void PipelineUi::createUniformBuffers() {
 	auto& device = _app->getDeviceContext();
 	size_t bufferSize = sizeof(UniformBufferObject);
 	const auto& swap = _app->getSwapChain();
-	size_t swapChainSize = (uint32_t)swap.swapChainImages.size();
+	size_t swapChainSize = (uint32_t)swap._vkImages.size();
 
 	_uniformBuffers.resize(swapChainSize);
 

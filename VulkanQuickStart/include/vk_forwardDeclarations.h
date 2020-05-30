@@ -42,6 +42,9 @@ namespace VK {
 	struct DeviceContext;
 	struct Buffer;
 
+	class Image;
+	using ImagePtr = std::shared_ptr<Image>;
+
 	class TextureImage;
 	using TextureImagePtr = std::shared_ptr<TextureImage>;
 

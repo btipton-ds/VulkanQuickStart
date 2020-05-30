@@ -48,8 +48,8 @@ TextureImage::~TextureImage() {
 }
 
 void TextureImage::destroy() {
-	if (dc_ && textureSampler_ != VK_NULL_HANDLE) {
-		vkDestroySampler(dc_->device_, textureSampler_, nullptr);
+	if (_dc && textureSampler_ != VK_NULL_HANDLE) {
+		vkDestroySampler(_dc->device_, textureSampler_, nullptr);
 		textureSampler_ = VK_NULL_HANDLE;
 		Image::destroy();
 	}
@@ -60,8 +60,8 @@ void TextureImage::destroy() {
 
 void TextureImage::init(DeviceContext& dc, const string& filename) {
 	destroy();
-	dc_ = &dc;
-	dc_->textureImages_.insert(this);
+	_dc = &dc;
+	_dc->textureImages_.insert(this);
 	int texWidth, texHeight, texChannels;
 	stbi_uc* pixels = stbi_load(filename.c_str(), &texWidth, &texHeight, &texChannels, STBI_rgb_alpha);
 	if (!pixels)
@@ -72,8 +72,8 @@ void TextureImage::init(DeviceContext& dc, const string& filename) {
 
 void TextureImage::init(DeviceContext& dc, size_t texWidth, size_t texHeight, const unsigned char* pixelsRGBA) {
 	destroy();
-	dc_ = &dc;
-	dc_->textureImages_.insert(this);
+	_dc = &dc;
+	_dc->textureImages_.insert(this);
 
 	VkDeviceSize imageSize = texWidth * texHeight * 4;
 	mipLevels_ = static_cast<uint32_t>(floor(log2(max(texWidth, texHeight)))) + 1;
@@ -97,7 +97,7 @@ void TextureImage::init(DeviceContext& dc, size_t texWidth, size_t texHeight, co
 	generateMipmaps(VK_FORMAT_R8G8B8A8_UNORM, (uint32_t)texWidth, (uint32_t)texHeight);
 	createTextureSampler();
 
-	view_ = createImageView(VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_ASPECT_COLOR_BIT, mipLevels_);
+	_view = createImageView(VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_ASPECT_COLOR_BIT, mipLevels_);
 }
 
 void TextureImage::initImage(uint32_t width, uint32_t height, VkSampleCountFlagBits numSamples, VkFormat format, VkImageTiling tiling,
@@ -117,27 +117,27 @@ void TextureImage::initImage(uint32_t width, uint32_t height, VkSampleCountFlagB
 	imageInfo.samples = numSamples;
 	imageInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
 
-	if (vkCreateImage(dc_->device_, &imageInfo, nullptr, &image_) != VK_SUCCESS) {
+	if (vkCreateImage(_dc->device_, &imageInfo, nullptr, &_image) != VK_SUCCESS) {
 		throw runtime_error("failed to create image!");
 	}
 
 	VkMemoryRequirements memRequirements;
-	vkGetImageMemoryRequirements(dc_->device_, image_, &memRequirements);
+	vkGetImageMemoryRequirements(_dc->device_, _image, &memRequirements);
 
 	VkMemoryAllocateInfo allocInfo = {};
 	allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
 	allocInfo.allocationSize = memRequirements.size;
-	allocInfo.memoryTypeIndex = dc_->findMemoryType(memRequirements.memoryTypeBits, properties);
+	allocInfo.memoryTypeIndex = _dc->findMemoryType(memRequirements.memoryTypeBits, properties);
 
-	if (vkAllocateMemory(dc_->device_, &allocInfo, nullptr, &memory_) != VK_SUCCESS) {
+	if (vkAllocateMemory(_dc->device_, &allocInfo, nullptr, &_memory) != VK_SUCCESS) {
 		throw runtime_error("failed to allocate image memory!");
 	}
 
-	vkBindImageMemory(dc_->device_, image_, memory_, 0);
+	vkBindImageMemory(_dc->device_, _image, _memory, 0);
 }
 
 void TextureImage::copyBufferToImage(const Buffer& buffer, uint32_t width, uint32_t height) {
-	VkCommandBuffer commandBuffer = dc_->beginSingleTimeCommands();
+	VkCommandBuffer commandBuffer = _dc->beginSingleTimeCommands();
 
 	VkBufferImageCopy region = {};
 	region.bufferOffset = 0;
@@ -154,25 +154,25 @@ void TextureImage::copyBufferToImage(const Buffer& buffer, uint32_t width, uint3
 		1
 	};
 
-	vkCmdCopyBufferToImage(commandBuffer, buffer, image_, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &region);
+	vkCmdCopyBufferToImage(commandBuffer, buffer, _image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &region);
 
-	dc_->endSingleTimeCommands(commandBuffer);
+	_dc->endSingleTimeCommands(commandBuffer);
 }
 
 void TextureImage::generateMipmaps(VkFormat imageFormat, int32_t texWidth, int32_t texHeight) {
 	// Check if image format supports linear blitting
 	VkFormatProperties formatProperties;
-	vkGetPhysicalDeviceFormatProperties(dc_->physicalDevice_, imageFormat, &formatProperties);
+	vkGetPhysicalDeviceFormatProperties(_dc->physicalDevice_, imageFormat, &formatProperties);
 
 	if (!(formatProperties.optimalTilingFeatures & VK_FORMAT_FEATURE_SAMPLED_IMAGE_FILTER_LINEAR_BIT)) {
 		throw runtime_error("texture image format does not support linear blitting!");
 	}
 
-	VkCommandBuffer commandBuffer = dc_->beginSingleTimeCommands();
+	VkCommandBuffer commandBuffer = _dc->beginSingleTimeCommands();
 
 	VkImageMemoryBarrier barrier = {};
 	barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
-	barrier.image = image_;
+	barrier.image = _image;
 	barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
 	barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
 	barrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
@@ -211,8 +211,8 @@ void TextureImage::generateMipmaps(VkFormat imageFormat, int32_t texWidth, int32
 		blit.dstSubresource.layerCount = 1;
 
 		vkCmdBlitImage(commandBuffer,
-			image_, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
-			image_, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+			_image, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
+			_image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
 			1, &blit,
 			VK_FILTER_LINEAR);
 
@@ -243,7 +243,7 @@ void TextureImage::generateMipmaps(VkFormat imageFormat, int32_t texWidth, int32
 		0, nullptr,
 		1, &barrier);
 
-	dc_->endSingleTimeCommands(commandBuffer);
+	_dc->endSingleTimeCommands(commandBuffer);
 }
 
 void TextureImage::createTextureSampler() {
@@ -265,7 +265,7 @@ void TextureImage::createTextureSampler() {
 	samplerInfo.maxLod = static_cast<float>(mipLevels_);
 	samplerInfo.mipLodBias = 0;
 
-	if (vkCreateSampler(dc_->device_, &samplerInfo, nullptr, &textureSampler_) != VK_SUCCESS) {
+	if (vkCreateSampler(_dc->device_, &samplerInfo, nullptr, &textureSampler_) != VK_SUCCESS) {
 		throw runtime_error("failed to create texture sampler!");
 	}
 }

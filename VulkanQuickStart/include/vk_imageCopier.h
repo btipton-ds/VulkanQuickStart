@@ -34,32 +34,51 @@ This file is part of the VulkanQuickStart Project.
 #define GLFW_INCLUDE_VULKAN
 #include <GLFW/glfw3.h>
 
-#include <set>
+#include <vk_forwardDeclarations.h>
 
 namespace VK {
-	struct Buffer;
-	class Image;
-	class TextureImage;
 
-	struct DeviceContext {
-		~DeviceContext();
-		void destroy();
+	class ImageCopier {
+	public:
+		ImageCopier(const VulkanAppPtr& app, VkImage srcImage, const VkExtent2D& extent, VkFormat format, size_t bufSize);
+		~ImageCopier();
+		const char* getPersistentCopy() const;
+		const char* getVolitileCopy() const;
+		bool getColorSwizzle() const;
+		uint32_t getRowPitch() const;
 
-		uint32_t findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties) const;
-		VkCommandBuffer beginSingleTimeCommands();
-		void endSingleTimeCommands(VkCommandBuffer commandBuffer);
+	private:
+		void copyImages(VkImage srcImage, const VkExtent2D& extent, VkFormat format, VkImage dstImage);
 
-		uint32_t getMemoryType(uint32_t typeBits, VkMemoryPropertyFlags properties, VkBool32* memTypeFound = nullptr);
+		void lockImages(VkCommandBuffer copyCmd, VkImage& srcImage, VkImage& dstImage);
+		void unlockImages(VkCommandBuffer copyCmd, VkImage& srcImage, VkImage& dstImage);
 
-		VkDevice device_= VK_NULL_HANDLE;
-		VkPhysicalDevice physicalDevice_ = VK_NULL_HANDLE;
-		VkCommandPool commandPool_ = VK_NULL_HANDLE;
-		VkQueue graphicsQueue_ = VK_NULL_HANDLE;
-		VkPhysicalDeviceMemoryProperties _memoryProperties = {};
-		std::set<Buffer*> buffers_;
-		std::set<Image*> images_;
-		std::set<TextureImage*> textureImages_;
+		void createVkImage(VkDevice device, const VkExtent2D& extent, VkImage& dstImage);
+		bool doesSupportsBlit(VkPhysicalDevice physicalDevice, VkFormat format);
+		void blitImage(VkCommandBuffer copyCmd, const VkExtent2D& extent, VkImage& srcImage, VkImage& dstImage);
+		void copyImage(VkCommandBuffer copyCmd, const VkExtent2D& extent, VkImage& srcImage, VkImage& dstImage);
+
+		const VulkanAppPtr& _app;
+		VkDevice _device;
+		bool _colorSwizzle = false;
+		uint32_t _rowPitch;
+		size_t _bufSize;
+		VkImage dstImage;
+		VkMemoryRequirements memRequirements;
+		VkMemoryAllocateInfo memAllocInfo;
+		VkDeviceMemory dstImageMemory;
+		VkSubresourceLayout subResourceLayout;
+
+
 	};
+
+	inline bool ImageCopier::getColorSwizzle() const {
+		return _colorSwizzle;
+	}
+
+	inline uint32_t ImageCopier::getRowPitch() const {
+		return _rowPitch;
+	}
 
 
 }

@@ -31,15 +31,46 @@ This file is part of the VulkanQuickStart Project.
 
 #include <defines.h>
 
+#include <string>
+
 #define GLFW_INCLUDE_VULKAN
 #include <GLFW/glfw3.h>
 
 #include <vk_forwardDeclarations.h>
+#include <vk_imageCopier.h>
 
 namespace VK {
 
 	class Image {
 	public:
+		static size_t pixelSize(VkFormat format);
+		static VkImageView createImageView(VkDevice device, VkImage image, VkFormat format, VkImageAspectFlags aspectFlags, uint32_t mipLevels);
+
+		template<typename FUNC_TYPE>
+		static size_t processImage(const VulkanAppPtr& app, VkImage image, const VkExtent2D& extent, VkFormat format, size_t bufSize, FUNC_TYPE func) {
+			size_t newBufSize = extent.width * extent.height * pixelSize(format);
+			if (bufSize != newBufSize)
+				return newBufSize;
+
+			ImageCopier copier(app, image, extent, format, bufSize);
+
+			func(copier.getVolitileCopy(), copier.getRowPitch(), copier.getColorSwizzle());
+
+			return bufSize;
+		}
+
+		static void saveImage(const std::string& filename, const VkExtent2D& extent, uint32_t rowPitch, bool colorSwizzle, const char* pix);
+
+		static void saveImage(const std::string& filename, const VulkanAppPtr& app, VkImage image, const VkExtent2D& extent, VkFormat format) {
+			size_t bufSize = processImage(app, image, extent, format, 0, [](const char* p, uint32_t rowPitch, bool colorSwizzle) {});
+			if (bufSize != stm1) {
+				bufSize = processImage(app, image, extent, format, bufSize, [&](const char* p, uint32_t rowPitch, bool colorSwizzle) {
+					saveImage(filename, extent, rowPitch, colorSwizzle, p);
+				});
+			}
+		}
+		static size_t getImageData(const VulkanAppPtr& app, VkImage image, const VkExtent2D& extent, VkFormat format, const char*& data, size_t bufSize);
+
 		~Image();
 		void destroy();
 		operator VkImage() const;
@@ -52,24 +83,40 @@ namespace VK {
 		void createImage(uint32_t width, uint32_t height, uint32_t mipLevels, VkSampleCountFlagBits numSamples,
 			VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage, VkMemoryPropertyFlags properties);
 
-		static VkImageView createImageView(VkDevice device, VkImage image, VkFormat format, VkImageAspectFlags aspectFlags, uint32_t mipLevels);
-		static VkImageView createImageView(const Image& image, VkFormat format, VkImageAspectFlags aspectFlags, uint32_t mipLevels);
 		VkImageView createImageView(VkFormat format, VkImageAspectFlags aspectFlags, uint32_t mipLevels);
 
 		void transitionImageLayout(VkFormat format, VkImageLayout oldLayout, VkImageLayout newLayout, uint32_t mipLevels);
 
+		VkFormat getFormat() const;
+
+		size_t getImageData(const VulkanAppPtr& app, const char*& data, size_t bufSize) const;
+
+		void saveImage(const VulkanAppPtr& app, const std::string& filename) {
+			saveImage(filename, app, _image, _extent, _format);
+		}
+
 	protected:
-		DeviceContext* dc_ = nullptr;
-		VkImage image_ = VK_NULL_HANDLE;
-		VkDeviceMemory memory_ = VK_NULL_HANDLE;
-		VkImageView view_ = VK_NULL_HANDLE;
+		DeviceContext* _dc = nullptr;
+		VkFormat _format = VK_FORMAT_UNDEFINED;
+		VkExtent2D _extent = {};
+		VkImage _image = VK_NULL_HANDLE;
+		VkDeviceMemory _memory = VK_NULL_HANDLE;
+		VkImageView _view = VK_NULL_HANDLE;
 	};
 
 	inline Image::operator VkImage() const {
-		return image_;
+		return _image;
 	}
 
 	inline Image::operator VkImageView() const {
-		return view_;
+		return _view;
+	}
+
+	inline VkFormat Image::getFormat() const {
+		return _format;
+	}
+
+	inline size_t Image::getImageData(const VulkanAppPtr& app, const char*& data, size_t bufSize) const {
+		return getImageData(app, _image, _extent, _format, data, bufSize);
 	}
 }

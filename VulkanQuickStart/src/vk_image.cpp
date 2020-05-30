@@ -27,8 +27,17 @@ This file is part of the VulkanQuickStart Project.
 
 */
 
+#include <defines.h>
+
+#include <fstream>
+
+#define STB_IMAGE_WRITE_IMPLEMENTATION
+#include <stb_image_write.h>
+
 #include "vk_deviceContext.h"
 #include "vk_image.h"
+#include <vk_imageCopier.h>
+#include <vk_app.h>
 
 #include <iostream>
 
@@ -42,11 +51,11 @@ namespace {
 }
 
 void Image::set(DeviceContext& dc, VkImage image, VkDeviceMemory memory, VkImageView view) {
-	dc_ = &dc;
-	dc_->images_.insert(this);
-	image_ = image;
-	memory_ = memory;
-	view_ = view;
+	_dc = &dc;
+	_dc->images_.insert(this);
+	_image = image;
+	_memory = memory;
+	_view = view;
 }
 
 Image::~Image() {
@@ -54,28 +63,28 @@ Image::~Image() {
 }
 
 void Image::destroy() {
-	if (dc_ && view_ != VK_NULL_HANDLE) {
-		vkDestroyImageView(dc_->device_, view_, nullptr);
-		vkDestroyImage(dc_->device_, image_, nullptr);
-		vkFreeMemory(dc_->device_, memory_, nullptr);
-		view_ = VK_NULL_HANDLE;
-		dc_->images_.erase(this);
+	if (_dc && _view != VK_NULL_HANDLE) {
+		vkDestroyImageView(_dc->device_, _view, nullptr);
+		vkDestroyImage(_dc->device_, _image, nullptr);
+		vkFreeMemory(_dc->device_, _memory, nullptr);
+		_view = VK_NULL_HANDLE;
+		_dc->images_.erase(this);
 	}
-	if (view_ != VK_NULL_HANDLE)
+	if (_view != VK_NULL_HANDLE)
 		cout << "Image leak\n";
 }
 
 void Image::create(DeviceContext& dc, VkFormat format, VkImageUsageFlags flagBits, uint32_t width, uint32_t height, VkSampleCountFlagBits _msaaSamples) {
 	destroy();
-	dc_ = &dc;
-	dc_->images_.insert(this);
+	_dc = &dc;
+	_dc->images_.insert(this);
 	// VK_IMAGE_USAGE_TRANSIENT_ATTACHMENT_BIT | VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT
 	createImage(width, height, 1, _msaaSamples, format, VK_IMAGE_TILING_OPTIMAL,
 		flagBits, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
 	VkImageAspectFlags aspectFlags = (flagBits & VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT) ?
 		VK_IMAGE_ASPECT_DEPTH_BIT :
 		VK_IMAGE_ASPECT_COLOR_BIT;
-	view_ = createImageView(format, aspectFlags, 1);
+	_view = createImageView(format, aspectFlags, 1);
 
 	VkImageLayout layout = (flagBits & VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT) ?
 		VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL :
@@ -86,6 +95,10 @@ void Image::create(DeviceContext& dc, VkFormat format, VkImageUsageFlags flagBit
 
 void Image::createImage(uint32_t width, uint32_t height, uint32_t mipLevels, VkSampleCountFlagBits numSamples,
 	VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage, VkMemoryPropertyFlags properties) {
+	_format = format;
+	_extent.width = width;
+	_extent.height = height;
+
 	VkImageCreateInfo imageInfo = {};
 	imageInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
 	imageInfo.imageType = VK_IMAGE_TYPE_2D;
@@ -101,23 +114,23 @@ void Image::createImage(uint32_t width, uint32_t height, uint32_t mipLevels, VkS
 	imageInfo.samples = numSamples;
 	imageInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
 
-	if (vkCreateImage(dc_->device_, &imageInfo, nullptr, &image_) != VK_SUCCESS) {
+	if (vkCreateImage(_dc->device_, &imageInfo, nullptr, &_image) != VK_SUCCESS) {
 		throw runtime_error("failed to create image!");
 	}
 
 	VkMemoryRequirements memRequirements;
-	vkGetImageMemoryRequirements(dc_->device_, image_, &memRequirements);
+	vkGetImageMemoryRequirements(_dc->device_, _image, &memRequirements);
 
 	VkMemoryAllocateInfo allocInfo = {};
 	allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
 	allocInfo.allocationSize = memRequirements.size;
-	allocInfo.memoryTypeIndex = dc_->findMemoryType(memRequirements.memoryTypeBits, properties);
+	allocInfo.memoryTypeIndex = _dc->findMemoryType(memRequirements.memoryTypeBits, properties);
 
-	if (vkAllocateMemory(dc_->device_, &allocInfo, nullptr, &memory_) != VK_SUCCESS) {
+	if (vkAllocateMemory(_dc->device_, &allocInfo, nullptr, &_memory) != VK_SUCCESS) {
 		throw runtime_error("failed to allocate image memory!");
 	}
 
-	vkBindImageMemory(dc_->device_, image_, memory_, 0);
+	vkBindImageMemory(_dc->device_, _image, _memory, 0);
 }
 
 VkImageView Image::createImageView(VkDevice device, VkImage image, VkFormat format, VkImageAspectFlags aspectFlags, uint32_t mipLevels) {
@@ -138,16 +151,13 @@ VkImageView Image::createImageView(VkDevice device, VkImage image, VkFormat form
 	}
 	return view;
 }
-VkImageView Image::createImageView(const Image& image, VkFormat format, VkImageAspectFlags aspectFlags, uint32_t mipLevels) {
-	return createImageView(image.dc_->device_, image.image_, format, aspectFlags, mipLevels);
-}
 
 VkImageView Image::createImageView(VkFormat format, VkImageAspectFlags aspectFlags, uint32_t mipLevels) {
-	return Image::createImageView(dc_->device_, image_, format, aspectFlags, mipLevels);
+	return Image::createImageView(_dc->device_, _image, format, aspectFlags, mipLevels);
 }
 
 void Image::transitionImageLayout(VkFormat format, VkImageLayout oldLayout, VkImageLayout newLayout, uint32_t mipLevels) {
-	VkCommandBuffer commandBuffer = dc_->beginSingleTimeCommands();
+	VkCommandBuffer commandBuffer = _dc->beginSingleTimeCommands();
 
 	VkImageMemoryBarrier barrier = {};
 	barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
@@ -155,7 +165,7 @@ void Image::transitionImageLayout(VkFormat format, VkImageLayout oldLayout, VkIm
 	barrier.newLayout = newLayout;
 	barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
 	barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-	barrier.image = image_;
+	barrier.image = _image;
 
 	if (newLayout == VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL) {
 		barrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT;
@@ -216,5 +226,371 @@ void Image::transitionImageLayout(VkFormat format, VkImageLayout oldLayout, VkIm
 		1, &barrier
 	);
 
-	dc_->endSingleTimeCommands(commandBuffer);
+	_dc->endSingleTimeCommands(commandBuffer);
+}
+
+// Copied from Sacha Willems take a screenshot, except this places the image in memory. Then you can save it of use it as you choose.
+
+size_t Image::pixelSize(VkFormat format) {
+	size_t result = stm1;
+
+	switch (format) {
+	case VK_FORMAT_R4G4B4A4_UNORM_PACK16:
+	case VK_FORMAT_B4G4R4A4_UNORM_PACK16:
+	case VK_FORMAT_R5G6B5_UNORM_PACK16:
+	case VK_FORMAT_B5G6R5_UNORM_PACK16:
+	case VK_FORMAT_R5G5B5A1_UNORM_PACK16:
+	case VK_FORMAT_B5G5R5A1_UNORM_PACK16:
+	case VK_FORMAT_A1R5G5B5_UNORM_PACK16:
+		break;
+
+	case VK_FORMAT_R8_UNORM:
+	case VK_FORMAT_R8_SNORM:
+	case VK_FORMAT_R8_USCALED:
+	case VK_FORMAT_R8_SSCALED:
+	case VK_FORMAT_R8_UINT:
+	case VK_FORMAT_R8_SINT:
+	case VK_FORMAT_R8_SRGB:
+		result = 1;
+		break;
+
+	case VK_FORMAT_R8G8_UNORM:
+	case VK_FORMAT_R8G8_SNORM:
+	case VK_FORMAT_R8G8_USCALED:
+	case VK_FORMAT_R8G8_SSCALED:
+	case VK_FORMAT_R8G8_UINT:
+	case VK_FORMAT_R8G8_SINT:
+	case VK_FORMAT_R8G8_SRGB:
+		result = 2;
+		break;
+
+	case VK_FORMAT_R8G8B8_UNORM:
+	case VK_FORMAT_R8G8B8_SNORM:
+	case VK_FORMAT_R8G8B8_USCALED:
+	case VK_FORMAT_R8G8B8_SSCALED:
+	case VK_FORMAT_R8G8B8_UINT:
+	case VK_FORMAT_R8G8B8_SINT:
+	case VK_FORMAT_R8G8B8_SRGB:
+	case VK_FORMAT_B8G8R8_UNORM:
+	case VK_FORMAT_B8G8R8_SNORM:
+	case VK_FORMAT_B8G8R8_USCALED:
+	case VK_FORMAT_B8G8R8_SSCALED:
+	case VK_FORMAT_B8G8R8_UINT:
+	case VK_FORMAT_B8G8R8_SINT:
+	case VK_FORMAT_B8G8R8_SRGB:
+		result = 3;
+		break;
+
+	case VK_FORMAT_R8G8B8A8_UNORM:
+	case VK_FORMAT_R8G8B8A8_SNORM:
+	case VK_FORMAT_R8G8B8A8_USCALED:
+	case VK_FORMAT_R8G8B8A8_SSCALED:
+	case VK_FORMAT_R8G8B8A8_UINT:
+	case VK_FORMAT_R8G8B8A8_SINT:
+	case VK_FORMAT_R8G8B8A8_SRGB:
+	case VK_FORMAT_B8G8R8A8_UNORM:
+	case VK_FORMAT_B8G8R8A8_SNORM:
+	case VK_FORMAT_B8G8R8A8_USCALED:
+	case VK_FORMAT_B8G8R8A8_SSCALED:
+	case VK_FORMAT_B8G8R8A8_UINT:
+	case VK_FORMAT_B8G8R8A8_SINT:
+	case VK_FORMAT_B8G8R8A8_SRGB:
+	case VK_FORMAT_A8B8G8R8_UNORM_PACK32:
+	case VK_FORMAT_A8B8G8R8_SNORM_PACK32:
+	case VK_FORMAT_A8B8G8R8_USCALED_PACK32:
+	case VK_FORMAT_A8B8G8R8_SSCALED_PACK32:
+	case VK_FORMAT_A8B8G8R8_UINT_PACK32:
+	case VK_FORMAT_A8B8G8R8_SINT_PACK32:
+	case VK_FORMAT_A8B8G8R8_SRGB_PACK32:
+		result = 4;
+		break;
+
+	case VK_FORMAT_A2R10G10B10_UNORM_PACK32:
+	case VK_FORMAT_A2R10G10B10_SNORM_PACK32:
+	case VK_FORMAT_A2R10G10B10_USCALED_PACK32:
+	case VK_FORMAT_A2R10G10B10_SSCALED_PACK32:
+	case VK_FORMAT_A2R10G10B10_UINT_PACK32:
+	case VK_FORMAT_A2R10G10B10_SINT_PACK32:
+	case VK_FORMAT_A2B10G10R10_UNORM_PACK32:
+	case VK_FORMAT_A2B10G10R10_SNORM_PACK32:
+	case VK_FORMAT_A2B10G10R10_USCALED_PACK32:
+	case VK_FORMAT_A2B10G10R10_SSCALED_PACK32:
+	case VK_FORMAT_A2B10G10R10_UINT_PACK32:
+	case VK_FORMAT_A2B10G10R10_SINT_PACK32:
+	case VK_FORMAT_R16_UNORM:
+	case VK_FORMAT_R16_SNORM:
+	case VK_FORMAT_R16_USCALED:
+	case VK_FORMAT_R16_SSCALED:
+	case VK_FORMAT_R16_UINT:
+	case VK_FORMAT_R16_SINT:
+	case VK_FORMAT_R16_SFLOAT:
+	case VK_FORMAT_R16G16_UNORM:
+	case VK_FORMAT_R16G16_SNORM:
+	case VK_FORMAT_R16G16_USCALED:
+	case VK_FORMAT_R16G16_SSCALED:
+	case VK_FORMAT_R16G16_UINT:
+	case VK_FORMAT_R16G16_SINT:
+	case VK_FORMAT_R16G16_SFLOAT:
+	case VK_FORMAT_R16G16B16_UNORM:
+	case VK_FORMAT_R16G16B16_SNORM:
+	case VK_FORMAT_R16G16B16_USCALED:
+	case VK_FORMAT_R16G16B16_SSCALED:
+	case VK_FORMAT_R16G16B16_UINT:
+	case VK_FORMAT_R16G16B16_SINT:
+	case VK_FORMAT_R16G16B16_SFLOAT:
+	case VK_FORMAT_R16G16B16A16_UNORM:
+	case VK_FORMAT_R16G16B16A16_SNORM:
+	case VK_FORMAT_R16G16B16A16_USCALED:
+	case VK_FORMAT_R16G16B16A16_SSCALED:
+	case VK_FORMAT_R16G16B16A16_UINT:
+	case VK_FORMAT_R16G16B16A16_SINT:
+	case VK_FORMAT_R16G16B16A16_SFLOAT:
+	case VK_FORMAT_R32_UINT:
+	case VK_FORMAT_R32_SINT:
+	case VK_FORMAT_R32_SFLOAT:
+		break;
+	case VK_FORMAT_R32G32_UINT:
+	case VK_FORMAT_R32G32_SINT:
+		result = 2 * sizeof(int);
+		break;
+	case VK_FORMAT_R32G32_SFLOAT:
+		result = 2 * sizeof(int);
+		break;
+	case VK_FORMAT_R32G32B32_UINT:
+	case VK_FORMAT_R32G32B32_SINT:
+		result = 4 * sizeof(int);
+		break;
+	case VK_FORMAT_R32G32B32_SFLOAT:
+		result = 3 * sizeof(float);
+	case VK_FORMAT_R32G32B32A32_UINT:
+	case VK_FORMAT_R32G32B32A32_SINT:
+		result = 4 * sizeof(int);
+		break;
+	case VK_FORMAT_R32G32B32A32_SFLOAT:
+		result = 4 * sizeof(float);
+		break;
+
+	case VK_FORMAT_R64_UINT:
+	case VK_FORMAT_R64_SINT:
+	case VK_FORMAT_R64_SFLOAT:
+	case VK_FORMAT_R64G64_UINT:
+	case VK_FORMAT_R64G64_SINT:
+	case VK_FORMAT_R64G64_SFLOAT:
+	case VK_FORMAT_R64G64B64_UINT:
+	case VK_FORMAT_R64G64B64_SINT:
+	case VK_FORMAT_R64G64B64_SFLOAT:
+	case VK_FORMAT_R64G64B64A64_UINT:
+	case VK_FORMAT_R64G64B64A64_SINT:
+	case VK_FORMAT_R64G64B64A64_SFLOAT:
+	case VK_FORMAT_B10G11R11_UFLOAT_PACK32:
+	case VK_FORMAT_E5B9G9R9_UFLOAT_PACK32:
+	case VK_FORMAT_D16_UNORM:
+	case VK_FORMAT_X8_D24_UNORM_PACK32:
+	case VK_FORMAT_D32_SFLOAT:
+	case VK_FORMAT_S8_UINT:
+	case VK_FORMAT_D16_UNORM_S8_UINT:
+	case VK_FORMAT_D24_UNORM_S8_UINT:
+	case VK_FORMAT_D32_SFLOAT_S8_UINT:
+	case VK_FORMAT_BC1_RGB_UNORM_BLOCK:
+	case VK_FORMAT_BC1_RGB_SRGB_BLOCK:
+	case VK_FORMAT_BC1_RGBA_UNORM_BLOCK:
+	case VK_FORMAT_BC1_RGBA_SRGB_BLOCK:
+	case VK_FORMAT_BC2_UNORM_BLOCK:
+	case VK_FORMAT_BC2_SRGB_BLOCK:
+	case VK_FORMAT_BC3_UNORM_BLOCK:
+	case VK_FORMAT_BC3_SRGB_BLOCK:
+	case VK_FORMAT_BC4_UNORM_BLOCK:
+	case VK_FORMAT_BC4_SNORM_BLOCK:
+	case VK_FORMAT_BC5_UNORM_BLOCK:
+	case VK_FORMAT_BC5_SNORM_BLOCK:
+	case VK_FORMAT_BC6H_UFLOAT_BLOCK:
+	case VK_FORMAT_BC6H_SFLOAT_BLOCK:
+	case VK_FORMAT_BC7_UNORM_BLOCK:
+	case VK_FORMAT_BC7_SRGB_BLOCK:
+	case VK_FORMAT_ETC2_R8G8B8_UNORM_BLOCK:
+	case VK_FORMAT_ETC2_R8G8B8_SRGB_BLOCK:
+	case VK_FORMAT_ETC2_R8G8B8A1_UNORM_BLOCK:
+	case VK_FORMAT_ETC2_R8G8B8A1_SRGB_BLOCK:
+	case VK_FORMAT_ETC2_R8G8B8A8_UNORM_BLOCK:
+	case VK_FORMAT_ETC2_R8G8B8A8_SRGB_BLOCK:
+	case VK_FORMAT_EAC_R11_UNORM_BLOCK:
+	case VK_FORMAT_EAC_R11_SNORM_BLOCK:
+	case VK_FORMAT_EAC_R11G11_UNORM_BLOCK:
+	case VK_FORMAT_EAC_R11G11_SNORM_BLOCK:
+	case VK_FORMAT_ASTC_4x4_UNORM_BLOCK:
+	case VK_FORMAT_ASTC_4x4_SRGB_BLOCK:
+	case VK_FORMAT_ASTC_5x4_UNORM_BLOCK:
+	case VK_FORMAT_ASTC_5x4_SRGB_BLOCK:
+	case VK_FORMAT_ASTC_5x5_UNORM_BLOCK:
+	case VK_FORMAT_ASTC_5x5_SRGB_BLOCK:
+	case VK_FORMAT_ASTC_6x5_UNORM_BLOCK:
+	case VK_FORMAT_ASTC_6x5_SRGB_BLOCK:
+	case VK_FORMAT_ASTC_6x6_UNORM_BLOCK:
+	case VK_FORMAT_ASTC_6x6_SRGB_BLOCK:
+	case VK_FORMAT_ASTC_8x5_UNORM_BLOCK:
+	case VK_FORMAT_ASTC_8x5_SRGB_BLOCK:
+	case VK_FORMAT_ASTC_8x6_UNORM_BLOCK:
+	case VK_FORMAT_ASTC_8x6_SRGB_BLOCK:
+	case VK_FORMAT_ASTC_8x8_UNORM_BLOCK:
+	case VK_FORMAT_ASTC_8x8_SRGB_BLOCK:
+	case VK_FORMAT_ASTC_10x5_UNORM_BLOCK:
+	case VK_FORMAT_ASTC_10x5_SRGB_BLOCK:
+	case VK_FORMAT_ASTC_10x6_UNORM_BLOCK:
+	case VK_FORMAT_ASTC_10x6_SRGB_BLOCK:
+	case VK_FORMAT_ASTC_10x8_UNORM_BLOCK:
+	case VK_FORMAT_ASTC_10x8_SRGB_BLOCK:
+	case VK_FORMAT_ASTC_10x10_UNORM_BLOCK:
+	case VK_FORMAT_ASTC_10x10_SRGB_BLOCK:
+	case VK_FORMAT_ASTC_12x10_UNORM_BLOCK:
+	case VK_FORMAT_ASTC_12x10_SRGB_BLOCK:
+	case VK_FORMAT_ASTC_12x12_UNORM_BLOCK:
+	case VK_FORMAT_ASTC_12x12_SRGB_BLOCK:
+	case VK_FORMAT_G8B8G8R8_422_UNORM:
+	case VK_FORMAT_B8G8R8G8_422_UNORM:
+	case VK_FORMAT_G8_B8_R8_3PLANE_420_UNORM:
+	case VK_FORMAT_G8_B8R8_2PLANE_420_UNORM:
+	case VK_FORMAT_G8_B8_R8_3PLANE_422_UNORM:
+	case VK_FORMAT_G8_B8R8_2PLANE_422_UNORM:
+	case VK_FORMAT_G8_B8_R8_3PLANE_444_UNORM:
+	case VK_FORMAT_R10X6_UNORM_PACK16:
+	case VK_FORMAT_R10X6G10X6_UNORM_2PACK16:
+	case VK_FORMAT_R10X6G10X6B10X6A10X6_UNORM_4PACK16:
+	case VK_FORMAT_G10X6B10X6G10X6R10X6_422_UNORM_4PACK16:
+	case VK_FORMAT_B10X6G10X6R10X6G10X6_422_UNORM_4PACK16:
+	case VK_FORMAT_G10X6_B10X6_R10X6_3PLANE_420_UNORM_3PACK16:
+	case VK_FORMAT_G10X6_B10X6R10X6_2PLANE_420_UNORM_3PACK16:
+	case VK_FORMAT_G10X6_B10X6_R10X6_3PLANE_422_UNORM_3PACK16:
+	case VK_FORMAT_G10X6_B10X6R10X6_2PLANE_422_UNORM_3PACK16:
+	case VK_FORMAT_G10X6_B10X6_R10X6_3PLANE_444_UNORM_3PACK16:
+	case VK_FORMAT_R12X4_UNORM_PACK16:
+	case VK_FORMAT_R12X4G12X4_UNORM_2PACK16:
+	case VK_FORMAT_R12X4G12X4B12X4A12X4_UNORM_4PACK16:
+	case VK_FORMAT_G12X4B12X4G12X4R12X4_422_UNORM_4PACK16:
+	case VK_FORMAT_B12X4G12X4R12X4G12X4_422_UNORM_4PACK16:
+	case VK_FORMAT_G12X4_B12X4_R12X4_3PLANE_420_UNORM_3PACK16:
+	case VK_FORMAT_G12X4_B12X4R12X4_2PLANE_420_UNORM_3PACK16:
+	case VK_FORMAT_G12X4_B12X4_R12X4_3PLANE_422_UNORM_3PACK16:
+	case VK_FORMAT_G12X4_B12X4R12X4_2PLANE_422_UNORM_3PACK16:
+	case VK_FORMAT_G12X4_B12X4_R12X4_3PLANE_444_UNORM_3PACK16:
+	case VK_FORMAT_G16B16G16R16_422_UNORM:
+	case VK_FORMAT_B16G16R16G16_422_UNORM:
+	case VK_FORMAT_G16_B16_R16_3PLANE_420_UNORM:
+	case VK_FORMAT_G16_B16R16_2PLANE_420_UNORM:
+	case VK_FORMAT_G16_B16_R16_3PLANE_422_UNORM:
+	case VK_FORMAT_G16_B16R16_2PLANE_422_UNORM:
+	case VK_FORMAT_G16_B16_R16_3PLANE_444_UNORM:
+	case VK_FORMAT_PVRTC1_2BPP_UNORM_BLOCK_IMG:
+	case VK_FORMAT_PVRTC1_4BPP_UNORM_BLOCK_IMG:
+	case VK_FORMAT_PVRTC2_2BPP_UNORM_BLOCK_IMG:
+	case VK_FORMAT_PVRTC2_4BPP_UNORM_BLOCK_IMG:
+	case VK_FORMAT_PVRTC1_2BPP_SRGB_BLOCK_IMG:
+	case VK_FORMAT_PVRTC1_4BPP_SRGB_BLOCK_IMG:
+	case VK_FORMAT_PVRTC2_2BPP_SRGB_BLOCK_IMG:
+	case VK_FORMAT_PVRTC2_4BPP_SRGB_BLOCK_IMG:
+	case VK_FORMAT_ASTC_4x4_SFLOAT_BLOCK_EXT:
+	case VK_FORMAT_ASTC_5x4_SFLOAT_BLOCK_EXT:
+	case VK_FORMAT_ASTC_5x5_SFLOAT_BLOCK_EXT:
+	case VK_FORMAT_ASTC_6x5_SFLOAT_BLOCK_EXT:
+	case VK_FORMAT_ASTC_6x6_SFLOAT_BLOCK_EXT:
+	case VK_FORMAT_ASTC_8x5_SFLOAT_BLOCK_EXT:
+	case VK_FORMAT_ASTC_8x6_SFLOAT_BLOCK_EXT:
+	case VK_FORMAT_ASTC_8x8_SFLOAT_BLOCK_EXT:
+	case VK_FORMAT_ASTC_10x5_SFLOAT_BLOCK_EXT:
+	case VK_FORMAT_ASTC_10x6_SFLOAT_BLOCK_EXT:
+	case VK_FORMAT_ASTC_10x8_SFLOAT_BLOCK_EXT:
+	case VK_FORMAT_ASTC_10x10_SFLOAT_BLOCK_EXT:
+	case VK_FORMAT_ASTC_12x10_SFLOAT_BLOCK_EXT:
+	case VK_FORMAT_ASTC_12x12_SFLOAT_BLOCK_EXT:
+	default:
+		break;
+	}
+
+	if (result == stm1)
+		throw runtime_error("Unexpected pixel format");
+
+	return result;
+}
+
+void Image::saveImage(const std::string& filename, const VkExtent2D& extent, uint32_t rowPitch, bool colorSwizzle, const char* pix) {
+
+	const char* swizzledPix = pix;
+	vector<char> buf;
+
+	if (filename.find(".png") != string::npos) {
+		if (colorSwizzle) {
+			size_t numPix = extent.width * extent.height;
+			buf.resize(numPix * 4);
+			for (size_t i = 0; i < numPix; i ++) {
+				const char* srcPx = &pix[4 * i];
+				char* dstPx = &buf[4 * i];
+				dstPx[0] = srcPx[3];
+				dstPx[1] = srcPx[2];
+				dstPx[2] = srcPx[1];
+				dstPx[3] = srcPx[0];
+			}
+			swizzledPix = (const char*)buf.data();
+		}
+		stbi_write_png(filename.c_str(), (int)extent.width, (int)extent.height, 4, swizzledPix, 4);
+	}
+	else if (filename.find(".jpg") != string::npos) {
+		size_t numPix = extent.width * extent.height;
+		buf.resize(numPix * 3);
+		for (size_t i = 0; i < numPix; i++) {
+			const char* srcPx = &pix[4 * i];
+			char* dstPx = &buf[3 * i];
+			if (colorSwizzle) {
+				dstPx[0] = srcPx[3];
+				dstPx[1] = srcPx[2];
+				dstPx[2] = srcPx[1];
+			}
+			else {
+				dstPx[0] = srcPx[0];
+				dstPx[1] = srcPx[1];
+				dstPx[2] = srcPx[2];
+			}
+		}
+		swizzledPix = (const char*)buf.data();
+		stbi_write_jpg(filename.c_str(), (int)extent.width, (int)extent.height, 3, swizzledPix, 90);
+	}
+	else if (filename.find(".bmp") != string::npos) {
+		size_t numPix = extent.width * extent.height;
+		buf.resize(numPix * 3);
+		char* dstPx = &buf[0];
+		auto data = pix;
+		for (uint32_t y = 0; y < extent.height; y++)
+		{
+			unsigned int* row = (unsigned int*)data;
+			for (uint32_t x = 0; x < extent.width; x++)
+			{
+				auto ref = dstPx;
+				if (colorSwizzle) {
+					*dstPx++ = *((char*)row + 2);
+					*dstPx++ = *((char*)row + 1);
+					*dstPx++ = *((char*)row );
+				}
+				else {
+					*dstPx++ = *((char*)row);
+					*dstPx++ = *((char*)row + 1);
+					*dstPx++ = *((char*)row + 2);
+				}
+				row++;
+			}
+			data += rowPitch;
+		}
+
+		swizzledPix = (const char*)buf.data();
+		stbi_write_bmp(filename.c_str(), (int)extent.width, (int)extent.height, 3, swizzledPix);
+	}
+}
+
+size_t Image::getImageData(const VulkanAppPtr& app, VkImage srcImage, const VkExtent2D& extent, VkFormat format, const char*& data, size_t bufSize) {
+	size_t newBufSize = extent.width * extent.height * pixelSize(format);
+	if (bufSize != newBufSize )
+		return newBufSize;
+
+	ImageCopier copier(app, srcImage, extent, format, bufSize);
+
+	data = copier.getPersistentCopy();
+
+	return bufSize;
 }

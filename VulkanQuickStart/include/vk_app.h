@@ -62,12 +62,12 @@ namespace TriMesh {
 
 namespace VK {
 	struct SwapChain {
-		VkSwapchainKHR swapChain;
-		std::vector<VkImage> swapChainImages;
-		VkFormat swapChainImageFormat;
-		VkExtent2D swapChainExtent;
-		std::vector<VkImageView> swapChainImageViews;
-		std::vector<VkFramebuffer> swapChainFramebuffers;
+		VkSwapchainKHR _vkSwapChain;
+		VkFormat _imageFormat;
+		VkExtent2D _extent;
+		std::vector<VkImage> _vkImages;
+		std::vector<VkImageView> _vkImageViews;
+		std::vector<VkFramebuffer> _vkFrameBuffers;
 	};
 
 	class VulkanApp {
@@ -116,8 +116,11 @@ namespace VK {
 
 		const ShaderPool& getShaderPool() const;
 		ShaderPool& getShaderPool();
+		uint32_t getSwapChainIndex() const;
 
 		void run();
+		VkCommandBuffer beginSingleTimeCommands();
+		void endSingleTimeCommands(VkCommandBuffer commandBuffer);
 
 	private:
 		struct SwapChainSupportDetails;
@@ -155,8 +158,6 @@ namespace VK {
 		VkSampleCountFlagBits getMaxUsableSampleCount();
 
 		void createBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer& buffer, VkDeviceMemory& bufferMemory);
-		VkCommandBuffer beginSingleTimeCommands();
-		void endSingleTimeCommands(VkCommandBuffer commandBuffer);
 		uint32_t findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties);
 		void createCommandBuffers();
 		void drawCmdBufferLoop(size_t swapChainIndex,
@@ -184,6 +185,7 @@ namespace VK {
 		VkSurfaceKHR surface;
 		std::mutex _swapChainMutex;
 		size_t _changeNumber = 0, _lastChangeNumber = 0, _uiWindowChangeNumber = 0;
+		uint32_t _swapChainIndex;
 
 		VkInstance instance;
 		VkDebugUtilsMessengerEXT debugMessenger;
@@ -292,6 +294,10 @@ namespace VK {
 
 	inline ShaderPool& VulkanApp::getShaderPool() {
 		return *_shaderPool;
+	}
+
+	inline uint32_t VulkanApp::getSwapChainIndex() const {
+		return _swapChainIndex;
 	}
 
 	template<class UBO_TYPE>

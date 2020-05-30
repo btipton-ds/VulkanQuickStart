@@ -4,7 +4,8 @@
 cmake_minimum_required (VERSION 3.10.2)
 
 include_directories(
-include 
+"include"
+"vk_base"
 "../../ThirdParty/glm-0.9.9.5/glm"
 "../../ThirdParty/glfw-3.3.2/include"
 "../../ThirdParty/tinyobjloader"
@@ -73,8 +74,12 @@ VulkanQuickStart
 "src/vk_textureImage.cpp"
 "src/vk_ui_button.cpp" 
 "src/vk_ui_window.cpp"
-"src/VulkanQuickStart.cxx"
- "src/vk_sceneNode3DWTexture.cpp" "src/vk_pipeline3DWithTexture.cpp" "src/vk_sceneNodeUi.cpp")
+"src/vk_sceneNode3DWTexture.cpp"
+"src/vk_pipeline3DWithTexture.cpp"
+"src/vk_sceneNodeUi.cpp"
+"vk_base/VulkanTools.cpp"
+"src/VulkanQuickStart.cxx" 
+"src/vk_imageCopier.cpp")
 
 target_link_libraries("VulkanQuickStart" 
 PUBLIC freetype
