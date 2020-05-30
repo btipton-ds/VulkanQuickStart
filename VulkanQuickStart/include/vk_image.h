@@ -54,18 +54,18 @@ namespace VK {
 
 			ImageCopier copier(app, image, extent, format, bufSize);
 
-			func(copier.getVolitileCopy(), copier.getRowPitch(), copier.getColorSwizzle());
+			func(copier.getVolitileCopy(), copier.getSubResourceLayout(), copier.getColorSwizzle());
 
 			return bufSize;
 		}
 
-		static void saveImage(const std::string& filename, const VkExtent2D& extent, uint32_t rowPitch, bool colorSwizzle, const char* pix);
+		static void saveImage(const std::string& filename, const VkExtent2D& extent, const VkSubresourceLayout& vkLayout, bool colorSwizzle, const char* pix);
 
 		static void saveImage(const std::string& filename, const VulkanAppPtr& app, VkImage image, const VkExtent2D& extent, VkFormat format) {
-			size_t bufSize = processImage(app, image, extent, format, 0, [](const char* p, uint32_t rowPitch, bool colorSwizzle) {});
+			size_t bufSize = processImage(app, image, extent, format, 0, [](const char* p, const VkSubresourceLayout& vkLayout, bool colorSwizzle) {});
 			if (bufSize != stm1) {
-				bufSize = processImage(app, image, extent, format, bufSize, [&](const char* p, uint32_t rowPitch, bool colorSwizzle) {
-					saveImage(filename, extent, rowPitch, colorSwizzle, p);
+				bufSize = processImage(app, image, extent, format, bufSize, [&](const char* p, const VkSubresourceLayout& vkLayout, bool colorSwizzle) {
+					saveImage(filename, extent, vkLayout, colorSwizzle, p);
 				});
 			}
 		}

@@ -180,6 +180,9 @@ namespace VK {
 		GLFWwindow* _window;
 		UI::Window* _uiWindow;
 		unsigned int _windowDpi = 72;
+		VkFormat _requestedFormat = VK_FORMAT_B8G8R8A8_UNORM;
+		VkColorSpaceKHR _requestedColorSpace = VK_COLOR_SPACE_SRGB_NONLINEAR_KHR;
+		
 		glm::mat4 _modelToWorld;
 		double _modelScale = 1.0;
 		VkSurfaceKHR surface;

@@ -511,75 +511,52 @@ size_t Image::pixelSize(VkFormat format) {
 	return result;
 }
 
-void Image::saveImage(const std::string& filename, const VkExtent2D& extent, uint32_t rowPitch, bool colorSwizzle, const char* pix) {
+void Image::saveImage(const std::string& filename, const VkExtent2D& extent, const VkSubresourceLayout& vkLayout, bool colorSwizzle, const char* pix) {
 
-	const char* swizzledPix = pix;
 	vector<char> buf;
 
-	if (filename.find(".png") != string::npos) {
-		if (colorSwizzle) {
-			size_t numPix = extent.width * extent.height;
-			buf.resize(numPix * 4);
-			for (size_t i = 0; i < numPix; i ++) {
-				const char* srcPx = &pix[4 * i];
-				char* dstPx = &buf[4 * i];
-				dstPx[0] = srcPx[3];
-				dstPx[1] = srcPx[2];
-				dstPx[2] = srcPx[1];
-				dstPx[3] = srcPx[0];
-			}
-			swizzledPix = (const char*)buf.data();
-		}
-		stbi_write_png(filename.c_str(), (int)extent.width, (int)extent.height, 4, swizzledPix, 4);
-	}
-	else if (filename.find(".jpg") != string::npos) {
-		size_t numPix = extent.width * extent.height;
-		buf.resize(numPix * 3);
-		for (size_t i = 0; i < numPix; i++) {
-			const char* srcPx = &pix[4 * i];
-			char* dstPx = &buf[3 * i];
+	bool isPng = filename.find(".png") != string::npos;
+	int pixelSize = 3;
+	if (isPng)
+		pixelSize = 4;
+
+	size_t numPix = extent.width * extent.height;
+	buf.resize(numPix * pixelSize);
+	char* dstPx = &buf[0];
+	auto data = pix;
+	for (uint32_t y = 0; y < extent.height; y++)
+	{
+		unsigned int* row = (unsigned int*)data;
+		for (uint32_t x = 0; x < extent.width; x++)
+		{
+			auto ref = dstPx;
 			if (colorSwizzle) {
-				dstPx[0] = srcPx[3];
-				dstPx[1] = srcPx[2];
-				dstPx[2] = srcPx[1];
+				if (isPng)
+					*dstPx++ = *((char*)row + 3);
+				*dstPx++ = *((char*)row + 2);
+				*dstPx++ = *((char*)row + 1);
+				*dstPx++ = *((char*)row);
 			}
 			else {
-				dstPx[0] = srcPx[0];
-				dstPx[1] = srcPx[1];
-				dstPx[2] = srcPx[2];
+				*dstPx++ = *((char*)row);
+				*dstPx++ = *((char*)row + 1);
+				*dstPx++ = *((char*)row + 2);
+				if (isPng)
+					*dstPx++ = *((char*)row + 3);
 			}
+			row++;
 		}
-		swizzledPix = (const char*)buf.data();
-		stbi_write_jpg(filename.c_str(), (int)extent.width, (int)extent.height, 3, swizzledPix, 90);
+		data += vkLayout.rowPitch;
+	}
+
+	if (filename.find(".png") != string::npos) {
+		stbi_write_png(filename.c_str(), (int)extent.width, (int)extent.height, pixelSize, buf.data(), pixelSize *(int)extent.width);
+	}
+	else if (filename.find(".jpg") != string::npos) {
+		stbi_write_jpg(filename.c_str(), (int)extent.width, (int)extent.height, pixelSize, buf.data(), 75);
 	}
 	else if (filename.find(".bmp") != string::npos) {
-		size_t numPix = extent.width * extent.height;
-		buf.resize(numPix * 3);
-		char* dstPx = &buf[0];
-		auto data = pix;
-		for (uint32_t y = 0; y < extent.height; y++)
-		{
-			unsigned int* row = (unsigned int*)data;
-			for (uint32_t x = 0; x < extent.width; x++)
-			{
-				auto ref = dstPx;
-				if (colorSwizzle) {
-					*dstPx++ = *((char*)row + 2);
-					*dstPx++ = *((char*)row + 1);
-					*dstPx++ = *((char*)row );
-				}
-				else {
-					*dstPx++ = *((char*)row);
-					*dstPx++ = *((char*)row + 1);
-					*dstPx++ = *((char*)row + 2);
-				}
-				row++;
-			}
-			data += rowPitch;
-		}
-
-		swizzledPix = (const char*)buf.data();
-		stbi_write_bmp(filename.c_str(), (int)extent.width, (int)extent.height, 3, swizzledPix);
+		stbi_write_bmp(filename.c_str(), (int)extent.width, (int)extent.height, pixelSize, buf.data());
 	}
 }
 

@@ -104,6 +104,8 @@ void buildUi(UI::Window& gui) {
 			const auto& images = swapChain._vkImages;
 			auto image = images[gApp->getSwapChainIndex()];
 			Image::saveImage("C:/Users/Bob/Documents/Projects/ElectroFish/HexMeshTests/screenshot.bmp", gApp, image, swapChain._extent, swapChain._imageFormat);
+			Image::saveImage("C:/Users/Bob/Documents/Projects/ElectroFish/HexMeshTests/screenshot.jpg", gApp, image, swapChain._extent, swapChain._imageFormat);
+			Image::saveImage("C:/Users/Bob/Documents/Projects/ElectroFish/HexMeshTests/screenshot.png", gApp, image, swapChain._extent, swapChain._imageFormat);
 		}
 	});
 

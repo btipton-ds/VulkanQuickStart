@@ -48,30 +48,31 @@ ImageCopier::ImageCopier(const VulkanAppPtr& app, VkImage srcImage, const VkExte
 	auto& dc = _app->getDeviceContext();
 	_device = _app->getDeviceContext().device_;
 
-	createVkImage(_device, extent, dstImage);
+	createVkImage(_device, extent, _dstImage);
 
 	// Create memory to back up the image
-	vkGetImageMemoryRequirements(_device, dstImage, &memRequirements);
-	memAllocInfo = vks::initializers::memoryAllocateInfo();
+	VkMemoryRequirements memRequirements;
+	vkGetImageMemoryRequirements(_device, _dstImage, &memRequirements);
+	VkMemoryAllocateInfo memAllocInfo(vks::initializers::memoryAllocateInfo());
 	memAllocInfo.allocationSize = memRequirements.size;
 	// Memory must be host visible to copy from
 	memAllocInfo.memoryTypeIndex = dc.getMemoryType(memRequirements.memoryTypeBits, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
-	VK_CHECK_RESULT(vkAllocateMemory(_device, &memAllocInfo, nullptr, &dstImageMemory));
-	VK_CHECK_RESULT(vkBindImageMemory(_device, dstImage, dstImageMemory, 0));
+	VK_CHECK_RESULT(vkAllocateMemory(_device, &memAllocInfo, nullptr, &_dstImageMemory));
+	VK_CHECK_RESULT(vkBindImageMemory(_device, _dstImage, _dstImageMemory, 0));
 
-	copyImages(srcImage, extent, format, dstImage);
+	copyImages(srcImage, extent, format, _dstImage);
 
 	// Get layout of the image (including row pitch)
-	VkImageSubresource subResource{ VK_IMAGE_ASPECT_COLOR_BIT, 0, 0 };
-	vkGetImageSubresourceLayout(_device, dstImage, &subResource, &subResourceLayout);
-	_rowPitch = subResourceLayout.rowPitch;
+	_subResource = { VK_IMAGE_ASPECT_COLOR_BIT, 0, 0 };
+	vkGetImageSubresourceLayout(_device, _dstImage, &_subResource, &_subResourceLayout);
+	_rowPitch = _subResourceLayout.rowPitch;
 }
 
 ImageCopier::~ImageCopier() {
 	// Clean up resources
-	vkUnmapMemory(_device, dstImageMemory);
-	vkFreeMemory(_device, dstImageMemory, nullptr);
-	vkDestroyImage(_device, dstImage, nullptr);
+	vkUnmapMemory(_device, _dstImageMemory);
+	vkFreeMemory(_device, _dstImageMemory, nullptr);
+	vkDestroyImage(_device, _dstImage, nullptr);
 }
 
 const char* ImageCopier::getPersistentCopy() const {
@@ -86,12 +87,12 @@ const char* ImageCopier::getPersistentCopy() const {
 const char* ImageCopier::getVolitileCopy() const {
 	// Map image memory so we can start copying from it
 	char* tempPtr;
-	vkMapMemory(_device, dstImageMemory, 0, VK_WHOLE_SIZE, 0, (void**)&tempPtr);
-	tempPtr += subResourceLayout.offset;
+	vkMapMemory(_device, _dstImageMemory, 0, VK_WHOLE_SIZE, 0, (void**)&tempPtr);
+	tempPtr += _subResourceLayout.offset;
 	return tempPtr;
 }
 
-void ImageCopier::copyImages(VkImage srcImage, const VkExtent2D& extent, VkFormat format, VkImage dstImage) {
+void ImageCopier::copyImages(VkImage srcImage, const VkExtent2D& extent, VkFormat format, VkImage _dstImage) {
 	auto& dc = _app->getDeviceContext();
 	bool supportsBlit = doesSupportsBlit(dc.physicalDevice_, format);
 
@@ -108,22 +109,22 @@ void ImageCopier::copyImages(VkImage srcImage, const VkExtent2D& extent, VkForma
 	// Do the actual blit from the swapchain image to our host visible destination image
 	VkCommandBuffer copyCmd = _app->beginSingleTimeCommands();
 
-	lockImages(copyCmd, srcImage, dstImage);
+	lockImages(copyCmd, srcImage, _dstImage);
 	if (supportsBlit)
-		blitImage(copyCmd, extent, srcImage, dstImage);
+		blitImage(copyCmd, extent, srcImage, _dstImage);
 	else
-		copyImage(copyCmd, extent, srcImage, dstImage);
+		copyImage(copyCmd, extent, srcImage, _dstImage);
 
-	unlockImages(copyCmd, srcImage, dstImage);
+	unlockImages(copyCmd, srcImage, _dstImage);
 
 	//	vulkanDevice->flushCommandBuffer(copyCmd, queue);
 	_app->endSingleTimeCommands(copyCmd);
 }
 
-void ImageCopier::lockImages(VkCommandBuffer copyCmd, VkImage& srcImage, VkImage& dstImage) {
+void ImageCopier::lockImages(VkCommandBuffer copyCmd, VkImage& srcImage, VkImage& _dstImage) {
 	vks::tools::insertImageMemoryBarrier(
 		copyCmd,
-		dstImage,
+		_dstImage,
 		0,
 		VK_ACCESS_TRANSFER_WRITE_BIT,
 		VK_IMAGE_LAYOUT_UNDEFINED,
@@ -144,10 +145,10 @@ void ImageCopier::lockImages(VkCommandBuffer copyCmd, VkImage& srcImage, VkImage
 		VkImageSubresourceRange{ VK_IMAGE_ASPECT_COLOR_BIT, 0, 1, 0, 1 });
 }
 
-void ImageCopier::unlockImages(VkCommandBuffer copyCmd, VkImage& srcImage, VkImage& dstImage) {
+void ImageCopier::unlockImages(VkCommandBuffer copyCmd, VkImage& srcImage, VkImage& _dstImage) {
 	vks::tools::insertImageMemoryBarrier(
 		copyCmd,
-		dstImage,
+		_dstImage,
 		VK_ACCESS_TRANSFER_WRITE_BIT,
 		VK_ACCESS_MEMORY_READ_BIT,
 		VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
@@ -170,7 +171,7 @@ void ImageCopier::unlockImages(VkCommandBuffer copyCmd, VkImage& srcImage, VkIma
 
 
 
-void ImageCopier::createVkImage(VkDevice device, const VkExtent2D& extent, VkImage& dstImage) {
+void ImageCopier::createVkImage(VkDevice device, const VkExtent2D& extent, VkImage& _dstImage) {
 	// Create the linear tiled destination image to copy to and to read the memory from
 	VkImageCreateInfo imageCreateCI(vks::initializers::imageCreateInfo());
 	imageCreateCI.imageType = VK_IMAGE_TYPE_2D;
@@ -186,7 +187,7 @@ void ImageCopier::createVkImage(VkDevice device, const VkExtent2D& extent, VkIma
 	imageCreateCI.tiling = VK_IMAGE_TILING_LINEAR;
 	imageCreateCI.usage = VK_IMAGE_USAGE_TRANSFER_DST_BIT;
 	// Create the image
-	VK_CHECK_RESULT(vkCreateImage(device, &imageCreateCI, nullptr, &dstImage));
+	VK_CHECK_RESULT(vkCreateImage(device, &imageCreateCI, nullptr, &_dstImage));
 
 }
 
@@ -210,7 +211,7 @@ bool ImageCopier::doesSupportsBlit(VkPhysicalDevice physicalDevice, VkFormat for
 }
 
 
-void ImageCopier::blitImage(VkCommandBuffer copyCmd, const VkExtent2D& extent, VkImage& srcImage, VkImage& dstImage) {
+void ImageCopier::blitImage(VkCommandBuffer copyCmd, const VkExtent2D& extent, VkImage& srcImage, VkImage& _dstImage) {
 	VkOffset3D blitSize;
 	blitSize.x = extent.width;
 	blitSize.y = extent.height;
@@ -227,13 +228,13 @@ void ImageCopier::blitImage(VkCommandBuffer copyCmd, const VkExtent2D& extent, V
 	vkCmdBlitImage(
 		copyCmd,
 		srcImage, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
-		dstImage, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+		_dstImage, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
 		1,
 		&imageBlitRegion,
 		VK_FILTER_NEAREST);
 }
 
-void ImageCopier::copyImage(VkCommandBuffer copyCmd, const VkExtent2D& extent, VkImage& srcImage, VkImage& dstImage) {
+void ImageCopier::copyImage(VkCommandBuffer copyCmd, const VkExtent2D& extent, VkImage& srcImage, VkImage& _dstImage) {
 	// Otherwise use image copy (requires us to manually flip components)
 	VkImageCopy imageCopyRegion{};
 	imageCopyRegion.srcSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
@@ -248,7 +249,7 @@ void ImageCopier::copyImage(VkCommandBuffer copyCmd, const VkExtent2D& extent, V
 	vkCmdCopyImage(
 		copyCmd,
 		srcImage, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
-		dstImage, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+		_dstImage, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
 		1,
 		&imageCopyRegion);
 }

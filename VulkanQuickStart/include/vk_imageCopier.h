@@ -45,7 +45,8 @@ namespace VK {
 		const char* getPersistentCopy() const;
 		const char* getVolitileCopy() const;
 		bool getColorSwizzle() const;
-		uint32_t getRowPitch() const;
+		VkImageSubresource getSubResource() const;
+		VkSubresourceLayout getSubResourceLayout() const;
 
 	private:
 		void copyImages(VkImage srcImage, const VkExtent2D& extent, VkFormat format, VkImage dstImage);
@@ -61,13 +62,12 @@ namespace VK {
 		const VulkanAppPtr& _app;
 		VkDevice _device;
 		bool _colorSwizzle = false;
-		uint32_t _rowPitch;
+		VkDeviceSize _rowPitch;
 		size_t _bufSize;
-		VkImage dstImage;
-		VkMemoryRequirements memRequirements;
-		VkMemoryAllocateInfo memAllocInfo;
-		VkDeviceMemory dstImageMemory;
-		VkSubresourceLayout subResourceLayout;
+		VkImage _dstImage;
+		VkDeviceMemory _dstImageMemory;
+		VkImageSubresource _subResource;
+		VkSubresourceLayout _subResourceLayout;
 
 
 	};
@@ -76,9 +76,12 @@ namespace VK {
 		return _colorSwizzle;
 	}
 
-	inline uint32_t ImageCopier::getRowPitch() const {
-		return _rowPitch;
+	inline VkImageSubresource ImageCopier::getSubResource() const {
+		return _subResource;
 	}
 
+	inline VkSubresourceLayout ImageCopier::getSubResourceLayout() const {
+		return _subResourceLayout;
+	}
 
 }
