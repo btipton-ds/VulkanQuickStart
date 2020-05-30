@@ -46,7 +46,7 @@ namespace VK {
 
 		static std::string getShaderId();
 
-		PipelineVertex3D(VulkanApp* app);
+		PipelineVertex3D(const VulkanAppPtr& app);
 
 		void setUniformBufferPtr(const UniformBufferObject* ubo);
 		BoundingBox getBounds() const;

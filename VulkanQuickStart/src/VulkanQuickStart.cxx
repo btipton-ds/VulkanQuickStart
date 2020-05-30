@@ -82,13 +82,13 @@ const std::string stlFilenameFine = "test_part_fine.stl";
 VulkanAppPtr gApp;
 
 #if TEST_GUI
-void buildUi(UI::Window& gui) {
+void buildUi(UI::WindowPtr& gui) {
 	glm::vec4 bkgColor(0.875f, 0.875f, 0.875f, 1);
 	uint32_t w = 120;
 	uint32_t h = 22;
 	uint32_t row = 0;
 
-	gui.addButton(UI::Button(bkgColor, "Reset View", UI::Rect(row, 0, row + h, w)))->
+	gui->addButton(UI::Button(gApp, bkgColor, "Reset View", UI::Rect(row, 0, row + h, w)))->
 		setAction(UI::Button::ActionType::ACT_CLICK, [&](int btnNum, int modifiers) {
 		if (btnNum == 0) {
 			glm::mat4 xform = glm::mat4(1.0f);
@@ -97,7 +97,7 @@ void buildUi(UI::Window& gui) {
 	});
 
 	row += h;
-	gui.addButton(UI::Button(bkgColor, "Screenshot", UI::Rect(row, 0, row + h, w)))->
+	gui->addButton(UI::Button(gApp, bkgColor, "Screenshot", UI::Rect(row, 0, row + h, w)))->
 		setAction(UI::Button::ActionType::ACT_CLICK, [&](int btnNum, int modifiers) {
 		if (btnNum == 0) {
 			const auto& swapChain = gApp->getSwapChain();
@@ -110,7 +110,7 @@ void buildUi(UI::Window& gui) {
 	});
 
 	row += h;
-	gui.addButton(UI::Button(bkgColor, "Button 2", UI::Rect(row, 0, row + h, w)));
+	gui->addButton(UI::Button(gApp, bkgColor, "Button 2", UI::Rect(row, 0, row + h, w)));
 }
 #endif
 
@@ -120,7 +120,8 @@ int main(int numArgs, char** args) {
 	gApp->setAntiAliasSamples(VK_SAMPLE_COUNT_4_BIT);
 
 #if TEST_GUI
-	UI::Window gui(gApp);
+	UI::WindowPtr gui = make_shared<UI::Window>(gApp);
+	gApp->setUiWindow(gui);
 	buildUi(gui);
 #else
 	UI::Window gui(gApp);

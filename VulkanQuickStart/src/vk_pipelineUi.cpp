@@ -46,7 +46,7 @@ string PipelineUi::getShaderIdMethod() {
 	return getShaderId();
 }
 
-PipelineUi::PipelineUi(VulkanApp* app)
+PipelineUi::PipelineUi(const VulkanAppPtr& app)
 	: Pipeline(app)
 {
 	_ubo._color = glm::vec4(1, 0, 0, 1);
@@ -93,15 +93,15 @@ void PipelineUi::updateUniformBuffer(size_t swapChainIndex) {
 }
 
 void PipelineUi::createUniformBuffers() {
-	auto& device = _app->getDeviceContext();
 	size_t bufferSize = sizeof(UniformBufferObject);
 	const auto& swap = _app->getSwapChain();
 	size_t swapChainSize = (uint32_t)swap._vkImages.size();
 
-	_uniformBuffers.resize(swapChainSize);
+	_uniformBuffers.reserve(swapChainSize);
 
 	for (size_t i = 0; i < swapChainSize; i++) {
-		_uniformBuffers[i].create(device, bufferSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
+		_uniformBuffers.push_back(Buffer(_app));
+		_uniformBuffers.back().create(bufferSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
 			VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
 	}
 }

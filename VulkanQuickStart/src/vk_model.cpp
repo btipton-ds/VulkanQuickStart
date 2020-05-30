@@ -67,16 +67,20 @@ namespace std {
 	}
 }
 
-Model::Model(DeviceContext& dc, const TriMesh::CMeshPtr& meshPtr)
-	: _dc(&dc)
+Model::Model(const VulkanAppPtr& app, const TriMesh::CMeshPtr& meshPtr)
+	: _app(app)
+	, _vertexBuffer(app)
+	, _indexBuffer(app)
 {
 	loadModel(meshPtr);
 	createVertexBuffer();
 	createIndexBuffer();
 }
 
-Model::Model(DeviceContext& dc)
-	: _dc(&dc)
+Model::Model(const VulkanAppPtr& app)
+	: _app(app)
+	, _vertexBuffer(app)
+	, _indexBuffer(app)
 {
 }
 
@@ -174,10 +178,10 @@ void Model::loadModel(const TriMesh::CMeshPtr& meshPtr) {
 }
 
 void Model::createVertexBuffer() {
-	_vertexBuffer.create(*_dc, _vertices, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+	_vertexBuffer.create(_vertices, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
 }
 
 void Model::createIndexBuffer() {
-	_indexBuffer.create(*_dc, _indices, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+	_indexBuffer.create(_indices, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
 }
 

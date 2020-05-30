@@ -74,13 +74,13 @@ namespace VK {
 			// Currently using one, over featured, generic callback
 			using FuncMouse = std::function<void(int btnNum, int modifiers)>;
 
-			Button();
-			Button(const glm::vec4& backgroundColor, const std::string& label, const Rect& rect, const Accel& accel = Accel());
+			Button(const VulkanAppPtr& app);
+			Button(const VulkanAppPtr& app, const glm::vec4& backgroundColor, const std::string& label, const Rect& rect, const Accel& accel = Accel());
 
 			const glm::vec4& getFontColor() const;
 			const glm::vec4& getBackgroundColor() const;
 
-			void createBuffers(const VulkanAppPtr& app);
+			void createBuffers();
 			void addCommands(VkCommandBuffer cmdBuff, VkPipelineLayout pipelineLayout, const VkDescriptorSet& descSet) const override;
 
 			void buildImageInfoList(std::vector<VkDescriptorImageInfo>& imageInfoList) const override;
@@ -94,12 +94,13 @@ namespace VK {
 
 		private:
 			void init();
-			void createGeometryBuffers(const VulkanAppPtr& app);
-			void createTexture(const VulkanAppPtr& app);
-			void createImage(const VulkanAppPtr& app, size_t& width, size_t& height, std::vector<uint32_t>& image);
+			void createGeometryBuffers();
+			void createTexture();
+			void createImage(size_t& width, size_t& height, std::vector<uint32_t>& image);
 			void createImageBackGround(size_t& width, size_t& height, int& frameWidth, std::vector<uint32_t>& image);
-			void renderLabel(const VulkanAppPtr& app, size_t width, size_t height, int frameWidth, std::vector<uint32_t>& image);
+			void renderLabel(size_t width, size_t height, int frameWidth, std::vector<uint32_t>& image);
 
+			VulkanAppPtr _app;
 			Rect _rect;
 			float _fontSizePoints = 14;
 			std::string _label;

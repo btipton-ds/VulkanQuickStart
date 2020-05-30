@@ -51,7 +51,6 @@ namespace VK::UI {
 		: _app(app)
 		, _window(app->getWindow())
 	{
-		_app->setUiWindow(this);
 		glfwSetWindowUserPointer(_window, this);
 		init();
 	}
@@ -82,7 +81,7 @@ namespace VK::UI {
 
 	ButtonPtr Window::addButton(const Button& btn) {
 		ButtonPtr btnPtr = make_shared<Button>(btn);
-		btnPtr->createBuffers(_app);
+		btnPtr->createBuffers();
 		_buttons.push_back(btnPtr);
 
 		_pipeline->addSceneNode(btnPtr);
@@ -253,7 +252,7 @@ namespace VK::UI {
 	void Window::init() {
 		auto win = _app->getWindow();
 
-		_pipeline = _app->addPipeline(createPipeline<PipelineUi>(_app.get()));
+		_pipeline = _app->addPipeline(createPipeline<PipelineUi>(_app->getAppPtr()));
 
 		glfwSetMouseButtonCallback(win, mouseButtonCB);
 		glfwSetCursorPosCallback(win, cursorPosCB);

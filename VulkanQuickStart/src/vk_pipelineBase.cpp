@@ -44,7 +44,7 @@ This file is part of the VulkanQuickStart Project.
 using namespace VK;
 using namespace std;
 
-PipelineBase::PipelineBase(VulkanApp* app)
+PipelineBase::PipelineBase(const VulkanAppPtr& app)
 	: _app(app)
 {
 	_viewportRect.offset = { 0,0 };

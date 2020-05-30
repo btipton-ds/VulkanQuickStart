@@ -76,8 +76,8 @@ namespace VK {
 		Tiny obj doesn't handle file names with spaces. It thinks material file names with spaces are multiple files. Remove the spaces.
 		*/
 
-		static inline ModelObjPtr create(DeviceContext& dc, const std::string& path, const std::string& filename) {
-			return std::shared_ptr<ModelObj>(new ModelObj(dc, path, filename));
+		static inline ModelObjPtr create(const VulkanAppPtr& app, const std::string& path, const std::string& filename) {
+			return std::shared_ptr<ModelObj>(new ModelObj(app, path, filename));
 		}
 
 		void addCommands(VkCommandBuffer cmdBuff, VkPipelineLayout pipelineLayout, const VkDescriptorSet& descSet) const override;
@@ -85,38 +85,38 @@ namespace VK {
 		BoundingBox getBounds() const override;
 
 		inline const std::vector<VertexType>& getVertices() const {
-			return vertices_;
+			return _vertices;
 		}
 
 		inline const std::vector<uint32_t>& getIndices() const {
-			return indices_;
+			return _indices;
 		}
 
 		inline const Buffer& getVertexBuffer() const {
-			return vertexBuffer_;
+			return _vertexBuffer;
 		}
 
 		inline const Buffer& getIndexBuffer() const {
-			return indexBuffer_;
+			return _indexBuffer;
 		}
 
 		inline uint32_t numIndices() const {
-			return static_cast<uint32_t>(indices_.size());
+			return static_cast<uint32_t>(_indices.size());
 		}
 
 	protected:
-		ModelObj(DeviceContext& dc, const std::string& path, const std::string& filename);
+		ModelObj(const VulkanAppPtr& app, const std::string& path, const std::string& filename);
 
 		void loadModel(std::string path, std::string filename);
 
 		void createVertexBuffer();
 		void createIndexBuffer();
 
-		DeviceContext* _dc = VK_NULL_HANDLE; // TODO I think this should be a parameter, not a member
+		VulkanAppPtr _app; // TODO I think this should be a parameter, not a member
 		BoundingBox _bounds;
-		std::vector<VertexType> vertices_;
-		std::vector<uint32_t> indices_;
-		Buffer vertexBuffer_, indexBuffer_;
+		std::vector<VertexType> _vertices;
+		std::vector<uint32_t> _indices;
+		Buffer _vertexBuffer, _indexBuffer;
 		std::vector<TextureImagePtr> _textureImagesDiffuse;
 	};
 

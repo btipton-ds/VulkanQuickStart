@@ -65,8 +65,8 @@ namespace VK {
 		using BoundingBox = CBoundingBox3D<float>;
 		using VertexType = PipelineVertex3D::VertexType;
 
-		static inline ModelPtr create(DeviceContext& dc, const TriMesh::CMeshPtr& meshPtr) {
-			return std::shared_ptr<Model>(new Model(dc, meshPtr));
+		static inline ModelPtr create(const VulkanAppPtr& app, const TriMesh::CMeshPtr& meshPtr) {
+			return std::shared_ptr<Model>(new Model(app, meshPtr));
 		}
 
 		void addCommands(VkCommandBuffer cmdBuff, VkPipelineLayout pipelineLayout, const VkDescriptorSet& descSet) const override;
@@ -94,15 +94,15 @@ namespace VK {
 		}
 
 	protected:
-		Model(DeviceContext& dc);
-		Model(DeviceContext& dc, const TriMesh::CMeshPtr& meshPtr);
+		Model(const VulkanAppPtr& app);
+		Model(const VulkanAppPtr& app, const TriMesh::CMeshPtr& meshPtr);
 
 		void loadModel(const TriMesh::CMeshPtr& meshPtr);
 
 		void createVertexBuffer();
 		void createIndexBuffer();
 
-		DeviceContext* _dc = VK_NULL_HANDLE; // TODO I think this should be a parameter, not a member
+		VulkanAppPtr _app; // TODO I think this should be a parameter, not a member
 		BoundingBox _bounds;
 		std::vector<VertexType> _vertices;
 		std::vector<uint32_t> _indices;

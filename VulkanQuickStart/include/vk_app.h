@@ -79,7 +79,9 @@ namespace VK {
 		VulkanApp(int width, int height);
 		~VulkanApp();
 
-		void setUiWindow(UI::Window* uiWindow );
+		VulkanAppPtr getAppPtr() const;
+
+		void setUiWindow(const UI::WindowPtr& uiWindow );
 
 		SceneNode3DWithTexturePtr addSceneNode3D(const std::string& path, const std::string& filename);
 		SceneNode3DPtr addSceneNode3D(const TriMesh::CMeshPtr& mesh);
@@ -103,9 +105,8 @@ namespace VK {
 		void setAntiAliasSamples(VkSampleCountFlagBits samples);
 		VkSampleCountFlagBits getAntiAliasSamples() const;
 		GLFWwindow* getWindow();
-		UI::Window* getUiWindow();
+		const UI::WindowPtr& getUiWindow() const;
 		unsigned int getWindowDpi() const;
-		const UI::Window* getUiWindow() const;
 
 		void setModelToWorldTransform(const glm::mat4& xform);
 		const glm::mat4& getModelToWorldTransform() const;
@@ -178,7 +179,7 @@ namespace VK {
 		bool checkValidationLayerSupport();
 
 		GLFWwindow* _window;
-		UI::Window* _uiWindow;
+		UI::WindowPtr _uiWindow;
 		unsigned int _windowDpi = 72;
 		VkFormat _requestedFormat = VK_FORMAT_B8G8R8A8_UNORM;
 		VkColorSpaceKHR _requestedColorSpace = VK_COLOR_SPACE_SRGB_NONLINEAR_KHR;
@@ -223,6 +224,11 @@ namespace VK {
 		bool framebufferResized = false;
 	};
 
+	inline VulkanAppPtr VulkanApp::getAppPtr() const {
+		std::shared_ptr<VulkanApp> result((VulkanApp*)this);
+		return result;
+	}
+
 	inline const ScenePtr& VulkanApp::getScene() const {
 		return _scene;
 	}
@@ -263,11 +269,7 @@ namespace VK {
 		return _window;
 	}
 
-	inline UI::Window* VulkanApp::getUiWindow() {
-		return _uiWindow;
-	}
-
-	inline const UI::Window* VulkanApp::getUiWindow() const {
+	inline const UI::WindowPtr& VulkanApp::getUiWindow() const {
 		return _uiWindow;
 	}
 

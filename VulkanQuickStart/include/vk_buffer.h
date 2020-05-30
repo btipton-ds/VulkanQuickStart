@@ -41,23 +41,19 @@ This file is part of the VulkanQuickStart Project.
 namespace VK {
 
 	struct Buffer {
+		Buffer(const VulkanAppPtr& app);
 		~Buffer();
 		void destroy();
-		void create(DeviceContext& dc, VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties);
-		void create(DeviceContext& dc, const void* value, VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties);
+		void create(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties);
+		void create(const void* value, VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties);
 
 		template<class T>
-		inline void create(DeviceContext& dc, const std::vector<T>& vec, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties) {
-			create(dc, vec.data(), (VkDeviceSize)(sizeof(T) * vec.size()), usage, properties);
+		inline void create(const std::vector<T>& vec, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties) {
+			create(vec.data(), (VkDeviceSize)(sizeof(T) * vec.size()), usage, properties);
 		}
 
 		void copyBuffer(const Buffer& srcBuffer, size_t size);
 		void update(const void* value, size_t size);
-
-		template<class T>
-		inline void create(const std::vector<T>& vec) {
-			update(vec.data(), (VkDeviceSize)(sizeof(T) * vec.size()));
-		}
 
 		template<class T>
 		inline void update(const T& value) {
@@ -72,8 +68,13 @@ namespace VK {
 			return bufferMemory_;
 		}
 
-		DeviceContext* dc_ = nullptr;
+		VulkanAppPtr _app;
 		VkBuffer buffer_ = VK_NULL_HANDLE;
 		VkDeviceMemory bufferMemory_ = VK_NULL_HANDLE;
 	};
+
+	inline Buffer::Buffer(const VulkanAppPtr& app)
+		: _app(app)
+	{}
+
 }

@@ -101,7 +101,8 @@ VkResult CreateDebugUtilsMessengerEXT(VkInstance instance, const VkDebugUtilsMes
 }
 
 VulkanApp::VulkanApp(int width, int height)
-	: _uiWindow(nullptr)
+	: colorImage(getAppPtr())
+	, depthImage(getAppPtr())
 {
 	_shaderPool = make_shared<ShaderPool>(deviceContext);
 	_modelToWorld = glm::identity<glm::mat4>();
@@ -118,9 +119,10 @@ VulkanApp::~VulkanApp() {
 	cleanup();
 }
 
-void VulkanApp::setUiWindow(UI::Window* uiWindow) {
-	if (uiWindow)
+void VulkanApp::setUiWindow(const UI::WindowPtr& uiWindow) {
+	if (uiWindow) {
 		_uiWindow = uiWindow;
+	}
 }
 
 SceneNodeGroupConstPtr VulkanApp::getRoot3D() const {
@@ -155,10 +157,10 @@ struct VulkanApp::SwapChainSupportDetails {
 
 SceneNode3DWithTexturePtr VulkanApp::addSceneNode3D(const std::string& path, const std::string& filename) {
 	std::lock_guard<mutex> guard(_swapChainMutex);
-	ModelObjPtr result = ModelObj::create(deviceContext, path, filename);
+	ModelObjPtr result = ModelObj::create(getAppPtr(), path, filename);
 	getRoot3D()->addChild(result);
 
-	auto pipeline = addPipeline(createPipelineWithSource<PipelineVertex3DWSampler>(this, "shaders/shader_depth_vert.spv", "shaders/shader_depth_frag.spv"));
+	auto pipeline = addPipeline(createPipelineWithSource<PipelineVertex3DWSampler>(getAppPtr(), "shaders/shader_depth_vert.spv", "shaders/shader_depth_frag.spv"));
 	pipeline->setUniformBufferPtr(&_ubo);
 	pipeline->addSceneNode(result);
 
@@ -169,10 +171,10 @@ SceneNode3DWithTexturePtr VulkanApp::addSceneNode3D(const std::string& path, con
 
 SceneNode3DPtr VulkanApp::addSceneNode3D(const TriMesh::CMeshPtr& mesh) {
 	std::lock_guard<mutex> guard(_swapChainMutex);
-	ModelPtr result = Model::create(deviceContext, mesh);
+	ModelPtr result = Model::create(getAppPtr(), mesh);
 	getRoot3D()->addChild(result);
 
-	auto pipeline = addPipeline(createPipelineWithSource<PipelineVertex3D>(this, "shaders/shader_vert.spv", "shaders/shader_frag.spv"));
+	auto pipeline = addPipeline(createPipelineWithSource<PipelineVertex3D>(getAppPtr(), "shaders/shader_vert.spv", "shaders/shader_frag.spv"));
 	pipeline->setUniformBufferPtr(&_ubo);
 	pipeline->addSceneNode(result);
 
@@ -615,13 +617,13 @@ void VulkanApp::createCommandPool() {
 void VulkanApp::createColorResources() {
 	VkFormat colorFormat = _swapChain._imageFormat;
 	VkImageUsageFlags flagBits = VK_IMAGE_USAGE_TRANSIENT_ATTACHMENT_BIT | VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
-	colorImage.create(deviceContext, colorFormat, flagBits, _swapChain._extent.width, _swapChain._extent.height, _msaaSamples);
+	colorImage.create(colorFormat, flagBits, _swapChain._extent.width, _swapChain._extent.height, _msaaSamples);
 }
 
 void VulkanApp::createDepthResources() {
 	VkFormat depthFormat = findDepthFormat();
 	VkImageUsageFlags flagBits = VK_IMAGE_USAGE_TRANSIENT_ATTACHMENT_BIT | VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT;
-	depthImage.create(deviceContext, depthFormat, flagBits, _swapChain._extent.width, _swapChain._extent.height, _msaaSamples);
+	depthImage.create(depthFormat, flagBits, _swapChain._extent.width, _swapChain._extent.height, _msaaSamples);
 }
 
 VkFormat VulkanApp::findSupportedFormat(const std::vector<VkFormat>& candidates, VkImageTiling tiling, VkFormatFeatureFlags features) {

@@ -58,8 +58,10 @@ namespace std {
 }
 
 
-ModelObj::ModelObj(DeviceContext& dc, const std::string& path, const std::string& filename)
-	: _dc(&dc)
+ModelObj::ModelObj(const VulkanAppPtr& app, const std::string& path, const std::string& filename)
+	: _app(app)
+	, _vertexBuffer(app)
+	, _indexBuffer(app)
 {
 	loadModel(path, filename);
 	createVertexBuffer();
@@ -163,18 +165,18 @@ void ModelObj::loadModel(string path, string filename) {
 			vertex.color = { 1.0f, 1.0f, 1.0f };
 
 			if (uniqueVertices.count(vertex) == 0) {
-				uniqueVertices[vertex] = static_cast<uint32_t>(vertices_.size());
-				vertices_.push_back(vertex);
+				uniqueVertices[vertex] = static_cast<uint32_t>(_vertices.size());
+				_vertices.push_back(vertex);
 				_bounds.merge(conv(vertex.pos));
 			}
 
-			indices_.push_back(uniqueVertices[vertex]);
+			_indices.push_back(uniqueVertices[vertex]);
 		}
 
-		for (size_t i = 0; i < indices_.size(); i += 3) {
-			auto& vert0 = vertices_[indices_[i]];
-			auto& vert1 = vertices_[indices_[i + 1]];
-			auto& vert2 = vertices_[indices_[i + 2]];
+		for (size_t i = 0; i < _indices.size(); i += 3) {
+			auto& vert0 = _vertices[_indices[i]];
+			auto& vert1 = _vertices[_indices[i + 1]];
+			auto& vert2 = _vertices[_indices[i + 2]];
 
 			glm::vec3 v0 = vert1.pos - vert0.pos;
 			glm::vec3 v1 = vert2.pos - vert0.pos;
@@ -197,18 +199,18 @@ void ModelObj::loadModel(string path, string filename) {
 			throw runtime_error("This option is not supported yet.");
 		}
 		replaceAllDirTokens(fName);
-		auto tex = TextureImage::create(*_dc, path + fName);
+		auto tex = TextureImage::create(_app, path + fName);
 		_textureImagesDiffuse.push_back(tex);
 	}
 
 }
 
 void ModelObj::createVertexBuffer() {
-	vertexBuffer_.create(*_dc, vertices_, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+	_vertexBuffer.create(_vertices, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
 }
 
 void ModelObj::createIndexBuffer() {
-	indexBuffer_.create(*_dc, indices_, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+	_indexBuffer.create(_indices, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
 }
 
 

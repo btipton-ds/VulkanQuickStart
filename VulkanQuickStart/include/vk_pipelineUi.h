@@ -64,7 +64,7 @@ namespace VK {
 		using VertexType = VertexUi;
 
 		static std::string getShaderId();
-		PipelineUi(VulkanApp* app);
+		PipelineUi(const VulkanAppPtr& app);
 
 		void updateUniformBuffer(size_t swapChainIndex) override;
 		const UniformBufferObject& getUniformBuffer() const;

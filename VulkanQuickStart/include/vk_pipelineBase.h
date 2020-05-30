@@ -50,7 +50,7 @@ namespace VK {
 	class PipelineBase {
 	public:
 
-		PipelineBase(VulkanApp* app);
+		PipelineBase(const VulkanAppPtr& app);
 		virtual ~PipelineBase();
 
 		void setCullMode(VkCullModeFlagBits cullMode);
@@ -64,7 +64,7 @@ namespace VK {
 		void setScissorRect(const VkRect2D& rect);
 		void build();
 
-		const VulkanApp* getApp() const;
+		const VulkanAppPtr& getApp() const;
 
 		virtual size_t numSceneNodes() const;
 		virtual void addCommands(VkCommandBuffer cmdBuff, size_t swapChainIdx) const = 0;
@@ -83,7 +83,7 @@ namespace VK {
 		virtual void createUniformBuffers() = 0;
 		virtual std::string getShaderIdMethod() = 0;
 
-		VulkanApp* _app;
+		VulkanAppPtr _app;
 
 		VkVertexInputBindingDescription _vertBindDesc;
 		std::vector<VkVertexInputAttributeDescription> _vertAttribDesc;
@@ -117,7 +117,7 @@ namespace VK {
 		VkPipeline _graphicsPipeline;
 	};
 
-	inline const VulkanApp* PipelineBase::getApp() const {
+	inline const VulkanAppPtr& PipelineBase::getApp() const {
 		return _app;
 	}
 

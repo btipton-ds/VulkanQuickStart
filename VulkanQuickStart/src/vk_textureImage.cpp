@@ -36,6 +36,7 @@ This file is part of the VulkanQuickStart Project.
 #include "vk_deviceContext.h"
 #include "vk_buffer.h"
 #include "vk_textureImage.h"
+#include <vk_app.h>
 
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb_image.h>
@@ -48,8 +49,9 @@ TextureImage::~TextureImage() {
 }
 
 void TextureImage::destroy() {
-	if (_dc && textureSampler_ != VK_NULL_HANDLE) {
-		vkDestroySampler(_dc->device_, textureSampler_, nullptr);
+	if (textureSampler_ != VK_NULL_HANDLE) {
+		auto& dc = _app->getDeviceContext();
+		vkDestroySampler(dc.device_, textureSampler_, nullptr);
 		textureSampler_ = VK_NULL_HANDLE;
 		Image::destroy();
 	}
@@ -58,22 +60,23 @@ void TextureImage::destroy() {
 	}
 }
 
-void TextureImage::init(DeviceContext& dc, const string& filename) {
+void TextureImage::init(const string& filename) {
 	destroy();
-	_dc = &dc;
-	_dc->textureImages_.insert(this);
+	auto& dc = _app->getDeviceContext();
+	dc.textureImages_.insert(this);
 	int texWidth, texHeight, texChannels;
 	stbi_uc* pixels = stbi_load(filename.c_str(), &texWidth, &texHeight, &texChannels, STBI_rgb_alpha);
 	if (!pixels)
 		throw runtime_error("Unable to read image file");
-	init(dc, texWidth, texHeight, pixels);
+	init(texWidth, texHeight, pixels);
 	stbi_image_free(pixels);
 }
 
-void TextureImage::init(DeviceContext& dc, size_t texWidth, size_t texHeight, const unsigned char* pixelsRGBA) {
+void TextureImage::init(size_t texWidth, size_t texHeight, const unsigned char* pixelsRGBA) {
 	destroy();
-	_dc = &dc;
-	_dc->textureImages_.insert(this);
+
+	auto& dc = _app->getDeviceContext();
+	dc.textureImages_.insert(this);
 
 	VkDeviceSize imageSize = texWidth * texHeight * 4;
 	mipLevels_ = static_cast<uint32_t>(floor(log2(max(texWidth, texHeight)))) + 1;
@@ -82,8 +85,8 @@ void TextureImage::init(DeviceContext& dc, size_t texWidth, size_t texHeight, co
 		throw runtime_error("failed to load texture image!");
 	}
 
-	Buffer stagingBuffer;
-	stagingBuffer.create(dc, imageSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+	Buffer stagingBuffer(_app);
+	stagingBuffer.create(imageSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
 		VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
 	stagingBuffer.update(pixelsRGBA, static_cast<size_t>(imageSize));
 
@@ -102,6 +105,8 @@ void TextureImage::init(DeviceContext& dc, size_t texWidth, size_t texHeight, co
 
 void TextureImage::initImage(uint32_t width, uint32_t height, VkSampleCountFlagBits numSamples, VkFormat format, VkImageTiling tiling,
 	VkImageUsageFlags usage, VkMemoryPropertyFlags properties) {
+	auto& dc = _app->getDeviceContext();
+
 	VkImageCreateInfo imageInfo = {};
 	imageInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
 	imageInfo.imageType = VK_IMAGE_TYPE_2D;
@@ -117,27 +122,28 @@ void TextureImage::initImage(uint32_t width, uint32_t height, VkSampleCountFlagB
 	imageInfo.samples = numSamples;
 	imageInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
 
-	if (vkCreateImage(_dc->device_, &imageInfo, nullptr, &_image) != VK_SUCCESS) {
+	if (vkCreateImage(dc.device_, &imageInfo, nullptr, &_image) != VK_SUCCESS) {
 		throw runtime_error("failed to create image!");
 	}
 
 	VkMemoryRequirements memRequirements;
-	vkGetImageMemoryRequirements(_dc->device_, _image, &memRequirements);
+	vkGetImageMemoryRequirements(dc.device_, _image, &memRequirements);
 
 	VkMemoryAllocateInfo allocInfo = {};
 	allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
 	allocInfo.allocationSize = memRequirements.size;
-	allocInfo.memoryTypeIndex = _dc->findMemoryType(memRequirements.memoryTypeBits, properties);
+	allocInfo.memoryTypeIndex = dc.findMemoryType(memRequirements.memoryTypeBits, properties);
 
-	if (vkAllocateMemory(_dc->device_, &allocInfo, nullptr, &_memory) != VK_SUCCESS) {
+	if (vkAllocateMemory(dc.device_, &allocInfo, nullptr, &_memory) != VK_SUCCESS) {
 		throw runtime_error("failed to allocate image memory!");
 	}
 
-	vkBindImageMemory(_dc->device_, _image, _memory, 0);
+	vkBindImageMemory(dc.device_, _image, _memory, 0);
 }
 
 void TextureImage::copyBufferToImage(const Buffer& buffer, uint32_t width, uint32_t height) {
-	VkCommandBuffer commandBuffer = _dc->beginSingleTimeCommands();
+	auto& dc = _app->getDeviceContext();
+	VkCommandBuffer commandBuffer = dc.beginSingleTimeCommands();
 
 	VkBufferImageCopy region = {};
 	region.bufferOffset = 0;
@@ -156,19 +162,21 @@ void TextureImage::copyBufferToImage(const Buffer& buffer, uint32_t width, uint3
 
 	vkCmdCopyBufferToImage(commandBuffer, buffer, _image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &region);
 
-	_dc->endSingleTimeCommands(commandBuffer);
+	dc.endSingleTimeCommands(commandBuffer);
 }
 
 void TextureImage::generateMipmaps(VkFormat imageFormat, int32_t texWidth, int32_t texHeight) {
+	auto& dc = _app->getDeviceContext();
+
 	// Check if image format supports linear blitting
 	VkFormatProperties formatProperties;
-	vkGetPhysicalDeviceFormatProperties(_dc->physicalDevice_, imageFormat, &formatProperties);
+	vkGetPhysicalDeviceFormatProperties(dc.physicalDevice_, imageFormat, &formatProperties);
 
 	if (!(formatProperties.optimalTilingFeatures & VK_FORMAT_FEATURE_SAMPLED_IMAGE_FILTER_LINEAR_BIT)) {
 		throw runtime_error("texture image format does not support linear blitting!");
 	}
 
-	VkCommandBuffer commandBuffer = _dc->beginSingleTimeCommands();
+	VkCommandBuffer commandBuffer = dc.beginSingleTimeCommands();
 
 	VkImageMemoryBarrier barrier = {};
 	barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
@@ -243,7 +251,7 @@ void TextureImage::generateMipmaps(VkFormat imageFormat, int32_t texWidth, int32
 		0, nullptr,
 		1, &barrier);
 
-	_dc->endSingleTimeCommands(commandBuffer);
+	dc.endSingleTimeCommands(commandBuffer);
 }
 
 void TextureImage::createTextureSampler() {
@@ -265,7 +273,8 @@ void TextureImage::createTextureSampler() {
 	samplerInfo.maxLod = static_cast<float>(mipLevels_);
 	samplerInfo.mipLodBias = 0;
 
-	if (vkCreateSampler(_dc->device_, &samplerInfo, nullptr, &textureSampler_) != VK_SUCCESS) {
+	auto& dc = _app->getDeviceContext();
+	if (vkCreateSampler(dc.device_, &samplerInfo, nullptr, &textureSampler_) != VK_SUCCESS) {
 		throw runtime_error("failed to create texture sampler!");
 	}
 }

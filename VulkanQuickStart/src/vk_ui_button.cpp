@@ -43,12 +43,19 @@ namespace VK::UI {
 
 	using namespace std;
 
-	Button::Button() {
+	Button::Button(const VulkanAppPtr& app) 
+	: _app(app)
+	, _vertexBuffer(app)
+	, _indexBuffer(app)
+	{
 		init();
 	}
 
-	Button::Button(const glm::vec4& backgroundColor, const std::string& label, const Rect& rect, const Accel& accel)
-		: _backgroundColor(backgroundColor)
+	Button::Button(const VulkanAppPtr& app, const glm::vec4& backgroundColor, const std::string& label, const Rect& rect, const Accel& accel)
+		: _app(app)
+		, _vertexBuffer(app)
+		, _indexBuffer(app)
+		, _backgroundColor(backgroundColor)
 		, _label(label)
 		, _rect(rect)
 		, _accel(accel)
@@ -89,12 +96,12 @@ namespace VK::UI {
 			return result;
 		}
 	}
-	void Button::createBuffers(const VulkanAppPtr& app) {
-		createGeometryBuffers(app);
-		createTexture(app);
+	void Button::createBuffers() {
+		createGeometryBuffers();
+		createTexture();
 	}
 
-	void Button::createGeometryBuffers(const VulkanAppPtr& app) {
+	void Button::createGeometryBuffers() {
 		using namespace glm;
 		vector<VertexType> vertices;
 		vector<uint32_t> indices;
@@ -112,28 +119,26 @@ namespace VK::UI {
 		indices.push_back(2);
 		indices.push_back(3);
 
-		auto& dc = app->getDeviceContext();
-		_vertexBuffer.create(dc, vertices, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+		_vertexBuffer.create(vertices, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
 
-		_indexBuffer.create(dc, indices, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+		_indexBuffer.create(indices, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
 	}
 
 #define IMG_SCALE 4
 
-	void Button::createTexture(const VulkanAppPtr& app) {
+	void Button::createTexture() {
 		vector<uint32_t> image;
 		size_t w, h;
 
-		createImage(app, w, h, image);
+		createImage(w, h, image);
 
-		auto& dc = app->getDeviceContext();
-		_texture = TextureImage::create(dc, w, h, (unsigned char*)image.data());
+		_texture = TextureImage::create(_app, w, h, (unsigned char*)image.data());
 	}
 
-	void Button::createImage(const VulkanAppPtr& app, size_t& width, size_t& height, vector<uint32_t>& image) {
+	void Button::createImage(size_t& width, size_t& height, vector<uint32_t>& image) {
 		int frameWidth;
 		createImageBackGround(width, height, frameWidth, image);
-		renderLabel(app, width, height, frameWidth, image);
+		renderLabel(width, height, frameWidth, image);
 	}
 
 	void Button::createImageBackGround(size_t& width, size_t& height, int& frameWidth, vector<uint32_t>& image) {
@@ -187,7 +192,7 @@ namespace VK::UI {
 
 		}
 	}
-	void Button::renderLabel(const VulkanAppPtr& app, size_t width, size_t height, int frameWidth, std::vector<uint32_t>& image) {
+	void Button::renderLabel( size_t width, size_t height, int frameWidth, std::vector<uint32_t>& image) {
 		string fontFilename = _fontPath + _fontName;
 		FT_Library ftLib;
 		FT_Error err = FT_Init_FreeType(&ftLib);
@@ -201,7 +206,7 @@ namespace VK::UI {
 		else if (err)
 			throw std::runtime_error("Failed to read font file.");
 
-		unsigned int dpi = app->getUiWindow()->getPixelDPI();
+		unsigned int dpi = _app->getUiWindow()->getPixelDPI();
 
 		err = FT_Set_Char_Size(face, 0, (FT_F26Dot6)(_fontSizePoints * 64 * IMG_SCALE + 0.5), dpi, dpi);
 		if (err)

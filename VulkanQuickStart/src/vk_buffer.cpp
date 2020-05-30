@@ -34,6 +34,7 @@ This file is part of the VulkanQuickStart Project.
 
 #include "vk_deviceContext.h"
 #include "vk_buffer.h"
+#include <vk_app.h>
 
 using namespace std;
 using namespace VK;
@@ -43,11 +44,12 @@ Buffer::~Buffer() {
 }
 
 void Buffer::destroy() {
-	if (dc_ && buffer_ != VK_NULL_HANDLE) {
-		vkDestroyBuffer(dc_->device_, buffer_, nullptr);
-		vkFreeMemory(dc_->device_, bufferMemory_, nullptr);
+	if (buffer_ != VK_NULL_HANDLE) {
+		auto& dc = _app->getDeviceContext();
+		vkDestroyBuffer(dc.device_, buffer_, nullptr);
+		vkFreeMemory(dc.device_, bufferMemory_, nullptr);
 		buffer_ = VK_NULL_HANDLE;
-		dc_->buffers_.erase(this);
+		dc.buffers_.erase(this);
 	}
 	if (buffer_ != VK_NULL_HANDLE) {
 		cout << "device leak\n";
@@ -55,19 +57,20 @@ void Buffer::destroy() {
 }
 
 void Buffer::update(const void* value, size_t size) {
+	auto& dc = _app->getDeviceContext();
 	void* data;
-	vkMapMemory(dc_->device_, bufferMemory_, 0, size, 0, &data);
+	vkMapMemory(dc.device_, bufferMemory_, 0, size, 0, &data);
 	memcpy(data, value, size);
-	vkUnmapMemory(dc_->device_, bufferMemory_);
+	vkUnmapMemory(dc.device_, bufferMemory_);
 }
 
-void Buffer::create(DeviceContext& dc, VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties) {
+void Buffer::create(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties) {
 	if (size > DEV_MAX_BUF_SIZE) {
 		throw runtime_error("tryint to create a buffer larger than DEV_MAX_BUF_SIZE.");
 	}
 	destroy();
-	dc_ = &dc;
-	dc_->buffers_.insert(this);
+	auto& dc = _app->getDeviceContext();
+	dc.buffers_.insert(this);
 
 	VkBufferCreateInfo bufferInfo = {};
 	bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
@@ -97,26 +100,27 @@ void Buffer::create(DeviceContext& dc, VkDeviceSize size, VkBufferUsageFlags usa
 	vkBindBufferMemory(dc.device_, buffer_, bufferMemory_, 0);
 }
 
-void Buffer::create(DeviceContext& dc, const void* value, VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties) {
+void Buffer::create(const void* value, VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties) {
 	if (size > DEV_MAX_BUF_SIZE) {
 		throw runtime_error("tryint to create a buffer larger than DEV_MAX_BUF_SIZE.");
 	}
 
-	Buffer stagingBuffer;
-	stagingBuffer.create(dc, size, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
+	Buffer stagingBuffer(_app);
+	stagingBuffer.create(size, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
 	stagingBuffer.update(value, size);
 
-	create(dc, size, usage, properties);
+	create(size, usage, properties);
 
 	copyBuffer(stagingBuffer, size);
 }
 
 void Buffer::copyBuffer(const Buffer& srcBuffer, size_t size) {
-	VkCommandBuffer commandBuffer = dc_->beginSingleTimeCommands();
+	auto& dc = _app->getDeviceContext();
+	VkCommandBuffer commandBuffer = dc.beginSingleTimeCommands();
 
 	VkBufferCopy copyRegion = {};
 	copyRegion.size = size;
 	vkCmdCopyBuffer(commandBuffer, srcBuffer.buffer_, buffer_, 1, &copyRegion);
 
-	dc_->endSingleTimeCommands(commandBuffer);
+	dc.endSingleTimeCommands(commandBuffer);
 }

@@ -46,7 +46,7 @@ namespace VK {
 		using PipelinePtr = std::shared_ptr<PipelineVertex3DWSampler>;
 
 		static std::string getShaderId();
-		PipelineVertex3DWSampler(VulkanApp* app);
+		PipelineVertex3DWSampler(const VulkanAppPtr& app);
 
 		void setUniformBufferPtr(const UniformBufferObject* ubo);
 		BoundingBox getBounds() const;

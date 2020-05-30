@@ -71,14 +71,17 @@ namespace VK {
 		}
 		static size_t getImageData(const VulkanAppPtr& app, VkImage image, const VkExtent2D& extent, VkFormat format, const char*& data, size_t bufSize);
 
+		Image(const VulkanAppPtr& app);
+		Image(const Image& src);
 		~Image();
+
 		void destroy();
 		operator VkImage() const;
 		operator VkImageView() const;
 
-		void set(DeviceContext& dc, VkImage image, VkDeviceMemory memory, VkImageView view);
+		void set(VkImage image, VkDeviceMemory memory, VkImageView view);
 
-		void create(DeviceContext& dc, VkFormat format, VkImageUsageFlags flagBits, uint32_t width, uint32_t height, VkSampleCountFlagBits _msaaSamples);
+		void create(VkFormat format, VkImageUsageFlags flagBits, uint32_t width, uint32_t height, VkSampleCountFlagBits _msaaSamples);
 
 		void createImage(uint32_t width, uint32_t height, uint32_t mipLevels, VkSampleCountFlagBits numSamples,
 			VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage, VkMemoryPropertyFlags properties);
@@ -89,14 +92,14 @@ namespace VK {
 
 		VkFormat getFormat() const;
 
-		size_t getImageData(const VulkanAppPtr& app, const char*& data, size_t bufSize) const;
+		size_t getImageData(const char*& data, size_t bufSize) const;
 
-		void saveImage(const VulkanAppPtr& app, const std::string& filename) {
-			saveImage(filename, app, _image, _extent, _format);
+		void saveImage(const std::string& filename) {
+			saveImage(filename, _app, _image, _extent, _format);
 		}
 
 	protected:
-		DeviceContext* _dc = nullptr;
+		VulkanAppPtr _app;
 		VkFormat _format = VK_FORMAT_UNDEFINED;
 		VkExtent2D _extent = {};
 		VkImage _image = VK_NULL_HANDLE;
@@ -116,7 +119,7 @@ namespace VK {
 		return _format;
 	}
 
-	inline size_t Image::getImageData(const VulkanAppPtr& app, const char*& data, size_t bufSize) const {
-		return getImageData(app, _image, _extent, _format, data, bufSize);
+	inline size_t Image::getImageData(const char*& data, size_t bufSize) const {
+		return getImageData(_app, _image, _extent, _format, data, bufSize);
 	}
 }
