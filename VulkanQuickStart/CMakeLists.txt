@@ -24,6 +24,8 @@ string(FIND ${PROJECT_BINARY_DIR} "Debug" isDebug)
 if (UNIX)
 	list(APPEND CMAKE_CXX_FLAGS "-pthread -fPIC")
     set(GLSL_VALIDATOR "glslangValidator")
+    add_definitions(-DGLFW_EXPOSE_NATIVE_X11 -D_GCC)
+    set(GLFW_LIB_DIR "../../ThirdParty/glfw/src")
 
     if(NOT (isRelease EQUAL -1))
         set (CONFIG "WSL-GCC-Release")
@@ -33,7 +35,11 @@ if (UNIX)
         message(FATAL_ERROR "unknown PROJECT_BINARY_DIR")
     endif()
 else(UNIX)
+
     set(GLSL_VALIDATOR "/VulkanSDK/1.2.135.0/Bin32/glslangValidator.exe")
+    add_definitions(-DGLFW_EXPOSE_NATIVE_WIN32)
+    set(GLFW_LIB_DIR "../../ThirdParty/glfw-3.3.2/lib-vc2019")
+
     if(NOT (isRelease EQUAL -1))
         set (CONFIG "x64-Release")
         set(FREE_TYPE_LIB_DER "../../ThirdParty/freetype-2.10.2/x64/Release Static")
@@ -46,14 +52,14 @@ else(UNIX)
 endif(UNIX)
 
 link_directories (
-"../../ThirdParty/glfw-3.3.2/lib-vc2019"
+"${GLFW_LIB_DIR}"
 "${FREE_TYPE_LIB_DER}"
 "../../triMesh/out/build/${CONFIG}/triMesh/"
 "../../triMesh/out/build/${CONFIG}/stlReader/"
 )
 
 find_package(Vulkan)
-find_package(glfw3 REQUIRED)
+#find_package(glfw3 REQUIRED)
 
 add_executable (
 VulkanQuickStart
@@ -82,11 +88,11 @@ VulkanQuickStart
 "src/vk_imageCopier.cpp")
 
 target_link_libraries("VulkanQuickStart" 
-PUBLIC freetype
-PUBLIC glfw3
+PUBLIC Vulkan::Vulkan
 PUBLIC triMesh
 PUBLIC stlReader 
-Vulkan::Vulkan
+PUBLIC freetype
+PUBLIC glfw3
 )
 
 target_compile_features(VulkanQuickStart PRIVATE cxx_std_17)

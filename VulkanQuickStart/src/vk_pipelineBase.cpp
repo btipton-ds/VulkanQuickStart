@@ -39,10 +39,17 @@ This file is part of the VulkanQuickStart Project.
 #include <vk_deviceContext.h>
 #include <vk_buffer.h>
 #include <vk_vertexTypes.h>
+#include <vk_shaderPool.h>
 #include <vk_app.h>
 
 using namespace VK;
 using namespace std;
+
+void PipelineBase::addShaders(const VulkanAppPtr& app, const std::string& shaderId, const std::vector<std::string>& filenames) {
+	auto& shaders = app->getShaderPool();
+	if (!shaders.getShader(shaderId))
+		shaders.addShader(shaderId, filenames);
+}
 
 PipelineBase::PipelineBase(const VulkanAppPtr& app)
 	: _app(app)
@@ -174,7 +181,9 @@ void PipelineBase::build() {
 }
 
 inline void PipelineBase::setShaderStages(vector<VkPipelineShaderStageCreateInfo>& shaderStages) {
-	auto& shader = _app->getShaderPool().getShader(getShaderIdMethod());
+	string shaderId = getShaderIdMethod();
+	ShaderPool& shaders = _app->getShaderPool();
+	auto shader = shaders.getShader(shaderId);
 	for (size_t i = 0; i < shader->_shaderModules.size(); i++) {
 		const auto& shaderModule = shader->_shaderModules[i];
 		VkPipelineShaderStageCreateInfo shaderStageInfo = {};

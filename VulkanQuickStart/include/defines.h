@@ -36,6 +36,14 @@ This file is part of the VulkanQuickStart Project.
 #define _HAS_ITERATOR_DEBUGGING 0
 #define USE_EIGEN_VECTOR3 0
 
+#ifdef _GCC
+#define GCC_CLASS class
+#else
+#define GCC_CLASS
+#endif // _GCC
+
+#include <vector> // Need to include to expose size_t
+
 const int filePrecision = 17;
 
 constexpr size_t K_BYTE = 1024;

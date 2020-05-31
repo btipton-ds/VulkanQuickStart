@@ -1,5 +1,3 @@
-#pragma once
-
 /*
 
 This file is part of the VulkanQuickStart Project.

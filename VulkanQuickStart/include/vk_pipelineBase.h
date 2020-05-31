@@ -49,6 +49,7 @@ namespace VK {
 
 	class PipelineBase {
 	public:
+		static void addShaders(const VulkanAppPtr& app, const std::string& shaderId, const std::vector<std::string>& filenames);
 
 		PipelineBase(const VulkanAppPtr& app);
 		virtual ~PipelineBase();

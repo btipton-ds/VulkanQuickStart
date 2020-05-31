@@ -32,6 +32,7 @@ This file is part of the VulkanQuickStart Project.
 #include <defines.h>
 
 #include <vk_pipelineBase.h>
+#include <vk_sceneNode.h>
 
 namespace VK {
 
@@ -39,7 +40,7 @@ namespace VK {
 	class Pipeline : public PipelineBase {
 	public:
 		using VertexType = VERT_TYPE;
-		using SceneNode = SceneNode<Pipeline>;
+		using SceneNode = GCC_CLASS SceneNode<Pipeline<UBO_TYPE, VERT_TYPE>>;
 		using SceneNodePtr = std::shared_ptr<SceneNode>;
 		using SceneNodeList = std::vector<SceneNodePtr>;
 
@@ -55,18 +56,16 @@ namespace VK {
 	};
 
 	template<class PIPELINE_TYPE>
-	inline typename PIPELINE_TYPE::PipelinePtr createPipelineWithSource(const VulkanAppPtr& app, const std::string& vertShaderFilename, const std::string& fragShaderFilename) {
-		auto& shaders = app->getShaderPool();
-		const std::string shaderId = PIPELINE_TYPE::getShaderId();
-		if (!shaders.getShader(shaderId))
-			shaders.addShader(shaderId, { vertShaderFilename , fragShaderFilename });
-		return createPipeline<PIPELINE_TYPE>(app);
-	}
-
-	template<class PIPELINE_TYPE>
 	inline typename PIPELINE_TYPE::PipelinePtr createPipeline(const VulkanAppPtr& app) {
 		PIPELINE_TYPE* ptr = new PIPELINE_TYPE(app);
 		return PipelinePtr<PIPELINE_TYPE>(ptr);
+	}
+
+	template<class PIPELINE_TYPE>
+	inline typename PIPELINE_TYPE::PipelinePtr createPipelineWithSource(const VulkanAppPtr& app, const std::string& vertShaderFilename, const std::string& fragShaderFilename) {
+		const std::string shaderId = PIPELINE_TYPE::getShaderId();
+		PipelineBase::addShaders(app, shaderId, { vertShaderFilename , fragShaderFilename });
+		return createPipeline<PIPELINE_TYPE>(app);
 	}
 
 	template<class UBO_TYPE, class VERT_TYPE>
