@@ -95,6 +95,8 @@ Please read [CONTRIBUTING.md](https://gist.github.com/PurpleBooth/b24679402957c6
 ## Authors
 
 **Robert R (Bob) Tipton** - btipton <-> darkskyinnovation.com
+founder [Dark Sky Innovative Solutions](http://darkskyinnovation.com/index.html)
+
 
 ## License
 
