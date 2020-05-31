@@ -107,22 +107,22 @@ void TextureImage::initImage(uint32_t width, uint32_t height, VkSampleCountFlagB
 	VkImageUsageFlags usage, VkMemoryPropertyFlags properties) {
 	auto& dc = _app->getDeviceContext();
 
-	VkImageCreateInfo imageInfo = {};
-	imageInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
-	imageInfo.imageType = VK_IMAGE_TYPE_2D;
-	imageInfo.extent.width = width;
-	imageInfo.extent.height = height;
-	imageInfo.extent.depth = 1;
-	imageInfo.mipLevels = mipLevels_;
-	imageInfo.arrayLayers = 1;
-	imageInfo.format = format;
-	imageInfo.tiling = tiling;
-	imageInfo.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-	imageInfo.usage = usage;
-	imageInfo.samples = numSamples;
-	imageInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+	_imageInfo = {};
+	_imageInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
+	_imageInfo.imageType = VK_IMAGE_TYPE_2D;
+	_imageInfo.extent.width = width;
+	_imageInfo.extent.height = height;
+	_imageInfo.extent.depth = 1;
+	_imageInfo.mipLevels = mipLevels_;
+	_imageInfo.arrayLayers = 1;
+	_imageInfo.format = format;
+	_imageInfo.tiling = tiling;
+	_imageInfo.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+	_imageInfo.usage = usage;
+	_imageInfo.samples = numSamples;
+	_imageInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
 
-	if (vkCreateImage(dc.device_, &imageInfo, nullptr, &_image) != VK_SUCCESS) {
+	if (vkCreateImage(dc.device_, &_imageInfo, nullptr, &_image) != VK_SUCCESS) {
 		throw runtime_error("failed to create image!");
 	}
 
@@ -255,26 +255,26 @@ void TextureImage::generateMipmaps(VkFormat imageFormat, int32_t texWidth, int32
 }
 
 void TextureImage::createTextureSampler() {
-	VkSamplerCreateInfo samplerInfo = {};
-	samplerInfo.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
-	samplerInfo.magFilter = VK_FILTER_LINEAR;
-	samplerInfo.minFilter = VK_FILTER_LINEAR;
-	samplerInfo.addressModeU = VK_SAMPLER_ADDRESS_MODE_REPEAT;
-	samplerInfo.addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT;
-	samplerInfo.addressModeW = VK_SAMPLER_ADDRESS_MODE_REPEAT;
-	samplerInfo.anisotropyEnable = VK_TRUE;
-	samplerInfo.maxAnisotropy = 16;
-	samplerInfo.borderColor = VK_BORDER_COLOR_INT_OPAQUE_BLACK;
-	samplerInfo.unnormalizedCoordinates = VK_FALSE;
-	samplerInfo.compareEnable = VK_FALSE;
-	samplerInfo.compareOp = VK_COMPARE_OP_ALWAYS;
-	samplerInfo.mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR;
-	samplerInfo.minLod = 0;
-	samplerInfo.maxLod = static_cast<float>(mipLevels_);
-	samplerInfo.mipLodBias = 0;
+	_samplerInfo = {};
+	_samplerInfo.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
+	_samplerInfo.magFilter = VK_FILTER_LINEAR;
+	_samplerInfo.minFilter = VK_FILTER_LINEAR;
+	_samplerInfo.addressModeU = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+	_samplerInfo.addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+	_samplerInfo.addressModeW = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+	_samplerInfo.anisotropyEnable = VK_TRUE;
+	_samplerInfo.maxAnisotropy = 16;
+	_samplerInfo.borderColor = VK_BORDER_COLOR_INT_OPAQUE_BLACK;
+	_samplerInfo.unnormalizedCoordinates = VK_FALSE;
+	_samplerInfo.compareEnable = VK_FALSE;
+	_samplerInfo.compareOp = VK_COMPARE_OP_ALWAYS;
+	_samplerInfo.mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR;
+	_samplerInfo.minLod = 0;
+	_samplerInfo.maxLod = static_cast<float>(mipLevels_);
+	_samplerInfo.mipLodBias = 0;
 
 	auto& dc = _app->getDeviceContext();
-	if (vkCreateSampler(dc.device_, &samplerInfo, nullptr, &textureSampler_) != VK_SUCCESS) {
+	if (vkCreateSampler(dc.device_, &_samplerInfo, nullptr, &textureSampler_) != VK_SUCCESS) {
 		throw runtime_error("failed to create texture sampler!");
 	}
 }

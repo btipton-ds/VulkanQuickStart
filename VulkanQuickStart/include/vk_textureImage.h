@@ -59,15 +59,22 @@ namespace VK {
 		void copyBufferToImage(const Buffer& buffer, uint32_t width, uint32_t height);
 		void generateMipmaps(VkFormat format, int32_t texWidth, int32_t texHeight);
 		void createTextureSampler();
+		const VkSamplerCreateInfo& getSamplerInfo() const;
+
 	private:
 		void init(const std::string& filename);
 		void init(size_t width, size_t height, const unsigned char* pixelsRGBA);
 		void initImage(uint32_t width, uint32_t height, VkSampleCountFlagBits numSamples, VkFormat format, VkImageTiling tiling,
 			VkImageUsageFlags usage, VkMemoryPropertyFlags properties);
 
-		uint32_t mipLevels_= 0;
+		VkSamplerCreateInfo _samplerInfo;
+		uint32_t mipLevels_ = 0;
 		VkSampler textureSampler_ = VK_NULL_HANDLE;
 	};
+
+	inline const VkSamplerCreateInfo& TextureImage::getSamplerInfo() const {
+		return _samplerInfo;
+	}
 
 	inline TextureImage::TextureImage(const VulkanAppPtr& app)
 	: Image(app)

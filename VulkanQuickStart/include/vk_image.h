@@ -93,6 +93,7 @@ namespace VK {
 		VkFormat getFormat() const;
 
 		size_t getImageData(const char*& data, size_t bufSize) const;
+		const VkImageCreateInfo& getImageInfo() const;
 
 		void saveImage(const std::string& filename) {
 			saveImage(filename, _app, _image, _imageInfo.extent, _imageInfo.format);
@@ -105,6 +106,10 @@ namespace VK {
 		VkDeviceMemory _memory = VK_NULL_HANDLE;
 		VkImageView _view = VK_NULL_HANDLE;
 	};
+
+	inline const VkImageCreateInfo& Image::getImageInfo() const {
+		return _imageInfo;
+	}
 
 	inline Image::operator VkImage() const {
 		return _image;
