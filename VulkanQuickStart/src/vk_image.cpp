@@ -54,7 +54,24 @@ Image::Image(const VulkanAppPtr& app)
 	: _app(app)
 {}
 
-Image::Image(const Image& src) {
+Image::Image(const VulkanAppPtr& app, const VkSwapchainCreateInfoKHR& info, VkImage image)
+	:_app(app)
+{
+	_image = image;
+
+	_imageInfo.sType = info.sType;
+	_imageInfo.imageType = VK_IMAGE_TYPE_2D;
+	_imageInfo.extent.width = info.imageExtent.width;
+	_imageInfo.extent.height = info.imageExtent.height;
+	_imageInfo.extent.depth = 1;
+	_imageInfo.mipLevels = 1;
+	_imageInfo.arrayLayers = 1;
+	_imageInfo.format = info.imageFormat;
+	_imageInfo.tiling = VK_IMAGE_TILING_LINEAR;
+	_imageInfo.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+	_imageInfo.usage = info.imageUsage;
+	_imageInfo.samples = VK_SAMPLE_COUNT_1_BIT;
+	_imageInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
 }
 
 void Image::set(VkImage image, VkDeviceMemory memory, VkImageView view) {

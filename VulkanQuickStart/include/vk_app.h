@@ -65,6 +65,7 @@ namespace VK {
 		VkSwapchainKHR _vkSwapChain;
 		VkFormat _imageFormat;
 		VkExtent2D _extent;
+		std::vector<Image> _images;
 		std::vector<VkImage> _vkImages;
 		std::vector<VkImageView> _vkImageViews;
 		std::vector<VkFramebuffer> _vkFrameBuffers;

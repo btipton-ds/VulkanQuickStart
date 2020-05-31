@@ -72,7 +72,8 @@ namespace VK {
 		static size_t getImageData(const VulkanAppPtr& app, VkImage image, const VkExtent3D& extent, VkFormat format, const char*& data, size_t bufSize);
 
 		Image(const VulkanAppPtr& app);
-		Image(const Image& src);
+		Image(const Image& src) = default;
+		Image(const VulkanAppPtr& app, const VkSwapchainCreateInfoKHR& info, VkImage image);
 		~Image();
 
 		void destroy();

@@ -484,7 +484,10 @@ void VulkanApp::createSwapChain() {
 	vkGetSwapchainImagesKHR(deviceContext.device_, _swapChain._vkSwapChain, &imageCount, nullptr);
 	_swapChain._vkImages.resize(imageCount);
 	vkGetSwapchainImagesKHR(deviceContext.device_, _swapChain._vkSwapChain, &imageCount, _swapChain._vkImages.data());
-
+	_swapChain._images.reserve(imageCount);
+	for (auto vkImage : _swapChain._vkImages) {
+		_swapChain._images.push_back(Image(getAppPtr(), createInfo, vkImage));
+	}
 	_swapChain._imageFormat = surfaceFormat.format;
 	_swapChain._extent = extent;
 }
