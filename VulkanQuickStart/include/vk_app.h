@@ -62,6 +62,11 @@ namespace TriMesh {
 
 namespace VK {
 	struct SwapChain {
+		inline SwapChain(VulkanApp* app)
+		: _colorImage(app)
+		, _depthImage(app)
+		{}
+
 		VkSwapchainKHR _vkSwapChain;
 		VkFormat _imageFormat;
 		VkExtent2D _extent;
@@ -69,6 +74,7 @@ namespace VK {
 		std::vector<VkImage> _vkImages;
 		std::vector<VkImageView> _vkImageViews;
 		std::vector<VkFramebuffer> _vkFrameBuffers;
+		Image _colorImage, _depthImage;
 	};
 
 	class VulkanApp : public std::enable_shared_from_this<VulkanApp> {
@@ -209,8 +215,6 @@ namespace VK {
 
 		UniformBufferObject3D _ubo;
 		std::vector<PipelineBasePtr> _pipelines;
-
-		Image colorImage, depthImage;
 
 		ScenePtr _scene;
 		size_t _root3DNode = stm1;

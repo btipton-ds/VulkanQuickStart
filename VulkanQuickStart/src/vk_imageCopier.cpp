@@ -173,7 +173,8 @@ void ImageCopier::unlockImages(VkCommandBuffer copyCmd) {
 
 void ImageCopier::createVkImage() {
 	// Create the linear tiled destination image to copy to and to read the memory from
-	VkImageCreateInfo imageCreateCI(vks::initializers::imageCreateInfo());
+	VkImageCreateInfo imageCreateCI = _srcImage.getImageInfo();
+	/*
 	imageCreateCI.imageType = VK_IMAGE_TYPE_2D;
 	// Note that vkCmdBlitImage (if supported) will also do format conversions if the swapchain color format would differ
 	imageCreateCI.format = VK_FORMAT_R8G8B8A8_UNORM;
@@ -184,6 +185,7 @@ void ImageCopier::createVkImage() {
 	imageCreateCI.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
 	imageCreateCI.samples = VK_SAMPLE_COUNT_1_BIT;
 	imageCreateCI.tiling = VK_IMAGE_TILING_LINEAR;
+	*/
 	imageCreateCI.usage = VK_IMAGE_USAGE_TRANSFER_DST_BIT;
 	// Create the image
 	VK_CHECK_RESULT(vkCreateImage(_device, &imageCreateCI, nullptr, &_dstImage));

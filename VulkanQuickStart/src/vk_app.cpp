@@ -99,8 +99,7 @@ VkResult CreateDebugUtilsMessengerEXT(VkInstance instance, const VkDebugUtilsMes
 }
 
 VulkanApp::VulkanApp(int width, int height)
-	: colorImage(this)
-	, depthImage(this)
+	: _swapChain(this)
 {
 	_shaderPool = make_shared<ShaderPool>(deviceContext);
 	_modelToWorld = glm::identity<glm::mat4>();
@@ -585,8 +584,8 @@ void VulkanApp::createFramebuffers() {
 
 	for (size_t i = 0; i < _swapChain._vkImageViews.size(); i++) {
 		std::array<VkImageView, 3> attachments = {
-			colorImage.getImageView(),
-			depthImage.getImageView(),
+			_swapChain._colorImage.getImageView(),
+			_swapChain._depthImage.getImageView(),
 			_swapChain._vkImageViews[i]
 		};
 
@@ -620,13 +619,13 @@ void VulkanApp::createCommandPool() {
 void VulkanApp::createColorResources() {
 	VkFormat colorFormat = _swapChain._imageFormat;
 	VkImageUsageFlags flagBits = VK_IMAGE_USAGE_TRANSIENT_ATTACHMENT_BIT | VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
-	colorImage.create(colorFormat, flagBits, _swapChain._extent.width, _swapChain._extent.height, _msaaSamples);
+	_swapChain._colorImage.create(colorFormat, flagBits, _swapChain._extent.width, _swapChain._extent.height, _msaaSamples);
 }
 
 void VulkanApp::createDepthResources() {
 	VkFormat depthFormat = findDepthFormat();
 	VkImageUsageFlags flagBits = VK_IMAGE_USAGE_TRANSIENT_ATTACHMENT_BIT | VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT;
-	depthImage.create(depthFormat, flagBits, _swapChain._extent.width, _swapChain._extent.height, _msaaSamples);
+	_swapChain._depthImage.create(depthFormat, flagBits, _swapChain._extent.width, _swapChain._extent.height, _msaaSamples);
 }
 
 VkFormat VulkanApp::findSupportedFormat(const std::vector<VkFormat>& candidates, VkImageTiling tiling, VkFormatFeatureFlags features) {

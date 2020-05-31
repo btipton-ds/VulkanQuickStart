@@ -107,6 +107,8 @@ void buildUi(UI::WindowPtr& gui) {
 			image->saveImage("C:/Users/Bob/Documents/Projects/ElectroFish/HexMeshTests/screenshot.bmp");
 			image->saveImage("C:/Users/Bob/Documents/Projects/ElectroFish/HexMeshTests/screenshot.jpg");
 			image->saveImage("C:/Users/Bob/Documents/Projects/ElectroFish/HexMeshTests/screenshot.png");
+
+			
 		}
 	});
 
