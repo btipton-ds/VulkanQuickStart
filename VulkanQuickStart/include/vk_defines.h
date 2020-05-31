@@ -29,6 +29,8 @@ This file is part of the VulkanQuickStart Project.
 
 #pragma once
 
+#include <tm_defines.h>
+
 #ifdef _HAS_ITERATOR_DEBUGGING
 #undef _HAS_ITERATOR_DEBUGGING
 #endif
@@ -43,8 +45,6 @@ This file is part of the VulkanQuickStart Project.
 #endif // _GCC
 
 #include <vector> // Need to include to expose size_t
-
-const int filePrecision = 17;
 
 constexpr size_t K_BYTE = 1024;
 constexpr size_t M_BYTE = 1024 * K_BYTE;

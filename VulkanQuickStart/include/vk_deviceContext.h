@@ -29,7 +29,7 @@ This file is part of the VulkanQuickStart Project.
 
 */
 
-#include <defines.h>
+#include <vk_defines.h>
 
 #define GLFW_INCLUDE_VULKAN
 #include <GLFW/glfw3.h>

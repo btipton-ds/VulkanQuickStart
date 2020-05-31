@@ -29,7 +29,7 @@ This file is part of the VulkanQuickStart Project.
 
 */
 
-#include <defines.h>
+#include <vk_defines.h>
 
 #define GLM_FORCE_RADIANS
 #define GLM_FORCE_DEPTH_ZERO_TO_ONE

@@ -29,7 +29,7 @@ This file is part of the VulkanQuickStart Project.
 
 */
 
-#include <defines.h>
+#include <vk_defines.h>
 
 #include <memory>
 #include <vector>
@@ -38,7 +38,7 @@ This file is part of the VulkanQuickStart Project.
 #define GLM_FORCE_DEPTH_ZERO_TO_ONE
 #include <glm/glm.hpp>
 
-#include <boundingBox.h>
+#include <tm_boundingBox.h>
 #include <vulkan/vulkan_core.h>
 
 #include <vk_forwardDeclarations.h>

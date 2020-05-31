@@ -27,7 +27,7 @@ This file is part of the VulkanQuickStart Project.
 
 */
 
-#include <defines.h>
+#include <vk_defines.h>
 
 #include <array>
 #include <vector>

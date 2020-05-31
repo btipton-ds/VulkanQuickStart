@@ -29,9 +29,9 @@ This file is part of the VulkanQuickStart Project.
 
 */
 
-#include <defines.h>
+#include <vk_defines.h>
 
-#include <boundingBox.h>
+#include <tm_boundingBox.h>
 #include <vk_pipeline.h>
 #include <vk_uniformBuffers.h>
 #include <vk_vertexTypes.h>

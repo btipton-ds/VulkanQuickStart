@@ -5,7 +5,7 @@
 *
 * This code is licensed under the MIT license (MIT) (http://opensource.org/licenses/MIT)
 */
-#include <defines.h>
+#include <vk_defines.h>
 
 #include "VulkanTools.h"
 
