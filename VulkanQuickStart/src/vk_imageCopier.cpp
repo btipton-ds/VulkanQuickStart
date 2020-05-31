@@ -186,7 +186,8 @@ void ImageCopier::createVkImage() {
 	imageCreateCI.samples = VK_SAMPLE_COUNT_1_BIT;
 	imageCreateCI.tiling = VK_IMAGE_TILING_LINEAR;
 	*/
-	imageCreateCI.usage = VK_IMAGE_USAGE_TRANSFER_DST_BIT;
+	imageCreateCI.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
+	imageCreateCI.usage = VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
 	// Create the image
 	VK_CHECK_RESULT(vkCreateImage(_device, &imageCreateCI, nullptr, &_dstImage));
 

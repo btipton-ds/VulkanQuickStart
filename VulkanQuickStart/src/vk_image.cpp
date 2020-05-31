@@ -99,19 +99,19 @@ void Image::destroy() {
 		cout << "Image leak\n";
 }
 
-void Image::create(VkFormat format, VkImageUsageFlags flagBits, uint32_t width, uint32_t height, VkSampleCountFlagBits _msaaSamples) {
+void Image::create(VkFormat format, VkImageUsageFlags usage, uint32_t width, uint32_t height, VkSampleCountFlagBits _msaaSamples) {
 	destroy();
 	auto& dc = _app->getDeviceContext();
 	dc.images_.insert(this);
 	// VK_IMAGE_USAGE_TRANSIENT_ATTACHMENT_BIT | VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT
 	createImage(width, height, 1, _msaaSamples, format, VK_IMAGE_TILING_OPTIMAL,
-		flagBits, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
-	VkImageAspectFlags aspectFlags = (flagBits & VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT) ?
+		usage, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+	VkImageAspectFlags aspectFlags = (usage & VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT) ?
 		VK_IMAGE_ASPECT_DEPTH_BIT :
 		VK_IMAGE_ASPECT_COLOR_BIT;
 	_view = createImageView(format, aspectFlags, 1);
 
-	VkImageLayout layout = (flagBits & VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT) ?
+	VkImageLayout layout = (usage & VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT) ?
 		VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL :
 		VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
 	transitionImageLayout(format, VK_IMAGE_LAYOUT_UNDEFINED, layout, 1);
@@ -411,7 +411,12 @@ size_t Image::pixelSize(VkFormat format) {
 	case VK_FORMAT_E5B9G9R9_UFLOAT_PACK32:
 	case VK_FORMAT_D16_UNORM:
 	case VK_FORMAT_X8_D24_UNORM_PACK32:
+		break;
+
 	case VK_FORMAT_D32_SFLOAT:
+		result = sizeof(float);
+		break;
+
 	case VK_FORMAT_S8_UINT:
 	case VK_FORMAT_D16_UNORM_S8_UINT:
 	case VK_FORMAT_D24_UNORM_S8_UINT:

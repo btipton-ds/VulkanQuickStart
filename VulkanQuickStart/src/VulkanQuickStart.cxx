@@ -53,7 +53,7 @@ This file is part of the VulkanQuickStart Project.
 using namespace VK;
 using namespace std;
 
-#define TEST_OBJ 1
+#define TEST_OBJ 0
 #define TEST_STL 1
 #define TEST_GUI 1
 
@@ -104,11 +104,13 @@ void buildUi(UI::WindowPtr& gui) {
 			const auto& images = swapChain._images;
 			const auto& image = images[gApp->getSwapChainIndex()];
 
-			image->saveImage("C:/Users/Bob/Documents/Projects/ElectroFish/HexMeshTests/screenshot.bmp");
-			image->saveImage("C:/Users/Bob/Documents/Projects/ElectroFish/HexMeshTests/screenshot.jpg");
-			image->saveImage("C:/Users/Bob/Documents/Projects/ElectroFish/HexMeshTests/screenshot.png");
+			string path = "/Users/Bob/Documents/Projects/ElectroFish/HexMeshTests/";
+			image->saveImage(path + "screenshot.bmp");
+			image->saveImage(path + "screenshot.jpg");
+			image->saveImage(path + "screenshot.png");
 
-			
+//			TODO problem call here
+//			swapChain._depthImage.saveImage(path + "screenshot_depth.jpg");
 		}
 	});
 
@@ -174,6 +176,9 @@ int main(int numArgs, char** args) {
 	}
 #endif
 
+#if 1
+	gApp->run();
+#else
 	try {
 		gApp->run();
 	}
@@ -181,6 +186,7 @@ int main(int numArgs, char** args) {
 		std::cerr << e.what() << std::endl;
 		return EXIT_FAILURE;
 	}
+#endif
 
 	return EXIT_SUCCESS;
 }
