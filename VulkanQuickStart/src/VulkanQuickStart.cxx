@@ -53,7 +53,7 @@ This file is part of the VulkanQuickStart Project.
 using namespace VK;
 using namespace std;
 
-#define TEST_OBJ 1
+#define TEST_OBJ 0
 #define TEST_STL 1
 #define TEST_GUI 1
 

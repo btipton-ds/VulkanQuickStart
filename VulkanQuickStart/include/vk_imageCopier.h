@@ -49,18 +49,21 @@ namespace VK {
 		VkSubresourceLayout getSubResourceLayout() const;
 
 	private:
-		void copyImages(VkImage srcImage, const VkExtent3D& extent, VkFormat format, VkImage dstImage);
+		void copyImages();
 
-		void lockImages(VkCommandBuffer copyCmd, VkImage& srcImage, VkImage& dstImage);
-		void unlockImages(VkCommandBuffer copyCmd, VkImage& srcImage, VkImage& dstImage);
+		void lockImages(VkCommandBuffer copyCmd);
+		void unlockImages(VkCommandBuffer copyCmd);
 
-		void createVkImage(VkDevice device, const VkExtent3D& extent, VkImage& dstImage);
-		bool doesSupportsBlit(VkPhysicalDevice physicalDevice, VkFormat format);
-		void blitImage(VkCommandBuffer copyCmd, const VkExtent3D& extent, VkImage& srcImage, VkImage& dstImage);
-		void copyImage(VkCommandBuffer copyCmd, const VkExtent3D& extent, VkImage& srcImage, VkImage& dstImage);
+		void createVkImage(VkDevice device);
+		bool doesSupportsBlit();
+		void blitImage(VkCommandBuffer copyCmd);
+		void copyImage(VkCommandBuffer copyCmd);
 
 		const VulkanAppPtr& _app;
 		VkDevice _device;
+		VkImage _srcImage;
+		VkExtent3D _extent;
+		VkFormat _format;
 		bool _colorSwizzle = false;
 		VkDeviceSize _rowPitch;
 		size_t _bufSize;
