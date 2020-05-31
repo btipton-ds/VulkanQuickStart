@@ -40,7 +40,7 @@ namespace VK {
 
 	class ImageCopier {
 	public:
-		ImageCopier(const VulkanAppPtr& app, VkImage srcImage, const VkExtent3D& extent, VkFormat format, size_t bufSize);
+		ImageCopier(VulkanApp* app, VkImage srcImage, const VkExtent3D& extent, VkFormat format, size_t bufSize);
 		~ImageCopier();
 		const char* getPersistentCopy() const;
 		const char* getVolitileCopy() const;
@@ -54,19 +54,20 @@ namespace VK {
 		void lockImages(VkCommandBuffer copyCmd);
 		void unlockImages(VkCommandBuffer copyCmd);
 
-		void createVkImage(VkDevice device);
-		bool doesSupportsBlit(VkPhysicalDevice physicalDevice);
+		void createVkImage();
+		bool doesSupportsBlit();
 		void blitImage(VkCommandBuffer copyCmd);
 		void copyImage(VkCommandBuffer copyCmd);
 
-		const VulkanAppPtr& _app;
+		VulkanApp* _app;
 		VkDevice _device;
+		VkImage _srcImage;
+		VkExtent3D _extent;
+		VkFormat _format;
 		bool _colorSwizzle = false;
 		VkDeviceSize _rowPitch;
 		size_t _bufSize;
-		VkExtent3D _extent;
-		VkFormat _format;
-		VkImage _srcImage, _dstImage;
+		VkImage _dstImage;
 		VkDeviceMemory _dstImageMemory;
 		VkImageSubresource _subResource;
 		VkSubresourceLayout _subResourceLayout;

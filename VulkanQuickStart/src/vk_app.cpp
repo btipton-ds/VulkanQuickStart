@@ -70,7 +70,6 @@ This file is part of the VulkanQuickStart Project.
 using namespace std;
 using namespace VK;
 
-
 const int MAX_FRAMES_IN_FLIGHT = 2;
 
 const std::vector<const char*> validationLayers = {
@@ -100,8 +99,8 @@ VkResult CreateDebugUtilsMessengerEXT(VkInstance instance, const VkDebugUtilsMes
 }
 
 VulkanApp::VulkanApp(int width, int height)
-	: colorImage(getAppPtr())
-	, depthImage(getAppPtr())
+	: colorImage(this)
+	, depthImage(this)
 {
 	_shaderPool = make_shared<ShaderPool>(deviceContext);
 	_modelToWorld = glm::identity<glm::mat4>();
@@ -484,9 +483,11 @@ void VulkanApp::createSwapChain() {
 	vkGetSwapchainImagesKHR(deviceContext.device_, _swapChain._vkSwapChain, &imageCount, nullptr);
 	_swapChain._vkImages.resize(imageCount);
 	vkGetSwapchainImagesKHR(deviceContext.device_, _swapChain._vkSwapChain, &imageCount, _swapChain._vkImages.data());
+
+	_swapChain._images.clear();
 	_swapChain._images.reserve(imageCount);
 	for (auto vkImage : _swapChain._vkImages) {
-		_swapChain._images.push_back(Image(getAppPtr(), createInfo, vkImage));
+		_swapChain._images.push_back(make_shared<Image>(this, createInfo, vkImage));
 	}
 	_swapChain._imageFormat = surfaceFormat.format;
 	_swapChain._extent = extent;

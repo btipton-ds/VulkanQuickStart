@@ -65,13 +65,13 @@ namespace VK {
 		VkSwapchainKHR _vkSwapChain;
 		VkFormat _imageFormat;
 		VkExtent2D _extent;
-		std::vector<Image> _images;
+		std::vector<ImagePtr> _images;
 		std::vector<VkImage> _vkImages;
 		std::vector<VkImageView> _vkImageViews;
 		std::vector<VkFramebuffer> _vkFrameBuffers;
 	};
 
-	class VulkanApp {
+	class VulkanApp : public std::enable_shared_from_this<VulkanApp> {
 	public:
 		using UniformBufferObject = PipelineVertex3D::UniformBufferObject;
 
@@ -80,7 +80,7 @@ namespace VK {
 		VulkanApp(int width, int height);
 		~VulkanApp();
 
-		VulkanAppPtr getAppPtr() const;
+		VulkanAppPtr getAppPtr();
 
 		void setUiWindow(const UI::WindowPtr& uiWindow );
 
@@ -225,9 +225,8 @@ namespace VK {
 		bool framebufferResized = false;
 	};
 
-	inline VulkanAppPtr VulkanApp::getAppPtr() const {
-		std::shared_ptr<VulkanApp> result((VulkanApp*)this);
-		return result;
+	inline VulkanAppPtr VulkanApp::getAppPtr() {
+		return shared_from_this();
 	}
 
 	inline const ScenePtr& VulkanApp::getScene() const {

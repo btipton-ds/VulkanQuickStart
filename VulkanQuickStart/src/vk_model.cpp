@@ -69,8 +69,8 @@ namespace std {
 
 Model::Model(const VulkanAppPtr& app, const TriMesh::CMeshPtr& meshPtr)
 	: _app(app)
-	, _vertexBuffer(app)
-	, _indexBuffer(app)
+	, _vertexBuffer(app.get())
+	, _indexBuffer(app.get())
 {
 	loadModel(meshPtr);
 	createVertexBuffer();
@@ -79,8 +79,8 @@ Model::Model(const VulkanAppPtr& app, const TriMesh::CMeshPtr& meshPtr)
 
 Model::Model(const VulkanAppPtr& app)
 	: _app(app)
-	, _vertexBuffer(app)
-	, _indexBuffer(app)
+	, _vertexBuffer(app.get())
+	, _indexBuffer(app.get())
 {
 }
 

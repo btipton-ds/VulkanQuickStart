@@ -53,7 +53,7 @@ This file is part of the VulkanQuickStart Project.
 using namespace VK;
 using namespace std;
 
-#define TEST_OBJ 0
+#define TEST_OBJ 1
 #define TEST_STL 1
 #define TEST_GUI 1
 
@@ -103,11 +103,10 @@ void buildUi(UI::WindowPtr& gui) {
 			const auto& swapChain = gApp->getSwapChain();
 			const auto& images = swapChain._images;
 			const auto& image = images[gApp->getSwapChainIndex()];
-			VkExtent3D extent = image.getImageInfo().extent;
 
-			image.saveImage("C:/Users/Bob/Documents/Projects/ElectroFish/HexMeshTests/screenshot.bmp");
-			image.saveImage("C:/Users/Bob/Documents/Projects/ElectroFish/HexMeshTests/screenshot.jpg");
-			image.saveImage("C:/Users/Bob/Documents/Projects/ElectroFish/HexMeshTests/screenshot.png");
+			image->saveImage("C:/Users/Bob/Documents/Projects/ElectroFish/HexMeshTests/screenshot.bmp");
+			image->saveImage("C:/Users/Bob/Documents/Projects/ElectroFish/HexMeshTests/screenshot.jpg");
+			image->saveImage("C:/Users/Bob/Documents/Projects/ElectroFish/HexMeshTests/screenshot.png");
 		}
 	});
 

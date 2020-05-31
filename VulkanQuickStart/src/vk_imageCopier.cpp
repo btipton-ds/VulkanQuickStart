@@ -39,7 +39,7 @@ This file is part of the VulkanQuickStart Project.
 using namespace VK;
 
 
-ImageCopier::ImageCopier(const VulkanAppPtr& app, VkImage srcImage, const VkExtent3D& extent, VkFormat format, size_t bufSize)
+ImageCopier::ImageCopier(VulkanApp* app, VkImage srcImage, const VkExtent3D& extent, VkFormat format, size_t bufSize)
 	: _app(app)
 	, _bufSize(bufSize)
 	, _srcImage(srcImage)
@@ -49,7 +49,7 @@ ImageCopier::ImageCopier(const VulkanAppPtr& app, VkImage srcImage, const VkExte
 	auto& dc = _app->getDeviceContext();
 	_device = _app->getDeviceContext().device_;
 
-	createVkImage(_device);
+	createVkImage();
 
 	// Create memory to back up the image
 	VkMemoryRequirements memRequirements;
@@ -95,7 +95,7 @@ const char* ImageCopier::getVolitileCopy() const {
 
 void ImageCopier::copyImages() {
 	auto& dc = _app->getDeviceContext();
-	bool supportsBlit = doesSupportsBlit(dc.physicalDevice_);
+	bool supportsBlit = doesSupportsBlit();
 
 	_colorSwizzle = false;
 	// Check if source is BGR 
@@ -105,7 +105,6 @@ void ImageCopier::copyImages() {
 		std::vector<VkFormat> formatsBGR = { VK_FORMAT_B8G8R8A8_SRGB, VK_FORMAT_B8G8R8A8_UNORM, VK_FORMAT_B8G8R8A8_SNORM };
 		_colorSwizzle = (std::find(formatsBGR.begin(), formatsBGR.end(), _format) != formatsBGR.end());
 	}
-
 
 	// Do the actual blit from the swapchain image to our host visible destination image
 	VkCommandBuffer copyCmd = _app->beginSingleTimeCommands();
@@ -172,7 +171,7 @@ void ImageCopier::unlockImages(VkCommandBuffer copyCmd) {
 
 
 
-void ImageCopier::createVkImage(VkDevice device) {
+void ImageCopier::createVkImage() {
 	// Create the linear tiled destination image to copy to and to read the memory from
 	VkImageCreateInfo imageCreateCI(vks::initializers::imageCreateInfo());
 	imageCreateCI.imageType = VK_IMAGE_TYPE_2D;
@@ -187,22 +186,24 @@ void ImageCopier::createVkImage(VkDevice device) {
 	imageCreateCI.tiling = VK_IMAGE_TILING_LINEAR;
 	imageCreateCI.usage = VK_IMAGE_USAGE_TRANSFER_DST_BIT;
 	// Create the image
-	VK_CHECK_RESULT(vkCreateImage(device, &imageCreateCI, nullptr, &_dstImage));
+	VK_CHECK_RESULT(vkCreateImage(_device, &imageCreateCI, nullptr, &_dstImage));
 
 }
 
-bool ImageCopier::doesSupportsBlit(VkPhysicalDevice physicalDevice) {
+bool ImageCopier::doesSupportsBlit() {
+	auto& dc = _app->getDeviceContext();
 	// Check blit support for source and destination
 	VkFormatProperties formatProps;
 
 	// Check if the device supports blitting from optimal images (the swapchain images are in optimal format)
-	vkGetPhysicalDeviceFormatProperties(physicalDevice, _format, &formatProps);
+	vkGetPhysicalDeviceFormatProperties(dc.physicalDevice_, _format, &formatProps);
+
 	if (!(formatProps.optimalTilingFeatures & VK_FORMAT_FEATURE_BLIT_SRC_BIT)) {
 		return false;
 	}
 
 	// Check if the device supports blitting to linear images 
-	vkGetPhysicalDeviceFormatProperties(physicalDevice, VK_FORMAT_R8G8B8A8_UNORM, &formatProps);
+	vkGetPhysicalDeviceFormatProperties(dc.physicalDevice_, VK_FORMAT_R8G8B8A8_UNORM, &formatProps);
 	if (!(formatProps.linearTilingFeatures & VK_FORMAT_FEATURE_BLIT_DST_BIT)) {
 		return false;
 	}
@@ -241,8 +242,7 @@ void ImageCopier::copyImage(VkCommandBuffer copyCmd) {
 	imageCopyRegion.srcSubresource.layerCount = 1;
 	imageCopyRegion.dstSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
 	imageCopyRegion.dstSubresource.layerCount = 1;
-	imageCopyRegion.extent.width = _extent.width;
-	imageCopyRegion.extent.height = _extent.height;
+	imageCopyRegion.extent = _extent;
 	imageCopyRegion.extent.depth = 1;
 
 	// Issue the copy command

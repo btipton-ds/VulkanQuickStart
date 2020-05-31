@@ -64,9 +64,9 @@ namespace VK {
 		void saveImage(const std::string& filename) const;
 		size_t getImageData(const char*& data, size_t bufSize) const;
 
-		Image(const VulkanAppPtr& app);
+		Image(VulkanApp* app);
 		Image(const Image& src) = default;
-		Image(const VulkanAppPtr& app, const VkSwapchainCreateInfoKHR& info, VkImage image);
+		Image(VulkanApp* app, const VkSwapchainCreateInfoKHR& info, VkImage image);
 		~Image();
 
 		void destroy();
@@ -90,7 +90,7 @@ namespace VK {
 	protected:
 		void Image::saveImage(const std::string& filename, const VkSubresourceLayout& vkLayout, bool colorSwizzle, const char* pix) const;
 
-		VulkanAppPtr _app;
+		VulkanApp* _app;
 		VkImageCreateInfo _imageInfo = {};
 		VkImage _image = VK_NULL_HANDLE;
 		VkDeviceMemory _memory = VK_NULL_HANDLE;

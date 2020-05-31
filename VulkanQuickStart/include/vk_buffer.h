@@ -41,7 +41,7 @@ This file is part of the VulkanQuickStart Project.
 namespace VK {
 
 	struct Buffer {
-		Buffer(const VulkanAppPtr& app);
+		Buffer(VulkanApp* app);
 		~Buffer();
 		void destroy();
 		void create(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties);
@@ -68,12 +68,12 @@ namespace VK {
 			return bufferMemory_;
 		}
 
-		VulkanAppPtr _app;
+		VulkanApp* _app;
 		VkBuffer buffer_ = VK_NULL_HANDLE;
 		VkDeviceMemory bufferMemory_ = VK_NULL_HANDLE;
 	};
 
-	inline Buffer::Buffer(const VulkanAppPtr& app)
+	inline Buffer::Buffer(VulkanApp* app)
 		: _app(app)
 	{}
 

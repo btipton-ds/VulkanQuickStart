@@ -50,11 +50,11 @@ namespace {
 	}
 }
 
-Image::Image(const VulkanAppPtr& app) 
+Image::Image(VulkanApp* app) 
 	: _app(app)
 {}
 
-Image::Image(const VulkanAppPtr& app, const VkSwapchainCreateInfoKHR& info, VkImage image)
+Image::Image(VulkanApp* app, const VkSwapchainCreateInfoKHR& info, VkImage image)
 	:_app(app)
 {
 	_image = image;
@@ -88,7 +88,7 @@ Image::~Image() {
 
 void Image::destroy() {
 	auto& dc = _app->getDeviceContext();
-	if (_view != VK_NULL_HANDLE) {
+	if (_view != VK_NULL_HANDLE && _memory != VK_NULL_HANDLE) {
 		vkDestroyImageView(dc.device_, _view, nullptr);
 		vkDestroyImage(dc.device_, _image, nullptr);
 		vkFreeMemory(dc.device_, _memory, nullptr);

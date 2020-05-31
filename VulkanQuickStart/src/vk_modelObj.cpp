@@ -60,8 +60,8 @@ namespace std {
 
 ModelObj::ModelObj(const VulkanAppPtr& app, const std::string& path, const std::string& filename)
 	: _app(app)
-	, _vertexBuffer(app)
-	, _indexBuffer(app)
+	, _vertexBuffer(app.get())
+	, _indexBuffer(app.get())
 {
 	loadModel(path, filename);
 	createVertexBuffer();
@@ -199,7 +199,7 @@ void ModelObj::loadModel(string path, string filename) {
 			throw runtime_error("This option is not supported yet.");
 		}
 		replaceAllDirTokens(fName);
-		auto tex = TextureImage::create(_app, path + fName);
+		auto tex = TextureImage::create(_app.get(), path + fName);
 		_textureImagesDiffuse.push_back(tex);
 	}
 

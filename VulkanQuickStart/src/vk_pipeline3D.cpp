@@ -179,7 +179,7 @@ void PipelineVertex3D::createUniformBuffers() {
 	_uniformBuffers.reserve(swapChainSize);
 
 	for (size_t i = 0; i < swapChainSize; i++) {
-		_uniformBuffers.push_back(Buffer(_app));
+		_uniformBuffers.push_back(Buffer(_app.get()));
 		_uniformBuffers.back().create(bufferSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
 			VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
 	}
