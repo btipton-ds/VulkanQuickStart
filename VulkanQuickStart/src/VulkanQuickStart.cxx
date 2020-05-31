@@ -103,9 +103,12 @@ void buildUi(UI::WindowPtr& gui) {
 			const auto& swapChain = gApp->getSwapChain();
 			const auto& images = swapChain._vkImages;
 			auto image = images[gApp->getSwapChainIndex()];
-			Image::saveImage("C:/Users/Bob/Documents/Projects/ElectroFish/HexMeshTests/screenshot.bmp", gApp, image, swapChain._extent, swapChain._imageFormat);
-			Image::saveImage("C:/Users/Bob/Documents/Projects/ElectroFish/HexMeshTests/screenshot.jpg", gApp, image, swapChain._extent, swapChain._imageFormat);
-			Image::saveImage("C:/Users/Bob/Documents/Projects/ElectroFish/HexMeshTests/screenshot.png", gApp, image, swapChain._extent, swapChain._imageFormat);
+			VkExtent3D extent;
+			extent.width = swapChain._extent.width;
+			extent.height = swapChain._extent.height;
+			Image::saveImage("C:/Users/Bob/Documents/Projects/ElectroFish/HexMeshTests/screenshot.bmp", gApp, image, extent, swapChain._imageFormat);
+			Image::saveImage("C:/Users/Bob/Documents/Projects/ElectroFish/HexMeshTests/screenshot.jpg", gApp, image, extent, swapChain._imageFormat);
+			Image::saveImage("C:/Users/Bob/Documents/Projects/ElectroFish/HexMeshTests/screenshot.png", gApp, image, extent, swapChain._imageFormat);
 		}
 	});
 

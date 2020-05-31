@@ -294,7 +294,7 @@ public:
 		std::vector<VkPresentModeKHR> presentModes(presentModeCount);
 		VK_CHECK_RESULT(fpGetPhysicalDeviceSurfacePresentModesKHR(physicalDevice, surface, &presentModeCount, presentModes.data()));
 
-		VkExtent2D swapchainExtent = {};
+		VkExtent3D swapchainExtent = {};
 		// If width (and height) equals the special value 0xFFFFFFFF, the size of the surface will be set by the swapchain
 		if (surfCaps.currentExtent.width == (uint32_t)-1)
 		{

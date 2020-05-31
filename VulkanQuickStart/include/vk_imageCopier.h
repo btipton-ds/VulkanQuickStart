@@ -40,7 +40,7 @@ namespace VK {
 
 	class ImageCopier {
 	public:
-		ImageCopier(const VulkanAppPtr& app, VkImage srcImage, const VkExtent2D& extent, VkFormat format, size_t bufSize);
+		ImageCopier(const VulkanAppPtr& app, VkImage srcImage, const VkExtent3D& extent, VkFormat format, size_t bufSize);
 		~ImageCopier();
 		const char* getPersistentCopy() const;
 		const char* getVolitileCopy() const;
@@ -49,15 +49,15 @@ namespace VK {
 		VkSubresourceLayout getSubResourceLayout() const;
 
 	private:
-		void copyImages(VkImage srcImage, const VkExtent2D& extent, VkFormat format, VkImage dstImage);
+		void copyImages(VkImage srcImage, const VkExtent3D& extent, VkFormat format, VkImage dstImage);
 
 		void lockImages(VkCommandBuffer copyCmd, VkImage& srcImage, VkImage& dstImage);
 		void unlockImages(VkCommandBuffer copyCmd, VkImage& srcImage, VkImage& dstImage);
 
-		void createVkImage(VkDevice device, const VkExtent2D& extent, VkImage& dstImage);
+		void createVkImage(VkDevice device, const VkExtent3D& extent, VkImage& dstImage);
 		bool doesSupportsBlit(VkPhysicalDevice physicalDevice, VkFormat format);
-		void blitImage(VkCommandBuffer copyCmd, const VkExtent2D& extent, VkImage& srcImage, VkImage& dstImage);
-		void copyImage(VkCommandBuffer copyCmd, const VkExtent2D& extent, VkImage& srcImage, VkImage& dstImage);
+		void blitImage(VkCommandBuffer copyCmd, const VkExtent3D& extent, VkImage& srcImage, VkImage& dstImage);
+		void copyImage(VkCommandBuffer copyCmd, const VkExtent3D& extent, VkImage& srcImage, VkImage& dstImage);
 
 		const VulkanAppPtr& _app;
 		VkDevice _device;

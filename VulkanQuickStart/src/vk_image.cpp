@@ -105,26 +105,22 @@ void Image::createImage(uint32_t width, uint32_t height, uint32_t mipLevels, VkS
 	VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage, VkMemoryPropertyFlags properties) {
 	auto& dc = _app->getDeviceContext();
 
-	_format = format;
-	_extent.width = width;
-	_extent.height = height;
+	_imageInfo = {};
+	_imageInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
+	_imageInfo.imageType = VK_IMAGE_TYPE_2D;
+	_imageInfo.extent.width = width;
+	_imageInfo.extent.height = height;
+	_imageInfo.extent.depth = 1;
+	_imageInfo.mipLevels = mipLevels;
+	_imageInfo.arrayLayers = 1;
+	_imageInfo.format = format;
+	_imageInfo.tiling = tiling;
+	_imageInfo.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+	_imageInfo.usage = usage;
+	_imageInfo.samples = numSamples;
+	_imageInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
 
-	VkImageCreateInfo imageInfo = {};
-	imageInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
-	imageInfo.imageType = VK_IMAGE_TYPE_2D;
-	imageInfo.extent.width = width;
-	imageInfo.extent.height = height;
-	imageInfo.extent.depth = 1;
-	imageInfo.mipLevels = mipLevels;
-	imageInfo.arrayLayers = 1;
-	imageInfo.format = format;
-	imageInfo.tiling = tiling;
-	imageInfo.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-	imageInfo.usage = usage;
-	imageInfo.samples = numSamples;
-	imageInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
-
-	if (vkCreateImage(dc.device_, &imageInfo, nullptr, &_image) != VK_SUCCESS) {
+	if (vkCreateImage(dc.device_, &_imageInfo, nullptr, &_image) != VK_SUCCESS) {
 		throw runtime_error("failed to create image!");
 	}
 
@@ -523,7 +519,7 @@ size_t Image::pixelSize(VkFormat format) {
 	return result;
 }
 
-void Image::saveImage(const std::string& filename, const VkExtent2D& extent, const VkSubresourceLayout& vkLayout, bool colorSwizzle, const char* pix) {
+void Image::saveImage(const std::string& filename, const VkExtent3D& extent, const VkSubresourceLayout& vkLayout, bool colorSwizzle, const char* pix) {
 
 	vector<char> buf;
 
@@ -572,7 +568,7 @@ void Image::saveImage(const std::string& filename, const VkExtent2D& extent, con
 	}
 }
 
-size_t Image::getImageData(const VulkanAppPtr& app, VkImage srcImage, const VkExtent2D& extent, VkFormat format, const char*& data, size_t bufSize) {
+size_t Image::getImageData(const VulkanAppPtr& app, VkImage srcImage, const VkExtent3D& extent, VkFormat format, const char*& data, size_t bufSize) {
 	size_t newBufSize = extent.width * extent.height * pixelSize(format);
 	if (bufSize != newBufSize )
 		return newBufSize;

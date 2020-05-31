@@ -39,7 +39,7 @@ This file is part of the VulkanQuickStart Project.
 using namespace VK;
 
 
-ImageCopier::ImageCopier(const VulkanAppPtr& app, VkImage srcImage, const VkExtent2D& extent, VkFormat format, size_t bufSize)
+ImageCopier::ImageCopier(const VulkanAppPtr& app, VkImage srcImage, const VkExtent3D& extent, VkFormat format, size_t bufSize)
 	: _app(app)
 	, _bufSize(bufSize)
 {
@@ -90,7 +90,7 @@ const char* ImageCopier::getVolitileCopy() const {
 	return tempPtr;
 }
 
-void ImageCopier::copyImages(VkImage srcImage, const VkExtent2D& extent, VkFormat format, VkImage _dstImage) {
+void ImageCopier::copyImages(VkImage srcImage, const VkExtent3D& extent, VkFormat format, VkImage _dstImage) {
 	auto& dc = _app->getDeviceContext();
 	bool supportsBlit = doesSupportsBlit(dc.physicalDevice_, format);
 
@@ -169,7 +169,7 @@ void ImageCopier::unlockImages(VkCommandBuffer copyCmd, VkImage& srcImage, VkIma
 
 
 
-void ImageCopier::createVkImage(VkDevice device, const VkExtent2D& extent, VkImage& _dstImage) {
+void ImageCopier::createVkImage(VkDevice device, const VkExtent3D& extent, VkImage& _dstImage) {
 	// Create the linear tiled destination image to copy to and to read the memory from
 	VkImageCreateInfo imageCreateCI(vks::initializers::imageCreateInfo());
 	imageCreateCI.imageType = VK_IMAGE_TYPE_2D;
@@ -209,7 +209,7 @@ bool ImageCopier::doesSupportsBlit(VkPhysicalDevice physicalDevice, VkFormat for
 }
 
 
-void ImageCopier::blitImage(VkCommandBuffer copyCmd, const VkExtent2D& extent, VkImage& srcImage, VkImage& _dstImage) {
+void ImageCopier::blitImage(VkCommandBuffer copyCmd, const VkExtent3D& extent, VkImage& srcImage, VkImage& _dstImage) {
 	VkOffset3D blitSize;
 	blitSize.x = extent.width;
 	blitSize.y = extent.height;
@@ -232,7 +232,7 @@ void ImageCopier::blitImage(VkCommandBuffer copyCmd, const VkExtent2D& extent, V
 		VK_FILTER_NEAREST);
 }
 
-void ImageCopier::copyImage(VkCommandBuffer copyCmd, const VkExtent2D& extent, VkImage& srcImage, VkImage& _dstImage) {
+void ImageCopier::copyImage(VkCommandBuffer copyCmd, const VkExtent3D& extent, VkImage& srcImage, VkImage& _dstImage) {
 	// Otherwise use image copy (requires us to manually flip components)
 	VkImageCopy imageCopyRegion{};
 	imageCopyRegion.srcSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
