@@ -47,29 +47,22 @@ namespace VK {
 		static VkImageView createImageView(VkDevice device, VkImage image, VkFormat format, VkImageAspectFlags aspectFlags, uint32_t mipLevels);
 
 		template<typename FUNC_TYPE>
-		static size_t processImage(const VulkanAppPtr& app, VkImage image, const VkExtent3D& extent, VkFormat format, size_t bufSize, FUNC_TYPE func) {
+		size_t processImage(size_t bufSize, FUNC_TYPE func) const {
+			const VkExtent3D& extent = _imageInfo.extent;
+			VkFormat format = _imageInfo.format;
 			size_t newBufSize = extent.width * extent.height * pixelSize(format);
 			if (bufSize != newBufSize)
 				return newBufSize;
 
-			ImageCopier copier(app, image, extent, format, bufSize);
+			ImageCopier copier(_app, _image, extent, format, bufSize);
 
 			func(copier.getVolitileCopy(), copier.getSubResourceLayout(), copier.getColorSwizzle());
 
 			return bufSize;
 		}
 
-		static void saveImage(const std::string& filename, const VkExtent3D& extent, const VkSubresourceLayout& vkLayout, bool colorSwizzle, const char* pix);
-
-		static void saveImage(const std::string& filename, const VulkanAppPtr& app, VkImage image, const VkExtent3D& extent, VkFormat format) {
-			size_t bufSize = processImage(app, image, extent, format, 0, [](const char* p, const VkSubresourceLayout& vkLayout, bool colorSwizzle) {});
-			if (bufSize != stm1) {
-				bufSize = processImage(app, image, extent, format, bufSize, [&](const char* p, const VkSubresourceLayout& vkLayout, bool colorSwizzle) {
-					saveImage(filename, extent, vkLayout, colorSwizzle, p);
-				});
-			}
-		}
-		static size_t getImageData(const VulkanAppPtr& app, VkImage image, const VkExtent3D& extent, VkFormat format, const char*& data, size_t bufSize);
+		void saveImage(const std::string& filename) const;
+		size_t getImageData(const char*& data, size_t bufSize) const;
 
 		Image(const VulkanAppPtr& app);
 		Image(const Image& src) = default;
@@ -77,8 +70,6 @@ namespace VK {
 		~Image();
 
 		void destroy();
-		operator VkImage() const;
-		operator VkImageView() const;
 
 		void set(VkImage image, VkDeviceMemory memory, VkImageView view);
 
@@ -88,19 +79,17 @@ namespace VK {
 			VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage, VkMemoryPropertyFlags properties);
 
 		VkImageView createImageView(VkFormat format, VkImageAspectFlags aspectFlags, uint32_t mipLevels);
+		VkImageView getImageView() const;
 
 		void transitionImageLayout(VkFormat format, VkImageLayout oldLayout, VkImageLayout newLayout, uint32_t mipLevels);
 
 		VkFormat getFormat() const;
 
-		size_t getImageData(const char*& data, size_t bufSize) const;
 		const VkImageCreateInfo& getImageInfo() const;
 
-		void saveImage(const std::string& filename) {
-			saveImage(filename, _app, _image, _imageInfo.extent, _imageInfo.format);
-		}
-
 	protected:
+		void Image::saveImage(const std::string& filename, const VkSubresourceLayout& vkLayout, bool colorSwizzle, const char* pix) const;
+
 		VulkanAppPtr _app;
 		VkImageCreateInfo _imageInfo = {};
 		VkImage _image = VK_NULL_HANDLE;
@@ -108,23 +97,16 @@ namespace VK {
 		VkImageView _view = VK_NULL_HANDLE;
 	};
 
+	inline VkImageView Image::getImageView() const {
+		return _view;
+	}
+
 	inline const VkImageCreateInfo& Image::getImageInfo() const {
 		return _imageInfo;
-	}
-
-	inline Image::operator VkImage() const {
-		return _image;
-	}
-
-	inline Image::operator VkImageView() const {
-		return _view;
 	}
 
 	inline VkFormat Image::getFormat() const {
 		return _imageInfo.format;
 	}
 
-	inline size_t Image::getImageData(const char*& data, size_t bufSize) const {
-		return getImageData(_app, _image, _imageInfo.extent, _imageInfo.format, data, bufSize);
-	}
 }

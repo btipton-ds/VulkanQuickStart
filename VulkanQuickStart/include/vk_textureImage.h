@@ -48,7 +48,8 @@ namespace VK {
 		TextureImage(const TextureImage& src) = default;
 		~TextureImage();
 		void destroy();
-		operator VkSampler() const;
+
+		VkSampler getSampler() const;
 
 		static TextureImagePtr create(const VulkanAppPtr& app, const std::string& filename);
 		static TextureImagePtr create(const VulkanAppPtr& app, size_t width, size_t height, const unsigned char* pixelsRGBA);
@@ -80,7 +81,7 @@ namespace VK {
 	: Image(app)
 	{}
 
-	inline TextureImage::operator VkSampler() const {
+	inline VkSampler TextureImage::getSampler() const {
 		return textureSampler_;
 	}
 

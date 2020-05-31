@@ -86,8 +86,8 @@ void ModelObj::buildImageInfoList(vector<VkDescriptorImageInfo>& imageInfoList) 
 	for (const auto& texture : _textureImagesDiffuse) {
 		VkDescriptorImageInfo imageInfo = {};
 		imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-		imageInfo.imageView = *texture;
-		imageInfo.sampler = *texture;
+		imageInfo.imageView = texture->getImageView();
+		imageInfo.sampler = texture->getSampler();
 		imageInfoList.push_back(imageInfo);
 	}
 }

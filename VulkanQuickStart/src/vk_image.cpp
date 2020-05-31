@@ -536,7 +536,7 @@ size_t Image::pixelSize(VkFormat format) {
 	return result;
 }
 
-void Image::saveImage(const std::string& filename, const VkExtent3D& extent, const VkSubresourceLayout& vkLayout, bool colorSwizzle, const char* pix) {
+void Image::saveImage(const std::string& filename, const VkSubresourceLayout& vkLayout, bool colorSwizzle, const char* pix) const {
 
 	vector<char> buf;
 
@@ -544,6 +544,8 @@ void Image::saveImage(const std::string& filename, const VkExtent3D& extent, con
 	int pixelSize = 3;
 	if (isPng)
 		pixelSize = 4;
+
+	const auto& extent = _imageInfo.extent;
 
 	size_t numPix = extent.width * extent.height;
 	buf.resize(numPix * pixelSize);
@@ -585,12 +587,27 @@ void Image::saveImage(const std::string& filename, const VkExtent3D& extent, con
 	}
 }
 
-size_t Image::getImageData(const VulkanAppPtr& app, VkImage srcImage, const VkExtent3D& extent, VkFormat format, const char*& data, size_t bufSize) {
+void Image::saveImage(const std::string& filename) const {
+	size_t bufSize = processImage(0,
+		[](const char* p, const VkSubresourceLayout& vkLayout, bool colorSwizzle) {
+	});
+	if (bufSize != stm1) {
+		bufSize = processImage(bufSize,
+			[&](const char* p, const VkSubresourceLayout& vkLayout, bool colorSwizzle) {
+			saveImage(filename, vkLayout, colorSwizzle, p);
+		});
+	}
+}
+
+size_t Image::getImageData(const char*& data, size_t bufSize) const {
+	const VkExtent3D& extent = _imageInfo.extent;
+	VkFormat format = _imageInfo.format;
+
 	size_t newBufSize = extent.width * extent.height * pixelSize(format);
 	if (bufSize != newBufSize )
 		return newBufSize;
 
-	ImageCopier copier(app, srcImage, extent, format, bufSize);
+	ImageCopier copier(_app, _image, extent, format, bufSize);
 
 	data = copier.getPersistentCopy();
 

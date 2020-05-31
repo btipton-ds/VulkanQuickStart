@@ -584,8 +584,8 @@ void VulkanApp::createFramebuffers() {
 
 	for (size_t i = 0; i < _swapChain._vkImageViews.size(); i++) {
 		std::array<VkImageView, 3> attachments = {
-			colorImage,
-			depthImage,
+			colorImage.getImageView(),
+			depthImage.getImageView(),
 			_swapChain._vkImageViews[i]
 		};
 

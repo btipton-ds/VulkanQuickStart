@@ -260,8 +260,8 @@ namespace VK::UI {
 		imageInfoList.clear();
 		VkDescriptorImageInfo imageInfo = {};
 		imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-		imageInfo.imageView = *_texture;
-		imageInfo.sampler = *_texture;
+		imageInfo.imageView = _texture->getImageView();
+		imageInfo.sampler = _texture->getSampler();
 		imageInfoList.push_back(imageInfo);
 	}
 	
