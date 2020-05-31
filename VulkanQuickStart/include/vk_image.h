@@ -44,17 +44,17 @@ namespace VK {
 	class Image {
 	public:
 		static size_t pixelSize(VkFormat format);
+		size_t imageSize() const;
+
 		static VkImageView createImageView(VkDevice device, VkImage image, VkFormat format, VkImageAspectFlags aspectFlags, uint32_t mipLevels);
 
 		template<typename FUNC_TYPE>
 		size_t processImage(size_t bufSize, FUNC_TYPE func) const {
-			const VkExtent3D& extent = _imageInfo.extent;
-			VkFormat format = _imageInfo.format;
-			size_t newBufSize = extent.width * extent.height * pixelSize(format);
+			size_t newBufSize = imageSize();
 			if (bufSize != newBufSize)
 				return newBufSize;
 
-			ImageCopier copier(_app, _image, extent, format, bufSize);
+			ImageCopier copier(_app, *this, bufSize);
 
 			func(copier.getVolitileCopy(), copier.getSubResourceLayout(), copier.getColorSwizzle());
 
@@ -86,6 +86,7 @@ namespace VK {
 		VkFormat getFormat() const;
 
 		const VkImageCreateInfo& getImageInfo() const;
+		VkImage getVkImage() const;
 
 	protected:
 		void Image::saveImage(const std::string& filename, const VkSubresourceLayout& vkLayout, bool colorSwizzle, const char* pix) const;
@@ -97,8 +98,17 @@ namespace VK {
 		VkImageView _view = VK_NULL_HANDLE;
 	};
 
+	inline size_t Image::imageSize() const {
+		size_t result = _imageInfo.extent.width * _imageInfo.extent.height * pixelSize(_imageInfo.format);
+		return result;
+	}
+
 	inline VkImageView Image::getImageView() const {
 		return _view;
+	}
+
+	inline VkImage Image::getVkImage() const {
+		return _image;
 	}
 
 	inline const VkImageCreateInfo& Image::getImageInfo() const {

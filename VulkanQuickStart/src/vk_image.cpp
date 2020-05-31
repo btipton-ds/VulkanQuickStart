@@ -607,7 +607,7 @@ size_t Image::getImageData(const char*& data, size_t bufSize) const {
 	if (bufSize != newBufSize )
 		return newBufSize;
 
-	ImageCopier copier(_app, _image, extent, format, bufSize);
+	ImageCopier copier(_app, *this, bufSize);
 
 	data = copier.getPersistentCopy();
 

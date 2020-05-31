@@ -35,12 +35,13 @@ This file is part of the VulkanQuickStart Project.
 #include <GLFW/glfw3.h>
 
 #include <vk_forwardDeclarations.h>
+#include <vk_image.h>
 
 namespace VK {
 
 	class ImageCopier {
 	public:
-		ImageCopier(VulkanApp* app, VkImage srcImage, const VkExtent3D& extent, VkFormat format, size_t bufSize);
+		ImageCopier(VulkanApp* app, const Image& srcImage, size_t bufSize);
 		~ImageCopier();
 		const char* getPersistentCopy() const;
 		const char* getVolitileCopy() const;
@@ -61,7 +62,7 @@ namespace VK {
 
 		VulkanApp* _app;
 		VkDevice _device;
-		VkImage _srcImage;
+		const Image& _srcImage;
 		VkExtent3D _extent;
 		VkFormat _format;
 		bool _colorSwizzle = false;

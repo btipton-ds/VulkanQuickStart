@@ -39,12 +39,12 @@ This file is part of the VulkanQuickStart Project.
 using namespace VK;
 
 
-ImageCopier::ImageCopier(VulkanApp* app, VkImage srcImage, const VkExtent3D& extent, VkFormat format, size_t bufSize)
+ImageCopier::ImageCopier(VulkanApp* app, const Image& srcImage, size_t bufSize)
 	: _app(app)
 	, _bufSize(bufSize)
 	, _srcImage(srcImage)
-	, _extent(extent)
-	, _format(format)
+	, _extent(srcImage.getImageInfo().extent)
+	, _format(srcImage.getImageInfo().format)
 {
 	auto& dc = _app->getDeviceContext();
 	_device = _app->getDeviceContext().device_;
@@ -135,7 +135,7 @@ void ImageCopier::lockImages(VkCommandBuffer copyCmd) {
 
 	vks::tools::insertImageMemoryBarrier(
 		copyCmd,
-		_srcImage,
+		_srcImage.getVkImage(),
 		VK_ACCESS_MEMORY_READ_BIT,
 		VK_ACCESS_TRANSFER_READ_BIT,
 		VK_IMAGE_LAYOUT_PRESENT_SRC_KHR,
@@ -159,7 +159,7 @@ void ImageCopier::unlockImages(VkCommandBuffer copyCmd) {
 
 	vks::tools::insertImageMemoryBarrier(
 		copyCmd,
-		_srcImage,
+		_srcImage.getVkImage(),
 		VK_ACCESS_TRANSFER_READ_BIT,
 		VK_ACCESS_MEMORY_READ_BIT,
 		VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
@@ -228,7 +228,7 @@ void ImageCopier::blitImage(VkCommandBuffer copyCmd) {
 	// Issue the blit command
 	vkCmdBlitImage(
 		copyCmd,
-		_srcImage, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
+		_srcImage.getVkImage(), VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
 		_dstImage, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
 		1,
 		&imageBlitRegion,
@@ -248,7 +248,7 @@ void ImageCopier::copyImage(VkCommandBuffer copyCmd) {
 	// Issue the copy command
 	vkCmdCopyImage(
 		copyCmd,
-		_srcImage, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
+		_srcImage.getVkImage(), VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
 		_dstImage, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
 		1,
 		&imageCopyRegion);
