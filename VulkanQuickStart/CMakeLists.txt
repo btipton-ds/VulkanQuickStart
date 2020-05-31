@@ -61,8 +61,8 @@ link_directories (
 find_package(Vulkan)
 #find_package(glfw3 REQUIRED)
 
-add_executable (
-VulkanQuickStart
+add_library (
+VulkanQuickStartLib
 "src/vk_app.cpp"
 "src/vk_buffer.cpp"
 "src/vk_deviceContext.cpp"
@@ -84,10 +84,17 @@ VulkanQuickStart
 "src/vk_pipeline3DWithTexture.cpp"
 "src/vk_sceneNodeUi.cpp"
 "vk_base/VulkanTools.cpp"
-"src/VulkanQuickStart.cxx" 
 "src/vk_imageCopier.cpp")
 
+target_compile_features(VulkanQuickStartLib PRIVATE cxx_std_17)
+
+add_executable (
+VulkanQuickStart
+"src/VulkanQuickStart.cxx" 
+)
+
 target_link_libraries("VulkanQuickStart" 
+PUBLIC VulkanQuickStartLib
 PUBLIC Vulkan::Vulkan
 PUBLIC triMesh
 PUBLIC stlReader 
