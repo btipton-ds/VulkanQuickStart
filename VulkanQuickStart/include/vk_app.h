@@ -130,6 +130,8 @@ namespace VK {
 		VkCommandBuffer beginSingleTimeCommands();
 		void endSingleTimeCommands(VkCommandBuffer commandBuffer);
 
+		void stop();
+
 	private:
 		struct SwapChainSupportDetails;
 		struct QueueFamilyIndices;
@@ -186,6 +188,7 @@ namespace VK {
 		bool checkValidationLayerSupport();
 
 		GLFWwindow* _window;
+		bool _isRunning = true;
 		UI::WindowPtr _uiWindow;
 		unsigned int _windowDpi = 72;
 		VkFormat _requestedFormat = VK_FORMAT_B8G8R8A8_UNORM;
@@ -313,6 +316,10 @@ namespace VK {
 	inline const PipelinePtr<UBO_TYPE>& VulkanApp::addPipeline(const PipelinePtr<UBO_TYPE>& pipeline) {
 		_pipelines.push_back(pipeline);
 		return pipeline;
+	}
+
+	inline void VulkanApp::stop() {
+		_isRunning = false;
 	}
 
 }

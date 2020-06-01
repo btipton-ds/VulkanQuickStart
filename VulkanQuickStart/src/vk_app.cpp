@@ -248,7 +248,7 @@ void VulkanApp::recreateSwapChain() {
 }
 
 void VulkanApp::mainLoop() {
-	while (!glfwWindowShouldClose(_window)) {
+	while (!glfwWindowShouldClose(_window) && _isRunning) {
 		glfwPollEvents();
 		drawFrame();
 	}
