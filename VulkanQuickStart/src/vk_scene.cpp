@@ -42,12 +42,16 @@ Scene::~Scene() {
 }
 
 void Scene::addCommands(VkCommandBuffer cmdBuff, VkPipelineLayout pipelineLayout, VkDescriptorSet& descSet) {
-	for (auto& node : _rootNodes)
-		node->addCommands(cmdBuff, pipelineLayout, descSet);
+	for (auto& node : _rootNodes) {
+		if (node->isEnabled())
+			node->addCommands(cmdBuff, pipelineLayout, descSet);
+	}
 }
 
 void Scene::buildImageInfoList(std::vector<VkDescriptorImageInfo>& imageInfoList) {
-	for (auto& node : _rootNodes)
-		node->buildImageInfoList(imageInfoList);
+	for (auto& node : _rootNodes) {
+		if (node->isEnabled())
+			node->buildImageInfoList(imageInfoList);
+	}
 }
 

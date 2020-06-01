@@ -102,7 +102,8 @@ PipelineVertex3D::BoundingBox PipelineVertex3D::getBounds() const {
 
 void PipelineVertex3D::updateUniformBuffer(size_t swapChainIndex) {
 	for (auto& sceneNode : _sceneNodes) {
-		sceneNode->updateUniformBuffer(this, swapChainIndex);
+		if (sceneNode->isEnabled())
+			sceneNode->updateUniformBuffer(this, swapChainIndex);
 	}
 
 }
@@ -154,7 +155,8 @@ void PipelineVertex3D::createDescriptorSets() {
 
 		std::vector<VkDescriptorImageInfo> imageInfoList;
 		for (const auto& sceneNode : _sceneNodes) {
-			sceneNode->buildImageInfoList(imageInfoList);
+			if (sceneNode->isEnabled())
+				sceneNode->buildImageInfoList(imageInfoList);
 		}
 
 		std::array<VkWriteDescriptorSet, 1> descriptorWrites = {};

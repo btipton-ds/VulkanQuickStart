@@ -55,7 +55,32 @@ namespace VK {
 		virtual void buildImageInfoList(std::vector<VkDescriptorImageInfo>& imageInfoList) const = 0;
 		virtual void updateUniformBuffer(PipelineBase* pipeline, size_t swapChainIndex);
 
+		void setEnabled(bool enabled);
+		bool isEnabled() const;
+
+		void setDrawn(bool drawn);
+		bool isDrawn() const;
+
+	private:
+		bool _enabled = true;
+		bool _drawn = true;
 	};
+
+	inline void SceneNodeBase::setEnabled(bool enabled) {
+		_enabled = enabled;
+	}
+
+	inline bool SceneNodeBase::isEnabled() const {
+		return _enabled;
+	}
+
+	inline void SceneNodeBase::setDrawn(bool drawn) {
+		_drawn = drawn;
+	}
+
+	inline bool SceneNodeBase::isDrawn() const {
+		return _drawn;
+	}
 
 	inline SceneNodeBase::SceneNodeBase() {
 	}

@@ -132,6 +132,8 @@ namespace VK {
 
 		void stop();
 
+		void cmdChanged();
+
 	private:
 		struct SwapChainSupportDetails;
 		struct QueueFamilyIndices;
@@ -320,6 +322,10 @@ namespace VK {
 
 	inline void VulkanApp::stop() {
 		_isRunning = false;
+	}
+
+	inline void VulkanApp::cmdChanged() {
+		_changeNumber++;
 	}
 
 }

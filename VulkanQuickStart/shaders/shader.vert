@@ -33,8 +33,7 @@ This file is part of the VulkanQuickStart Project.
 layout(binding = 0) uniform UniformBufferObject {
 	float ambient;
 
-	mat4 model;
-	mat4 view;
+	mat4 modelView;
 	mat4 proj;
     int numLights;
 	vec3 lightDir[2];
@@ -55,8 +54,7 @@ void main() {
     fragNumLights = ubo.numLights;
     fragLights = ubo.lightDir;
 
-    mat4 modelView = ubo.view * ubo.model;
-    gl_Position = ubo.proj * modelView * vec4(inPosition, 1.0);
+    gl_Position = ubo.proj * ubo.modelView * vec4(inPosition, 1.0);
     fragColor = inColor;
-    fragNormal = normalize((modelView * vec4(inNormal, 0.0)).xyz);
+    fragNormal = normalize((ubo.modelView * vec4(inNormal, 0.0)).xyz);
 }

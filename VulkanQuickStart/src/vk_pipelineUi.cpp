@@ -57,8 +57,10 @@ PipelineUi::PipelineUi(const VulkanAppPtr& app)
 
 void PipelineUi::addCommands(VkCommandBuffer cmdBuff, size_t swapChainIdx) const {
 	for (const auto& sceneNode : _sceneNodes) {
-		SceneNodeUiPtr ptr = dynamic_pointer_cast<SceneNodeUi>(sceneNode);
-		ptr->addCommandsIdx(cmdBuff, _pipelineLayout, swapChainIdx);
+		if (sceneNode->isEnabled()) {
+			SceneNodeUiPtr ptr = dynamic_pointer_cast<SceneNodeUi>(sceneNode);
+			ptr->addCommandsIdx(cmdBuff, _pipelineLayout, swapChainIdx);
+		}
 	}
 }
 
@@ -88,7 +90,8 @@ void PipelineUi::updateUniformBuffer(size_t swapChainIndex) {
 	_ubo._color = glm::vec4(1, 0, 0, 1);
 
 	for (auto& sceneNode : _sceneNodes) {
-		sceneNode->updateUniformBuffer(this, swapChainIndex);
+		if (sceneNode->isEnabled())
+			sceneNode->updateUniformBuffer(this, swapChainIndex);
 	}
 }
 

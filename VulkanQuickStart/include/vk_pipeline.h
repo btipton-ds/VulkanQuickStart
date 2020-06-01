@@ -79,7 +79,8 @@ namespace VK {
 	template<class UBO_TYPE, class VERT_TYPE>
 	inline void Pipeline<UBO_TYPE, VERT_TYPE>::addCommands(VkCommandBuffer cmdBuff, size_t swapChainIdx) const {
 		for (const auto& sceneNode : _sceneNodes)
-			sceneNode->addCommands(cmdBuff, _pipelineLayout, _descriptorSets[swapChainIdx]);
+			if (sceneNode->isEnabled())
+				sceneNode->addCommands(cmdBuff, _pipelineLayout, _descriptorSets[swapChainIdx]);
 	}
 
 
