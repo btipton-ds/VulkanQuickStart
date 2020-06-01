@@ -177,7 +177,7 @@ namespace VK {
 		VkShaderModule createShaderModule(const std::vector<char>& code);
 		VkSurfaceFormatKHR chooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& availableFormats);
 		VkPresentModeKHR chooseSwapPresentMode(const std::vector<VkPresentModeKHR>& availablePresentModes);
-		VkExtent2D chooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities);
+		VkExtent2D getWindowExtent(const VkSurfaceCapabilitiesKHR& capabilities);
 		SwapChainSupportDetails querySwapChainSupport(VkPhysicalDevice device);
 		bool isDeviceSuitable(VkPhysicalDevice device);
 		bool checkDeviceExtensionSupport(VkPhysicalDevice device);
@@ -226,7 +226,7 @@ namespace VK {
 		std::vector<VkFence> inFlightFences;
 		size_t currentFrame = 0;
 
-		bool framebufferResized = false;
+		bool _framebufferResized = false;
 	};
 
 	inline VulkanAppPtr VulkanApp::getAppPtr() {

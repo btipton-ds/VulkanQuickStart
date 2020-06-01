@@ -202,7 +202,8 @@ void VulkanApp::initWindow(int width, int height) {
 
 void VulkanApp::framebufferResizeCallback(GLFWwindow* window, int width, int height) {
 	auto app = reinterpret_cast<VulkanApp*>(glfwGetWindowUserPointer(window));
-	app->framebufferResized = true;
+	app->_framebufferResized = true;
+	cout << "Changed window size\n";
 }
 
 void VulkanApp::initVulkan() {
@@ -223,6 +224,8 @@ void VulkanApp::initVulkan() {
 }
 
 void VulkanApp::recreateSwapChain() {
+	cout << "Recreating swap chain.\n";
+
 	std::lock_guard<mutex> guard(_swapChainMutex);
 	int width = 0, height = 0;
 	while (width == 0 || height == 0) {
@@ -440,7 +443,7 @@ void VulkanApp::createSwapChain() {
 
 	VkSurfaceFormatKHR surfaceFormat = chooseSwapSurfaceFormat(swapChainSupport.formats);
 	VkPresentModeKHR presentMode = chooseSwapPresentMode(swapChainSupport.presentModes);
-	VkExtent2D extent = chooseSwapExtent(swapChainSupport.capabilities);
+	VkExtent2D extent = getWindowExtent(swapChainSupport.capabilities);
 
 	uint32_t imageCount = swapChainSupport.capabilities.minImageCount + 1;
 	if (swapChainSupport.capabilities.maxImageCount > 0 && imageCount > swapChainSupport.capabilities.maxImageCount) {
@@ -882,7 +885,7 @@ void VulkanApp::updateUniformBuffer(uint32_t swapChainImageIndex) {
 
 	auto range = modelBounds.range();
 	float maxModelDim = max(max(range[0], range[1]), range[2]);
-	float scale = 2.0f * 1.0f / maxModelDim * minDim / maxDim;
+	float scale = 2.0f * 1.0f / maxModelDim;
 	scale *= (float)getModelScale();
 
 	auto ctr = (modelBounds.getMin() + modelBounds.getMax()) / 2;
@@ -892,6 +895,7 @@ void VulkanApp::updateUniformBuffer(uint32_t swapChainImageIndex) {
 
 	_ubo.view = glm::lookAt(glm::vec3(1.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
 	//		auto proj = glm::perspective(glm::radians(45.0f), _extent.width / (float)_extent.height, 0.1f, 10.0f);
+	float k = 0.5f;
 	_ubo.proj = glm::ortho(-w, w, -h, h, -10.0f, 10.0f);
 	_ubo.proj[1][1] *= -1;
 
@@ -921,13 +925,14 @@ void VulkanApp::drawFrame() {
 	if (_uiWindow)
 		needToRecreate = _uiWindow->getChangeNumber() != _uiWindowChangeNumber || needToRecreate;
 
-	needToRecreate = (result == VK_ERROR_OUT_OF_DATE_KHR || _changeNumber > _lastChangeNumber);
+	needToRecreate = (result == VK_ERROR_OUT_OF_DATE_KHR || _changeNumber > _lastChangeNumber) || _framebufferResized;
 
 	// TODO, per scene node change numbers.
 	if (needToRecreate) {
 		if (_uiWindow)
 			_uiWindowChangeNumber = _uiWindow->getChangeNumber();
 		_lastChangeNumber = _changeNumber;
+		_framebufferResized = false;
 		recreateSwapChain();
 		return;
 	}
@@ -973,9 +978,8 @@ void VulkanApp::drawFrame() {
 
 	result = vkQueuePresentKHR(presentQueue, &presentInfo);
 
-	if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR || framebufferResized || _changeNumber > _lastChangeNumber) {
+	if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR || _changeNumber > _lastChangeNumber) {
 		_lastChangeNumber = _changeNumber;
-		framebufferResized = false;
 		recreateSwapChain();
 	}
 	else if (result != VK_SUCCESS) {
@@ -1028,9 +1032,9 @@ VkPresentModeKHR VulkanApp::chooseSwapPresentMode(const std::vector<VkPresentMod
 	return bestMode;
 }
 
-VkExtent2D VulkanApp::chooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities) {
-	if (capabilities.currentExtent.width != std::numeric_limits<uint32_t>::max()) {
-		return capabilities.currentExtent;
+VkExtent2D VulkanApp::getWindowExtent(const VkSurfaceCapabilitiesKHR& capabilities) {
+	if (capabilities.currentExtent.width == std::numeric_limits<uint32_t>::max()) {
+		throw runtime_error("capabilities.currentExtent.width == FLT_MAX");
 	}
 	else {
 		int width, height;
