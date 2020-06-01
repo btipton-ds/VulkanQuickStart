@@ -52,7 +52,7 @@ void SceneNode3DWTexture::updateUniformBuffer(PipelineBase* pipeline, size_t swa
 	auto pipeline3D = dynamic_cast<PipelineVertex3DWSampler*>(pipeline);
 	auto ubo = pipeline3D->getUniformBuffer();
 	ubo.modelView *= _modelXForm;
-//	ubo.drawn = isDrawn();
+	ubo.draw = isDrawn() ? 1 : 0;
 	pipeline->updateUniformBufferTempl(swapChainIndex, ubo);
 }
 

@@ -30,12 +30,20 @@ This file is part of the VulkanQuickStart Project.
 #version 450
 #extension GL_ARB_separate_shader_objects : enable
 
-layout(binding = 0) uniform UniformBufferObject {
+struct FragUbo {
+	int draw;
+	int texId;
 	float ambient;
+	int numLights;
+	vec3 lightDir[2];
+};
 
+layout(binding = 0) uniform UniformBufferBlock {
+	float ambient;
 	mat4 modelView;
 	mat4 proj;
-    int numLights;
+	int draw;
+	int numLights;
 	vec3 lightDir[2];
 } ubo;
 
@@ -47,20 +55,18 @@ layout(location = 4) in int  texId;
 
 layout(location = 0) out vec3 fragColor;
 layout(location = 1) out vec3 fragNormal;
-layout(location = 2) out int  fragTexId;
-layout(location = 3) out vec2 fragTexCoord;
-layout(location = 4) out float fragAmbient;
-layout(location = 5) out int fragNumLights;
-layout(location = 6) out vec3 fragLights[2];
+layout(location = 2) out vec2 fragTexCoord;
+layout(location = 3) out FragUbo fragUbo;
 
 void main() {
-    fragAmbient = ubo.ambient;
-    fragNumLights = ubo.numLights;
-    fragLights = ubo.lightDir;
+	fragUbo.draw = ubo.draw;
+	fragUbo.texId = texId;
+    fragUbo.ambient = ubo.ambient;
+    fragUbo.numLights = ubo.numLights;
+    fragUbo.lightDir = ubo.lightDir;
 
     gl_Position = ubo.proj * ubo.modelView * vec4(inPosition, 1.0);
     fragColor = inColor;
     fragNormal = normalize((ubo.modelView * vec4(inNormal, 0.0)).xyz);
-	fragTexId = texId;
     fragTexCoord = inTexCoord;
 }

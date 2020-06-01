@@ -42,6 +42,7 @@ namespace VK {
 
 		alignas(16) glm::mat4 modelView;
 		alignas(16) glm::mat4 proj;
+		alignas(16) int draw = 1;
 		alignas(16) int numLights;
 		alignas(16) glm::vec3 lightDir[2];
 	};

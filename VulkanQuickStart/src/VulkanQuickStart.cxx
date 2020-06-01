@@ -81,6 +81,7 @@ const std::string stlFilenameFine = "test_part_fine.stl";
 
 VulkanAppPtr gApp;
 ModelObjPtr plant, dna, apricot;
+SceneNode3DPtr part, vase;
 
 #if TEST_GUI
 void buildUi(UI::WindowPtr& gui) {
@@ -141,6 +142,22 @@ void buildUi(UI::WindowPtr& gui) {
 	});
 
 	row += h;
+	gui->addButton(Button(gApp, bkgColor, "Hide Part", Rect(row, 0, row + h, w)))->
+		setAction(Button::ActionType::ACT_CLICK, [&](int btnNum, int modifiers) {
+		if (btnNum == 0) {
+			part->setDrawn(!part->isDrawn());
+		}
+	});
+
+	row += h;
+	gui->addButton(Button(gApp, bkgColor, "Hide Vase", Rect(row, 0, row + h, w)))->
+		setAction(Button::ActionType::ACT_CLICK, [&](int btnNum, int modifiers) {
+		if (btnNum == 0) {
+			vase->setDrawn(!vase->isDrawn());
+		}
+	});
+
+	row += h;
 	gui->addButton(Button(gApp, bkgColor, "Quit", Rect(row, 0, row + h, w)))->
 		setAction(Button::ActionType::ACT_CLICK, [&](int btnNum, int modifiers) {
 		if (btnNum == 0) {
@@ -191,8 +208,8 @@ int main(int numArgs, char** args) {
 		CReadSTL readStl(meshPtr);
 		if (!readStl.read(modelPath, filename))
 			return 1;
-		auto meshModel = gApp->addSceneNode3D(meshPtr);
-		meshModel->setModelTransform(glm::scale(glm::mat4(1.0f), glm::vec3(.05f, .05f, .05f)));
+		part = gApp->addSceneNode3D(meshPtr);
+		part->setModelTransform(glm::scale(glm::mat4(1.0f), glm::vec3(.05f, .05f, .05f)));
 	}
 
 	{
@@ -200,10 +217,10 @@ int main(int numArgs, char** args) {
 		CReadSTL readStl(meshPtr);
 		if (!readStl.read(modelPath, "Vase.stl"))
 			return 1;
-		auto meshModel = gApp->addSceneNode3D(meshPtr);
+		vase = gApp->addSceneNode3D(meshPtr);
 		xform = glm::translate(glm::mat4(1.0f), glm::vec3(-5, -5, 0));
 		xform *= glm::scale(glm::mat4(1.0f), glm::vec3(.25f, .25f, .25f));
-		meshModel->setModelTransform(xform);
+		vase->setModelTransform(xform);
 	}
 #endif
 
