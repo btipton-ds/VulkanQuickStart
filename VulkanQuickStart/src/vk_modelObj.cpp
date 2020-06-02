@@ -59,7 +59,7 @@ namespace std {
 
 
 ModelObj::ModelObj(const PipelineBasePtr& ownerPipeline, const std::string& path, const std::string& filename)
-	: SceneNode3DWTexture(ownerPipeline)
+	: PipelineSceneNode3DWSampler(ownerPipeline)
 	, _vertexBuffer(ownerPipeline->getApp().get())
 	, _indexBuffer(ownerPipeline->getApp().get())
 {

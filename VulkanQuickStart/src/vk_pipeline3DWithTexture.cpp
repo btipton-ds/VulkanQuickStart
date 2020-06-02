@@ -42,8 +42,8 @@ This file is part of the VulkanQuickStart Project.
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
-#include <vk_pipeline3DWithTexture.h>
-#include <vk_sceneNode3DWTexture.h>
+#include <vk_pipeline3DWithSampler.h>
+#include <vk_pipelineSceneNode3DWSampler.h>
 #include <vk_deviceContext.h>
 #include <vk_buffer.h>
 #include <vk_vertexTypes.h>
@@ -60,8 +60,8 @@ namespace {
 		return glm::vec4(pt[0], pt[1], pt[2], 1);
 	}
 
-	PipelineVertex3DWSampler::BoundingBox transform(const PipelineVertex3D::BoundingBox& bb, const glm::mat4& xform) {
-		PipelineVertex3D::BoundingBox result;
+	Pipeline3DWSampler::BoundingBox transform(const Pipeline3D::BoundingBox& bb, const glm::mat4& xform) {
+		Pipeline3D::BoundingBox result;
 		glm::vec4 pt(0, 0, 0, 1);
 		for (int i = 0; i < 2; i++) {
 			pt[0] = i == 0 ? bb.getMin()[0] : bb.getMax()[0];
@@ -78,19 +78,19 @@ namespace {
 	}
 }
 
-string PipelineVertex3DWSampler::getShaderId() {
-	return "PipelineVertex3DWSampler";
+string Pipeline3DWSampler::getShaderId() {
+	return "Pipeline3DWSampler";
 }
 
-string PipelineVertex3DWSampler::getShaderIdMethod() {
+string Pipeline3DWSampler::getShaderIdMethod() {
 	return getShaderId();
 }
 
-PipelineVertex3DWSampler::PipelineVertex3DWSampler(const VulkanAppPtr& app)
+Pipeline3DWSampler::Pipeline3DWSampler(const VulkanAppPtr& app)
 	: Pipeline(app)
 {}
 
-void PipelineVertex3DWSampler::createUniformBuffers() {
+void Pipeline3DWSampler::createUniformBuffers() {
 	size_t bufferSize = sizeof(UniformBufferObject);
 	const auto& swap = _app->getSwapChain();
 	size_t swapChainSize = (uint32_t)swap._vkImages.size();
@@ -104,39 +104,39 @@ void PipelineVertex3DWSampler::createUniformBuffers() {
 	}
 }
 
-PipelineVertex3DWSampler::BoundingBox PipelineVertex3DWSampler::getBounds() const {
+Pipeline3DWSampler::BoundingBox Pipeline3DWSampler::getBounds() const {
 	BoundingBox bb;
 	for (auto& sceneNode : _sceneNodes) {
-		SceneNode3DWithTexturePtr node3D = dynamic_pointer_cast<SceneNode3DWTexture> (sceneNode);
+		SceneNode3DWithTexturePtr node3D = dynamic_pointer_cast<PipelineSceneNode3DWSampler> (sceneNode);
 		BoundingBox modelBb = node3D->getBounds();
 		bb.merge(transform(modelBb, node3D->getModelTransform()));
 	}
 	return bb;
 }
 
-void PipelineVertex3DWSampler::updateUniformBuffer(size_t swapChainIndex) {
+void Pipeline3DWSampler::updateUniformBuffer(size_t swapChainIndex) {
 	for (auto& sceneNode : _sceneNodes) {
 		sceneNode->updateUniformBuffer(this, swapChainIndex);
 	}
 }
 
-void PipelineVertex3DWSampler::addCommands(VkCommandBuffer cmdBuff, size_t swapChainIdx) const {
+void Pipeline3DWSampler::addCommands(VkCommandBuffer cmdBuff, size_t swapChainIdx) const {
 	for (const auto& sceneNode : _sceneNodes) {
-		SceneNode3DWithTexturePtr node3D = dynamic_pointer_cast<SceneNode3DWTexture>(sceneNode);
+		SceneNode3DWithTexturePtr node3D = dynamic_pointer_cast<PipelineSceneNode3DWSampler>(sceneNode);
 		node3D->addCommandsIdx(cmdBuff, _pipelineLayout, swapChainIdx);
 	}
 }
 
-void PipelineVertex3DWSampler::cleanupSwapChain() {
+void Pipeline3DWSampler::cleanupSwapChain() {
 	PipelineBase::cleanupSwapChain();
 
 	for (auto& sceneNode : _sceneNodes) {
-		SceneNode3DWithTexturePtr node3D = dynamic_pointer_cast<SceneNode3DWTexture>(sceneNode);
+		SceneNode3DWithTexturePtr node3D = dynamic_pointer_cast<PipelineSceneNode3DWSampler>(sceneNode);
 		node3D->cleanupSwapChain(this);
 	}
 }
 
-void PipelineVertex3DWSampler::createDescriptorSetLayout() {
+void Pipeline3DWSampler::createDescriptorSetLayout() {
 	VkDescriptorSetLayoutBinding uboLayoutBinding = {};
 	uboLayoutBinding.binding = 0;
 	uboLayoutBinding.descriptorCount = 1;
@@ -162,9 +162,9 @@ void PipelineVertex3DWSampler::createDescriptorSetLayout() {
 	}
 }
 
-void PipelineVertex3DWSampler::createDescriptorSets() {
+void Pipeline3DWSampler::createDescriptorSets() {
 	for (auto sceneNode : _sceneNodes) {
-		SceneNode3DWithTexturePtr ptr = dynamic_pointer_cast<SceneNode3DWTexture>(sceneNode);
+		SceneNode3DWithTexturePtr ptr = dynamic_pointer_cast<PipelineSceneNode3DWSampler>(sceneNode);
 		ptr->createDescriptorPool(this);
 		ptr->createDescriptorSets(this);
 	}

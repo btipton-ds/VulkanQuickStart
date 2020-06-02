@@ -48,7 +48,7 @@ This file is part of the VulkanQuickStart Project.
 #include "vk_buffer.h"
 #include "vk_textureImage.h"
 #include "vk_vertexTypes.h"
-#include <vk_sceneNode3D.h>
+#include <vk_pipelineSceneNode3D.h>
 #include <vk_pipeline3D.h>
 
 #include <tm_boundingBox.h>
@@ -60,10 +60,10 @@ namespace TriMesh {
 
 namespace VK {
 
-	class Model : public SceneNode3D {
+	class Model : public PipelineSceneNode3D {
 	public:
 		using BoundingBox = CBoundingBox3D<float>;
-		using VertexType = PipelineVertex3D::VertexType;
+		using VertexType = Pipeline3D::VertexType;
 
 		static inline ModelPtr create(const PipelineBasePtr& ownerPipeline, const TriMesh::CMeshPtr& meshPtr) {
 			return std::shared_ptr<Model>(new Model(ownerPipeline, meshPtr));

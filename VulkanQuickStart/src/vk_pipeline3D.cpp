@@ -43,7 +43,7 @@ This file is part of the VulkanQuickStart Project.
 #include <glm/gtc/matrix_transform.hpp>
 
 #include <vk_pipeline3D.h>
-#include <vk_sceneNode3D.h>
+#include <vk_pipelineSceneNode3D.h>
 #include <vk_deviceContext.h>
 #include <vk_buffer.h>
 #include <vk_vertexTypes.h>
@@ -52,15 +52,15 @@ This file is part of the VulkanQuickStart Project.
 using namespace VK;
 using namespace std;
 
-string PipelineVertex3D::getShaderId() {
-	return "PipelineVertex3D";
+string Pipeline3D::getShaderId() {
+	return "Pipeline3D";
 }
 
-string PipelineVertex3D::getShaderIdMethod() {
+string Pipeline3D::getShaderIdMethod() {
 	return getShaderId();
 }
 
-PipelineVertex3D::PipelineVertex3D(const VulkanAppPtr& app)
+Pipeline3D::Pipeline3D(const VulkanAppPtr& app)
 	: Pipeline(app)
 {}
 
@@ -72,8 +72,8 @@ namespace {
 		return glm::vec4(pt[0], pt[1], pt[2], 1);
 	}
 
-	PipelineVertex3D::BoundingBox transform(const PipelineVertex3D::BoundingBox& bb, const glm::mat4& xform) {
-		PipelineVertex3D::BoundingBox result;
+	Pipeline3D::BoundingBox transform(const Pipeline3D::BoundingBox& bb, const glm::mat4& xform) {
+		Pipeline3D::BoundingBox result;
 		glm::vec4 pt(0, 0, 0, 1);
 		for (int i = 0; i < 2; i++) {
 			pt[0] = i == 0 ? bb.getMin()[0] : bb.getMax()[0];
@@ -90,24 +90,24 @@ namespace {
 	}
 }
 
-PipelineVertex3D::BoundingBox PipelineVertex3D::getBounds() const {
+Pipeline3D::BoundingBox Pipeline3D::getBounds() const {
 	BoundingBox bb;
 	for (auto& sceneNode : _sceneNodes) {
-		SceneNode3DPtr node3D = dynamic_pointer_cast<SceneNode3D> (sceneNode);
+		SceneNode3DPtr node3D = dynamic_pointer_cast<PipelineSceneNode3D> (sceneNode);
 		BoundingBox modelBb = node3D->getBounds();
 		bb.merge(transform(modelBb, node3D->getModelTransform()));
 	}
 	return bb;
 }
 
-void PipelineVertex3D::updateUniformBuffer(size_t swapChainIndex) {
+void Pipeline3D::updateUniformBuffer(size_t swapChainIndex) {
 	for (auto& sceneNode : _sceneNodes) {
 		sceneNode->updateUniformBuffer(this, swapChainIndex);
 	}
 
 }
 
-void PipelineVertex3D::createDescriptorSetLayout() {
+void Pipeline3D::createDescriptorSetLayout() {
 	VkDescriptorSetLayoutBinding uboLayoutBinding = {};
 	uboLayoutBinding.binding = 0;
 	uboLayoutBinding.descriptorCount = 1;
@@ -126,7 +126,7 @@ void PipelineVertex3D::createDescriptorSetLayout() {
 	}
 }
 
-void PipelineVertex3D::createDescriptorSets() {
+void Pipeline3D::createDescriptorSets() {
 	auto dc = _app->getDeviceContext().device_;
 
 	const auto& swap = _app->getSwapChain();
@@ -171,7 +171,7 @@ void PipelineVertex3D::createDescriptorSets() {
 	}
 }
 
-void PipelineVertex3D::createUniformBuffers() {
+void Pipeline3D::createUniformBuffers() {
 	size_t bufferSize = sizeof(UniformBufferObject);
 	const auto& swap = _app->getSwapChain();
 	size_t swapChainSize = (uint32_t)swap._vkImages.size();

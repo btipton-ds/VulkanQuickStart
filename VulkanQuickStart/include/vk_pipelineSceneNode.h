@@ -31,45 +31,21 @@ This file is part of the VulkanQuickStart Project.
 
 #include <vk_defines.h>
 
-#include <tm_boundingBox.h>
-#include <vk_pipeline.h>
-#include <vk_uniformBuffers.h>
-#include <vk_vertexTypes.h>
+#include <vk_pipelineSceneNodeBase.h>
 
 namespace VK {
 
-	class Pipeline3D : public Pipeline<UniformBufferObject3D, Vertex3_PNCf> {
+	template<class PIPELINE_TYPE>
+	class PipelineSceneNode : public PipelineSceneNodeBase {
 	public:
-		using UniformBufferObject = UniformBufferObject3D;
-		using BoundingBox = CBoundingBox3D<float>;
-		using PipelinePtr = std::shared_ptr<Pipeline3D>;
+		PipelineSceneNode(const PipelineBasePtr& ownerPipeline);
 
-		static std::string getShaderId();
-
-		Pipeline3D(const VulkanAppPtr& app);
-
-		void setUniformBufferPtr(const UniformBufferObject* ubo);
-		BoundingBox getBounds() const;
-
-		void updateUniformBuffer(size_t swapChainIndex) override;
-
-		const UniformBufferObject& getUniformBuffer() const;
-
-	protected:
-		std::string getShaderIdMethod() override;
-		virtual void createDescriptorSetLayout() override;
-		virtual void createDescriptorSets() override;
-		virtual void createUniformBuffers() override;
-
-		const UniformBufferObject* _ubo;
 	};
 
-	inline void Pipeline3D::setUniformBufferPtr(const UniformBufferObject* ubo) {
-		_ubo = ubo;
-	}
-
-	inline const Pipeline3D::UniformBufferObject& Pipeline3D::getUniformBuffer() const {
-		return *_ubo;
+	template<class PIPELINE_TYPE>
+	inline PipelineSceneNode<PIPELINE_TYPE>::PipelineSceneNode(const PipelineBasePtr& ownerPipeline)
+		: PipelineSceneNodeBase(ownerPipeline)
+	{
 	}
 
 }

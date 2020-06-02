@@ -64,11 +64,11 @@ namespace VK {
 	class PipelineUi;
 	using PipelineUiPtr = std::shared_ptr<PipelineUi>;
 
-	class SceneNodeBase;
-	using SceneNodeBasePtr = std::shared_ptr<SceneNodeBase>;
+	class PipelineSceneNodeBase;
+	using SceneNodeBasePtr = std::shared_ptr<PipelineSceneNodeBase>;
 
 	template<class PIPELINE_TYPE>
-	class SceneNode;
+	class PipelineSceneNode;
 
 	class SceneNodeGroup;
 	using SceneNodeGroupPtr = std::shared_ptr<SceneNodeGroup>;

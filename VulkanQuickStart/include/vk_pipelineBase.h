@@ -43,7 +43,7 @@ This file is part of the VulkanQuickStart Project.
 
 #include <vk_forwardDeclarations.h>
 #include <vk_buffer.h>
-#include <vk_sceneNode.h>
+#include <vk_pipelineSceneNode.h>
 
 namespace VK {
 

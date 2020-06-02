@@ -31,23 +31,23 @@ This file is part of the VulkanQuickStart Project.
 
 #include <memory>
 
-#include <vk_sceneNode3D.h>
+#include <vk_pipelineSceneNode3D.h>
 #include <vk_pipeline3D.h>
 
 using namespace std;
 using namespace VK;
 
-SceneNode3D::SceneNode3D(const PipelineBasePtr& ownerPipeline)
-	: PipelineVertex3D::SceneNode(ownerPipeline)
+PipelineSceneNode3D::PipelineSceneNode3D(const PipelineBasePtr& ownerPipeline)
+	: Pipeline3D::PipelineSceneNode(ownerPipeline)
 	, _modelXForm(glm::mat4(1.0f))
 {}
 
-SceneNode3D::~SceneNode3D() {
+PipelineSceneNode3D::~PipelineSceneNode3D() {
 }
 
 
-void SceneNode3D::updateUniformBuffer(PipelineBase* pipeline, size_t swapChainIndex) {
-	auto pipeline3D = dynamic_cast<PipelineVertex3D*>(pipeline);
+void PipelineSceneNode3D::updateUniformBuffer(PipelineBase* pipeline, size_t swapChainIndex) {
+	auto pipeline3D = dynamic_cast<Pipeline3D*>(pipeline);
 	auto ubo = pipeline3D->getUniformBuffer();
 	ubo.model *= _modelXForm;
 	pipeline->updateUniformBufferTempl(swapChainIndex, ubo);

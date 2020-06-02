@@ -31,27 +31,47 @@ This file is part of the VulkanQuickStart Project.
 
 #include <vk_defines.h>
 
-#include <vk_forwardDeclarations.h>
-#include <vk_sceneNode.h>
-#include <vk_pipelineUi.h>
+
+#define GLM_FORCE_RADIANS
+#define GLM_FORCE_DEPTH_ZERO_TO_ONE
+#include <glm/glm.hpp>
+
+#include <vk_pipelineSceneNode.h>
+#include <vk_pipeline3D.h>
 
 namespace VK {
 
-	class SceneNodeUi : public PipelineUi::SceneNode {
+	class PipelineSceneNode3D : public Pipeline3D::PipelineSceneNode {
 	public:
-		SceneNodeUi(const PipelineBasePtr& ownerPipeline);
+		using BoundingBox = Pipeline3D::BoundingBox;
+		using UniformBufferObject = Pipeline3D::UniformBufferObject;
 
+		PipelineSceneNode3D(const PipelineBasePtr& ownerPipeline);
+		virtual ~PipelineSceneNode3D();
+
+		virtual BoundingBox getBounds() const = 0;
 		void updateUniformBuffer(PipelineBase* pipeline, size_t swapChainIndex) override;
 
-		void createDescriptorPool(PipelineUi* ownerPipeline);
-		virtual void createDescriptorSets(PipelineUi* ownerPipeline);
-		void cleanupSwapChain(PipelineUi* ownerPipeline);
-		void addCommandsIdx(VkCommandBuffer cmdBuff, VkPipelineLayout pipelineLayout, size_t swapChainIdx);
+		void setModelTransform(const glm::mat4& xform);
+		const glm::mat4& getModelTransform() const;
+		glm::mat4& getModelTransform();
 
 	private:
-		VkDescriptorPool _descriptorPool = VK_NULL_HANDLE;
-		std::vector<VkDescriptorSet> _descriptorSets;
+		glm::mat4 _modelXForm;
 	};
+	using SceneNode3DPtr = std::shared_ptr<PipelineSceneNode3D>;
+	using SceneNode3DConstPtr = std::shared_ptr<const PipelineSceneNode3D>;
 
-	using SceneNodeUiPtr = std::shared_ptr<SceneNodeUi>;
+	inline void PipelineSceneNode3D::setModelTransform(const glm::mat4& xform) {
+		_modelXForm = xform;
+	}
+
+	inline const glm::mat4& PipelineSceneNode3D::getModelTransform() const {
+		return _modelXForm;
+	}
+
+	inline glm::mat4& PipelineSceneNode3D::getModelTransform() {
+		return _modelXForm;
+	}
+
 }

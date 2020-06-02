@@ -48,7 +48,7 @@ This file is part of the VulkanQuickStart Project.
 #include "vk_buffer.h"
 #include "vk_textureImage.h"
 #include "vk_vertexTypes.h"
-#include <vk_sceneNode3DWTexture.h>
+#include <vk_pipelineSceneNode3DWSampler.h>
 #include <vk_pipeline3D.h>
 
 #include <tm_boundingBox.h>
@@ -67,10 +67,10 @@ namespace VK {
 		Current project focus is on scientific visualization which is mostly about vertex colors. Off to work on that first.
 	*/
 
-	class ModelObj : public SceneNode3DWTexture {
+	class ModelObj : public PipelineSceneNode3DWSampler {
 	public:
 		using BoundingBox = CBoundingBox3D<float>;
-		using VertexType = PipelineVertex3DWSampler::VertexType;
+		using VertexType = Pipeline3DWSampler::VertexType;
 
 		/*
 		Tiny obj doesn't handle file names with spaces. It thinks material file names with spaces are multiple files. Remove the spaces.

@@ -47,10 +47,10 @@ This file is part of the VulkanQuickStart Project.
 #include <vk_forwardDeclarations.h>
 #include "vk_deviceContext.h"
 #include "vk_image.h"
-#include <vk_sceneNode.h>
+#include <vk_pipelineSceneNode.h>
 #include <vk_sceneNodeGroup.h>
-#include <vk_sceneNode3D.h>
-#include <vk_sceneNode3DWTexture.h>
+#include <vk_pipelineSceneNode3D.h>
+#include <vk_pipelineSceneNode3DWSampler.h>
 #include <vk_scene.h>
 #include <vk_pipeline3D.h>
 #include <vk_shaderPool.h>
@@ -79,7 +79,7 @@ namespace VK {
 
 	class VulkanApp : public std::enable_shared_from_this<VulkanApp> {
 	public:
-		using UniformBufferObject = PipelineVertex3D::UniformBufferObject;
+		using UniformBufferObject = Pipeline3D::UniformBufferObject;
 
 		using BoundingBox = CBoundingBox3D<float>;
 

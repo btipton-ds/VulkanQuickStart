@@ -36,7 +36,7 @@ This file is part of the VulkanQuickStart Project.
 
 #include <vulkan/vulkan_core.h>
 
-#include <vk_sceneNode.h>
+#include <vk_pipelineSceneNode.h>
 
 namespace VK {
 

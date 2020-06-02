@@ -1,5 +1,3 @@
-#pragma once
-
 /*
 
 This file is part of the VulkanQuickStart Project.
@@ -31,21 +29,17 @@ This file is part of the VulkanQuickStart Project.
 
 #include <vk_defines.h>
 
-#include <vk_sceneNodeBase.h>
+#include <vk_pipelineSceneNodeBase.h>
 
-namespace VK {
+using namespace VK;
 
-	template<class PIPELINE_TYPE>
-	class SceneNode : public SceneNodeBase {
-	public:
-		SceneNode(const PipelineBasePtr& ownerPipeline);
+PipelineSceneNodeBase::PipelineSceneNodeBase(const PipelineBasePtr& ownerPipeline)
+	: _ownerPipeline(ownerPipeline)
+{}
 
-	};
+PipelineSceneNodeBase::~PipelineSceneNodeBase() {
+}
 
-	template<class PIPELINE_TYPE>
-	inline SceneNode<PIPELINE_TYPE>::SceneNode(const PipelineBasePtr& ownerPipeline)
-		: SceneNodeBase(ownerPipeline)
-	{
-	}
+void PipelineSceneNodeBase::updateUniformBuffer(PipelineBase* pipeline, size_t swapChainIndex) {
 
 }

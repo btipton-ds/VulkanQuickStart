@@ -31,53 +31,33 @@ This file is part of the VulkanQuickStart Project.
 
 #include <vk_defines.h>
 
+#include <memory>
+#include <vector>
+
+#define GLM_FORCE_RADIANS
+#define GLM_FORCE_DEPTH_ZERO_TO_ONE
+#include <glm/glm.hpp>
+
 #include <tm_boundingBox.h>
-#include <vk_pipeline.h>
-#include <vk_uniformBuffers.h>
-#include <vk_vertexTypes.h>
+#include <vulkan/vulkan_core.h>
+
+#include <vk_forwardDeclarations.h>
+#include <vk_textureImage.h>
 
 namespace VK {
 
-	class PipelineVertex3DWSampler : public Pipeline<UniformBufferObject3D, Vertex3_PNCTf> {
+	class PipelineSceneNodeBase {
 	public:
-		static uint32_t getMaxSamplers();
-		using UniformBufferObject = UniformBufferObject3D;
-		using BoundingBox = CBoundingBox3D<float>;
-		using PipelinePtr = std::shared_ptr<PipelineVertex3DWSampler>;
+		PipelineSceneNodeBase(const PipelineBasePtr& ownerPipeline);
+		virtual ~PipelineSceneNodeBase();
 
-		static std::string getShaderId();
-		PipelineVertex3DWSampler(const VulkanAppPtr& app);
-
-		void setUniformBufferPtr(const UniformBufferObject* ubo);
-		BoundingBox getBounds() const;
-
-		void updateUniformBuffer(size_t swapChainIndex) override;
-		void addCommands(VkCommandBuffer cmdBuff, size_t swapChainIdx) const override;
-		void cleanupSwapChain() override;
-
-		const UniformBufferObject& getUniformBuffer() const;
+		virtual void addCommands(VkCommandBuffer cmdBuff, VkPipelineLayout pipelineLayout, const VkDescriptorSet& descSet) const = 0;
+		virtual void buildImageInfoList(std::vector<VkDescriptorImageInfo>& imageInfoList) const = 0;
+		virtual void updateUniformBuffer(PipelineBase* pipeline, size_t swapChainIndex);
 
 	protected:
-		std::string getShaderIdMethod() override;
-		virtual void createDescriptorSetLayout() override;
-		virtual void createDescriptorSets() override;
-		virtual void createUniformBuffers() override;
-
-		const UniformBufferObject* _ubo;
-
+		PipelineBasePtr _ownerPipeline;
 	};
 
-	inline uint32_t PipelineVertex3DWSampler::getMaxSamplers() {
-		return 7; 
-	};
-
-	inline void PipelineVertex3DWSampler::setUniformBufferPtr(const UniformBufferObject* ubo) {
-		_ubo = ubo;
-	}
-
-
-	inline const PipelineVertex3DWSampler::UniformBufferObject& PipelineVertex3DWSampler::getUniformBuffer() const {
-		return *_ubo;
-	}
 
 }

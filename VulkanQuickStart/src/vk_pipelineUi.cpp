@@ -31,7 +31,7 @@ This file is part of the VulkanQuickStart Project.
 
 #include <array>
 #include <vk_pipelineUi.h>
-#include <vk_sceneNodeUi.h>
+#include <vk_pipelineSceneNodeUi.h>
 #include <vk_shaderPool.h>
 #include <vk_app.h>
 
@@ -57,7 +57,7 @@ PipelineUi::PipelineUi(const VulkanAppPtr& app)
 
 void PipelineUi::addCommands(VkCommandBuffer cmdBuff, size_t swapChainIdx) const {
 	for (const auto& sceneNode : _sceneNodes) {
-		SceneNodeUiPtr ptr = dynamic_pointer_cast<SceneNodeUi>(sceneNode);
+		SceneNodeUiPtr ptr = dynamic_pointer_cast<PipelineSceneNodeUi>(sceneNode);
 		ptr->addCommandsIdx(cmdBuff, _pipelineLayout, swapChainIdx);
 	}
 }
@@ -66,7 +66,7 @@ void PipelineUi::cleanupSwapChain() {
 	PipelineBase::cleanupSwapChain();
 
 	for (auto& sceneNode : _sceneNodes) {
-		SceneNodeUiPtr ptr = dynamic_pointer_cast<SceneNodeUi>(sceneNode);
+		SceneNodeUiPtr ptr = dynamic_pointer_cast<PipelineSceneNodeUi>(sceneNode);
 		ptr->cleanupSwapChain(this);
 	}
 }
@@ -137,7 +137,7 @@ void PipelineUi::createDescriptorSetLayout() {
 
 void PipelineUi::createDescriptorSets() {
 	for (auto sceneNode : _sceneNodes) {
-		SceneNodeUiPtr ptr = dynamic_pointer_cast<SceneNodeUi>(sceneNode);
+		SceneNodeUiPtr ptr = dynamic_pointer_cast<PipelineSceneNodeUi>(sceneNode);
 		ptr->createDescriptorPool(this);
 		ptr->createDescriptorSets(this);
 	}

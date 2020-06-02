@@ -68,7 +68,7 @@ namespace std {
 }
 
 Model::Model(const PipelineBasePtr& ownerPipeline, const TriMesh::CMeshPtr& meshPtr)
-	: SceneNode3D(ownerPipeline)
+	: PipelineSceneNode3D(ownerPipeline)
 	, _vertexBuffer(ownerPipeline->getApp().get())
 	, _indexBuffer(ownerPipeline->getApp().get())
 {
@@ -78,7 +78,7 @@ Model::Model(const PipelineBasePtr& ownerPipeline, const TriMesh::CMeshPtr& mesh
 }
 
 Model::Model(const PipelineBasePtr& ownerPipeline)
-	: SceneNode3D(ownerPipeline)
+	: PipelineSceneNode3D(ownerPipeline)
 	, _vertexBuffer(ownerPipeline->getApp().get())
 	, _indexBuffer(ownerPipeline->getApp().get())
 {

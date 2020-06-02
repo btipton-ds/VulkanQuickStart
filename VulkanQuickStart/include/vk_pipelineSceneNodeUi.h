@@ -31,33 +31,27 @@ This file is part of the VulkanQuickStart Project.
 
 #include <vk_defines.h>
 
-#include <memory>
-#include <vector>
-
-#define GLM_FORCE_RADIANS
-#define GLM_FORCE_DEPTH_ZERO_TO_ONE
-#include <glm/glm.hpp>
-
-#include <tm_boundingBox.h>
-#include <vulkan/vulkan_core.h>
-
 #include <vk_forwardDeclarations.h>
-#include <vk_textureImage.h>
+#include <vk_pipelineSceneNode.h>
+#include <vk_pipelineUi.h>
 
 namespace VK {
 
-	class SceneNodeBase {
+	class PipelineSceneNodeUi : public PipelineUi::PipelineSceneNode {
 	public:
-		SceneNodeBase(const PipelineBasePtr& ownerPipeline);
-		virtual ~SceneNodeBase();
+		PipelineSceneNodeUi(const PipelineBasePtr& ownerPipeline);
 
-		virtual void addCommands(VkCommandBuffer cmdBuff, VkPipelineLayout pipelineLayout, const VkDescriptorSet& descSet) const = 0;
-		virtual void buildImageInfoList(std::vector<VkDescriptorImageInfo>& imageInfoList) const = 0;
-		virtual void updateUniformBuffer(PipelineBase* pipeline, size_t swapChainIndex);
+		void updateUniformBuffer(PipelineBase* pipeline, size_t swapChainIndex) override;
 
-	protected:
-		PipelineBasePtr _ownerPipeline;
+		void createDescriptorPool(PipelineUi* ownerPipeline);
+		virtual void createDescriptorSets(PipelineUi* ownerPipeline);
+		void cleanupSwapChain(PipelineUi* ownerPipeline);
+		void addCommandsIdx(VkCommandBuffer cmdBuff, VkPipelineLayout pipelineLayout, size_t swapChainIdx);
+
+	private:
+		VkDescriptorPool _descriptorPool = VK_NULL_HANDLE;
+		std::vector<VkDescriptorSet> _descriptorSets;
 	};
 
-
+	using SceneNodeUiPtr = std::shared_ptr<PipelineSceneNodeUi>;
 }

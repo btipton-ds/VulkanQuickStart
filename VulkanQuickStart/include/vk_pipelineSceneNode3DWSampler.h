@@ -31,23 +31,22 @@ This file is part of the VulkanQuickStart Project.
 
 #include <vk_defines.h>
 
-
 #define GLM_FORCE_RADIANS
 #define GLM_FORCE_DEPTH_ZERO_TO_ONE
 #include <glm/glm.hpp>
 
-#include <vk_sceneNode.h>
-#include <vk_pipeline3D.h>
+#include <vk_pipelineSceneNode.h>
+#include <vk_pipeline3DWithSampler.h>
 
 namespace VK {
 
-	class SceneNode3D : public PipelineVertex3D::SceneNode {
+	class PipelineSceneNode3DWSampler : public Pipeline3DWSampler::PipelineSceneNode {
 	public:
-		using BoundingBox = PipelineVertex3D::BoundingBox;
-		using UniformBufferObject = PipelineVertex3D::UniformBufferObject;
+		using BoundingBox = Pipeline3DWSampler::BoundingBox;
+		using UniformBufferObject = Pipeline3DWSampler::UniformBufferObject;
 
-		SceneNode3D(const PipelineBasePtr& ownerPipeline);
-		virtual ~SceneNode3D();
+		PipelineSceneNode3DWSampler(const PipelineBasePtr& ownerPipeline);
+		virtual ~PipelineSceneNode3DWSampler();
 
 		virtual BoundingBox getBounds() const = 0;
 		void updateUniformBuffer(PipelineBase* pipeline, size_t swapChainIndex) override;
@@ -56,21 +55,28 @@ namespace VK {
 		const glm::mat4& getModelTransform() const;
 		glm::mat4& getModelTransform();
 
+		void createDescriptorPool(Pipeline3DWSampler* ownerPipeline);
+		virtual void createDescriptorSets(Pipeline3DWSampler* ownerPipeline);
+		void cleanupSwapChain(Pipeline3DWSampler* ownerPipeline);
+		void addCommandsIdx(VkCommandBuffer cmdBuff, VkPipelineLayout pipelineLayout, size_t swapChainIdx);
+
 	private:
 		glm::mat4 _modelXForm;
-	};
-	using SceneNode3DPtr = std::shared_ptr<SceneNode3D>;
-	using SceneNode3DConstPtr = std::shared_ptr<const SceneNode3D>;
 
-	inline void SceneNode3D::setModelTransform(const glm::mat4& xform) {
+		VkDescriptorPool _descriptorPool = VK_NULL_HANDLE;
+		std::vector<VkDescriptorSet> _descriptorSets;
+	};
+	using SceneNode3DWithTexturePtr = std::shared_ptr<PipelineSceneNode3DWSampler>;
+
+	inline void PipelineSceneNode3DWSampler::setModelTransform(const glm::mat4& xform) {
 		_modelXForm = xform;
 	}
 
-	inline const glm::mat4& SceneNode3D::getModelTransform() const {
+	inline const glm::mat4& PipelineSceneNode3DWSampler::getModelTransform() const {
 		return _modelXForm;
 	}
 
-	inline glm::mat4& SceneNode3D::getModelTransform() {
+	inline glm::mat4& PipelineSceneNode3DWSampler::getModelTransform() {
 		return _modelXForm;
 	}
 

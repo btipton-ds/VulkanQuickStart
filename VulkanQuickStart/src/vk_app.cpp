@@ -45,10 +45,10 @@ This file is part of the VulkanQuickStart Project.
 #include "vk_vertexTypes.h"
 #include "vk_model.h"
 #include <vk_modelObj.h>
-#include <vk_sceneNode.h>
+#include <vk_pipelineSceneNode.h>
 #include <vk_scene.h>
 #include <vk_pipeline3D.h>
-#include <vk_pipeline3DWithTexture.h>
+#include <vk_pipeline3DWithSampler.h>
 #include <vk_pipelineUi.h>
 #include <vk_ui_window.h>
 #include "vk_app.h"
@@ -154,7 +154,7 @@ struct VulkanApp::SwapChainSupportDetails {
 
 SceneNode3DWithTexturePtr VulkanApp::addSceneNode3D(const std::string& path, const std::string& filename) {
 	std::lock_guard<mutex> guard(_swapChainMutex);
-	auto pipeline = addPipeline(createPipelineWithSource<PipelineVertex3DWSampler>(getAppPtr(), "shaders/shader_depth_vert.spv", "shaders/shader_depth_frag.spv"));
+	auto pipeline = addPipeline(createPipelineWithSource<Pipeline3DWSampler>(getAppPtr(), "shaders/shader_depth_vert.spv", "shaders/shader_depth_frag.spv"));
 	pipeline->setUniformBufferPtr(&_ubo);
 
 	ModelObjPtr result = ModelObj::create(pipeline, path, filename);
@@ -169,7 +169,7 @@ SceneNode3DWithTexturePtr VulkanApp::addSceneNode3D(const std::string& path, con
 
 SceneNode3DPtr VulkanApp::addSceneNode3D(const TriMesh::CMeshPtr& mesh) {
 	std::lock_guard<mutex> guard(_swapChainMutex);
-	auto pipeline = addPipeline(createPipelineWithSource<PipelineVertex3D>(getAppPtr(), "shaders/shader_vert.spv", "shaders/shader_frag.spv"));
+	auto pipeline = addPipeline(createPipelineWithSource<Pipeline3D>(getAppPtr(), "shaders/shader_vert.spv", "shaders/shader_frag.spv"));
 	pipeline->setUniformBufferPtr(&_ubo);
 
 	ModelPtr result = Model::create(pipeline, mesh);
@@ -864,11 +864,11 @@ void VulkanApp::updateUniformBuffer(uint32_t swapChainImageIndex) {
 	BoundingBox modelBounds;
 	for (auto& pipeline : _pipelines) {
 
-		auto ptr3D = dynamic_pointer_cast<PipelineVertex3D>(pipeline);
+		auto ptr3D = dynamic_pointer_cast<Pipeline3D>(pipeline);
 		if (ptr3D)
 			modelBounds.merge(ptr3D->getBounds());
 
-		auto ptr3DWTex = dynamic_pointer_cast<PipelineVertex3DWSampler>(pipeline);
+		auto ptr3DWTex = dynamic_pointer_cast<Pipeline3DWSampler>(pipeline);
 		if (ptr3DWTex)
 			modelBounds.merge(ptr3DWTex->getBounds());
 	}

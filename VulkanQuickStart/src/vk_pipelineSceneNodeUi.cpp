@@ -29,35 +29,24 @@ This file is part of the VulkanQuickStart Project.
 
 #include <vk_defines.h>
 
-#include <memory>
-
-#include <vk_pipeline3DWithTexture.h>
-#include <vk_sceneNode3DWTexture.h>
-#include <vk_pipeline3D.h>
+#include <vk_pipelineSceneNodeUi.h>
 #include <vk_app.h>
 
 using namespace std;
 using namespace VK;
 
-SceneNode3DWTexture::SceneNode3DWTexture(const PipelineBasePtr& ownerPipeline)
-	: PipelineVertex3DWSampler::SceneNode(ownerPipeline)
-	, _modelXForm(glm::mat4(1.0f))
-{
-}
-
-SceneNode3DWTexture::~SceneNode3DWTexture() {
-}
+PipelineSceneNodeUi::PipelineSceneNodeUi(const PipelineBasePtr& ownerPipeline)
+	: PipelineUi::PipelineSceneNode(ownerPipeline)
+{}
 
 
-void SceneNode3DWTexture::updateUniformBuffer(PipelineBase* pipeline, size_t swapChainIndex) {
-	auto pipeline3D = dynamic_cast<PipelineVertex3DWSampler*>(pipeline);
-	auto ubo = pipeline3D->getUniformBuffer();
-	ubo.model *= _modelXForm;
+void PipelineSceneNodeUi::updateUniformBuffer(PipelineBase* pipeline, size_t swapChainIndex) {
+	auto pipelineUi = dynamic_cast<PipelineUi*> (pipeline);
+	auto ubo = pipelineUi->getUniformBuffer();
 	pipeline->updateUniformBufferTempl(swapChainIndex, ubo);
 }
 
-
-void SceneNode3DWTexture::cleanupSwapChain(PipelineVertex3DWSampler* ownerPipeline) {
+void PipelineSceneNodeUi::cleanupSwapChain(PipelineUi* ownerPipeline) {
 	_descriptorSets.clear();
 
 	auto devCon = ownerPipeline->getApp()->getDeviceContext().device_;
@@ -65,12 +54,12 @@ void SceneNode3DWTexture::cleanupSwapChain(PipelineVertex3DWSampler* ownerPipeli
 		vkDestroyDescriptorPool(devCon, _descriptorPool, nullptr);
 }
 
-void SceneNode3DWTexture::addCommandsIdx(VkCommandBuffer cmdBuff, VkPipelineLayout pipelineLayout, size_t swapChainIdx) {
+void PipelineSceneNodeUi::addCommandsIdx(VkCommandBuffer cmdBuff, VkPipelineLayout pipelineLayout, size_t swapChainIdx) {
 	addCommands(cmdBuff, pipelineLayout, _descriptorSets[swapChainIdx]);
 }
 
 
-void SceneNode3DWTexture::createDescriptorPool(PipelineVertex3DWSampler* ownerPipeline) {
+void PipelineSceneNodeUi::createDescriptorPool(PipelineUi* ownerPipeline) {
 	auto app = ownerPipeline->getApp();
 	const auto& swap = app->getSwapChain();
 	auto devCon = app->getDeviceContext().device_;
@@ -92,7 +81,7 @@ void SceneNode3DWTexture::createDescriptorPool(PipelineVertex3DWSampler* ownerPi
 	}
 }
 
-void SceneNode3DWTexture::createDescriptorSets(PipelineVertex3DWSampler* ownerPipeline) {
+void PipelineSceneNodeUi::createDescriptorSets(PipelineUi* ownerPipeline) {
 	auto app = ownerPipeline->getApp();
 	auto dc = app->getDeviceContext().device_;
 
@@ -134,18 +123,17 @@ void SceneNode3DWTexture::createDescriptorSets(PipelineVertex3DWSampler* ownerPi
 		descUniform.pBufferInfo = &bufferInfo;
 		descriptorWrites.push_back(descUniform);
 
-		uint32_t imageCount = min(PipelineVertex3DWSampler::getMaxSamplers(), static_cast<uint32_t> (imageInfoList.size()));
-
 		VkWriteDescriptorSet descSampler = {};
 		descSampler.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
 		descSampler.dstSet = _descriptorSets[i];
 		descSampler.dstBinding = 1;
 		descSampler.dstArrayElement = 0;
 		descSampler.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-		descSampler.descriptorCount = imageCount;
+		descSampler.descriptorCount = static_cast<uint32_t> (imageInfoList.size());
 		descSampler.pImageInfo = imageInfoList.data();
 		descriptorWrites.push_back(descSampler);
 
 		vkUpdateDescriptorSets(dc, static_cast<uint32_t>(descriptorWrites.size()), descriptorWrites.data(), 0, nullptr);
 	}
 }
+

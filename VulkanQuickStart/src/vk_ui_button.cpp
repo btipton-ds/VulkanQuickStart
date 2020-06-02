@@ -44,7 +44,7 @@ namespace VK::UI {
 	using namespace std;
 
 	Button::Button(const PipelineBasePtr& ownerPipeline)
-	: SceneNodeUi(ownerPipeline)
+	: PipelineSceneNodeUi(ownerPipeline)
 	, _vertexBuffer(ownerPipeline->getApp().get())
 	, _indexBuffer(ownerPipeline->getApp().get())
 	{
@@ -52,7 +52,7 @@ namespace VK::UI {
 	}
 
 	Button::Button(const PipelineBasePtr& ownerPipeline, const glm::vec4& backgroundColor, const std::string& label, const Rect& rect, const Accel& accel)
-		: SceneNodeUi(ownerPipeline)
+		: PipelineSceneNodeUi(ownerPipeline)
 		, _vertexBuffer(ownerPipeline->getApp().get())
 		, _indexBuffer(ownerPipeline->getApp().get())
 		, _backgroundColor(backgroundColor)

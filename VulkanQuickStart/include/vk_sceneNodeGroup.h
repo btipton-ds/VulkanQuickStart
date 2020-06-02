@@ -32,12 +32,12 @@ This file is part of the VulkanQuickStart Project.
 #include <vk_defines.h>
 
 #include <vk_forwardDeclarations.h>
-#include <vk_sceneNode.h>
+#include <vk_pipelineSceneNode.h>
 
 namespace VK {
 
 
-	class SceneNodeGroup : public SceneNodeBase {
+	class SceneNodeGroup : public PipelineSceneNodeBase {
 	public:
 		SceneNodeGroup(const PipelineBasePtr& ownerPipeline);
 		virtual ~SceneNodeGroup();

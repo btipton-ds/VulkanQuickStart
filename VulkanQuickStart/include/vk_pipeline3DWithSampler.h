@@ -1,3 +1,5 @@
+#pragma once
+
 /*
 
 This file is part of the VulkanQuickStart Project.
@@ -29,17 +31,53 @@ This file is part of the VulkanQuickStart Project.
 
 #include <vk_defines.h>
 
-#include <vk_sceneNodeBase.h>
+#include <tm_boundingBox.h>
+#include <vk_pipeline.h>
+#include <vk_uniformBuffers.h>
+#include <vk_vertexTypes.h>
 
-using namespace VK;
+namespace VK {
 
-SceneNodeBase::SceneNodeBase(const PipelineBasePtr& ownerPipeline)
-	: _ownerPipeline(ownerPipeline)
-{}
+	class Pipeline3DWSampler : public Pipeline<UniformBufferObject3D, Vertex3_PNCTf> {
+	public:
+		static uint32_t getMaxSamplers();
+		using UniformBufferObject = UniformBufferObject3D;
+		using BoundingBox = CBoundingBox3D<float>;
+		using PipelinePtr = std::shared_ptr<Pipeline3DWSampler>;
 
-SceneNodeBase::~SceneNodeBase() {
-}
+		static std::string getShaderId();
+		Pipeline3DWSampler(const VulkanAppPtr& app);
 
-void SceneNodeBase::updateUniformBuffer(PipelineBase* pipeline, size_t swapChainIndex) {
+		void setUniformBufferPtr(const UniformBufferObject* ubo);
+		BoundingBox getBounds() const;
+
+		void updateUniformBuffer(size_t swapChainIndex) override;
+		void addCommands(VkCommandBuffer cmdBuff, size_t swapChainIdx) const override;
+		void cleanupSwapChain() override;
+
+		const UniformBufferObject& getUniformBuffer() const;
+
+	protected:
+		std::string getShaderIdMethod() override;
+		virtual void createDescriptorSetLayout() override;
+		virtual void createDescriptorSets() override;
+		virtual void createUniformBuffers() override;
+
+		const UniformBufferObject* _ubo;
+
+	};
+
+	inline uint32_t Pipeline3DWSampler::getMaxSamplers() {
+		return 7; 
+	};
+
+	inline void Pipeline3DWSampler::setUniformBufferPtr(const UniformBufferObject* ubo) {
+		_ubo = ubo;
+	}
+
+
+	inline const Pipeline3DWSampler::UniformBufferObject& Pipeline3DWSampler::getUniformBuffer() const {
+		return *_ubo;
+	}
 
 }

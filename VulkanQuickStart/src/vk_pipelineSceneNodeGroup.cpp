@@ -34,7 +34,7 @@ This file is part of the VulkanQuickStart Project.
 using namespace VK;
 
 SceneNodeGroup::SceneNodeGroup(const PipelineBasePtr& ownerPipeline) 
-: SceneNodeBase(ownerPipeline)
+: PipelineSceneNodeBase(ownerPipeline)
 {}
 
 SceneNodeGroup::~SceneNodeGroup() {
