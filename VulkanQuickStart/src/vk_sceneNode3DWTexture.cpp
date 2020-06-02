@@ -39,8 +39,9 @@ This file is part of the VulkanQuickStart Project.
 using namespace std;
 using namespace VK;
 
-SceneNode3DWTexture::SceneNode3DWTexture()
-	: _modelXForm(glm::mat4(1.0f))
+SceneNode3DWTexture::SceneNode3DWTexture(const PipelineBasePtr& ownerPipeline)
+	: PipelineVertex3DWSampler::SceneNode(ownerPipeline)
+	, _modelXForm(glm::mat4(1.0f))
 {
 }
 

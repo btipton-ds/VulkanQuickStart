@@ -48,19 +48,16 @@ namespace VK {
 
 	class SceneNodeBase {
 	public:
-		SceneNodeBase();
+		SceneNodeBase(const PipelineBasePtr& ownerPipeline);
 		virtual ~SceneNodeBase();
 
 		virtual void addCommands(VkCommandBuffer cmdBuff, VkPipelineLayout pipelineLayout, const VkDescriptorSet& descSet) const = 0;
 		virtual void buildImageInfoList(std::vector<VkDescriptorImageInfo>& imageInfoList) const = 0;
 		virtual void updateUniformBuffer(PipelineBase* pipeline, size_t swapChainIndex);
 
+	protected:
+		PipelineBasePtr _ownerPipeline;
 	};
 
-	inline SceneNodeBase::SceneNodeBase() {
-	}
-
-	inline SceneNodeBase::~SceneNodeBase() {
-	}
 
 }

@@ -76,8 +76,8 @@ namespace VK {
 		Tiny obj doesn't handle file names with spaces. It thinks material file names with spaces are multiple files. Remove the spaces.
 		*/
 
-		static inline ModelObjPtr create(const VulkanAppPtr& app, const std::string& path, const std::string& filename) {
-			return std::shared_ptr<ModelObj>(new ModelObj(app, path, filename));
+		static inline ModelObjPtr create(const PipelineBasePtr& ownerPipeline, const std::string& path, const std::string& filename) {
+			return std::shared_ptr<ModelObj>(new ModelObj(ownerPipeline, path, filename));
 		}
 
 		void addCommands(VkCommandBuffer cmdBuff, VkPipelineLayout pipelineLayout, const VkDescriptorSet& descSet) const override;
@@ -105,14 +105,13 @@ namespace VK {
 		}
 
 	protected:
-		ModelObj(const VulkanAppPtr& app, const std::string& path, const std::string& filename);
+		ModelObj(const PipelineBasePtr& ownerPipeline, const std::string& path, const std::string& filename);
 
 		void loadModel(std::string path, std::string filename);
 
 		void createVertexBuffer();
 		void createIndexBuffer();
 
-		VulkanAppPtr _app; // TODO I think this should be a parameter, not a member
 		BoundingBox _bounds;
 		std::vector<VertexType> _vertices;
 		std::vector<uint32_t> _indices;

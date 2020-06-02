@@ -52,7 +52,7 @@ namespace VK {
 			Window(const VulkanAppPtr& app);
 
 			void setDefaultButtonSize(float width, float height);
-			ButtonPtr addButton(const Button& btn);
+			ButtonPtr addButton(const glm::vec4& bkgColor, const std::string& label, const Rect& frame);
 
 			size_t getChangeNumber() const;
 

@@ -38,12 +38,13 @@ namespace VK {
 	template<class PIPELINE_TYPE>
 	class SceneNode : public SceneNodeBase {
 	public:
-		SceneNode();
+		SceneNode(const PipelineBasePtr& ownerPipeline);
 
 	};
 
 	template<class PIPELINE_TYPE>
-	inline SceneNode<PIPELINE_TYPE>::SceneNode()
+	inline SceneNode<PIPELINE_TYPE>::SceneNode(const PipelineBasePtr& ownerPipeline)
+		: SceneNodeBase(ownerPipeline)
 	{
 	}
 

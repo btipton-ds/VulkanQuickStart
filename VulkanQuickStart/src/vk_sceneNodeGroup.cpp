@@ -33,6 +33,14 @@ This file is part of the VulkanQuickStart Project.
 
 using namespace VK;
 
+SceneNodeGroup::SceneNodeGroup(const PipelineBasePtr& ownerPipeline) 
+: SceneNodeBase(ownerPipeline)
+{}
+
+SceneNodeGroup::~SceneNodeGroup() {
+
+}
+
 void SceneNodeGroup::addCommands(VkCommandBuffer cmdBuff, VkPipelineLayout pipelineLayout, const VkDescriptorSet& descSet) const {
 	for (const auto& child : _childScenes) {
 		child->addCommands(cmdBuff, pipelineLayout, descSet);

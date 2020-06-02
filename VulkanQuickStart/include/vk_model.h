@@ -65,8 +65,8 @@ namespace VK {
 		using BoundingBox = CBoundingBox3D<float>;
 		using VertexType = PipelineVertex3D::VertexType;
 
-		static inline ModelPtr create(const VulkanAppPtr& app, const TriMesh::CMeshPtr& meshPtr) {
-			return std::shared_ptr<Model>(new Model(app, meshPtr));
+		static inline ModelPtr create(const PipelineBasePtr& ownerPipeline, const TriMesh::CMeshPtr& meshPtr) {
+			return std::shared_ptr<Model>(new Model(ownerPipeline, meshPtr));
 		}
 
 		void addCommands(VkCommandBuffer cmdBuff, VkPipelineLayout pipelineLayout, const VkDescriptorSet& descSet) const override;
@@ -94,8 +94,8 @@ namespace VK {
 		}
 
 	protected:
-		Model(const VulkanAppPtr& app);
-		Model(const VulkanAppPtr& app, const TriMesh::CMeshPtr& meshPtr);
+		Model(const PipelineBasePtr& ownerPipeline);
+		Model(const PipelineBasePtr& ownerPipeline, const TriMesh::CMeshPtr& meshPtr);
 
 		void loadModel(const TriMesh::CMeshPtr& meshPtr);
 

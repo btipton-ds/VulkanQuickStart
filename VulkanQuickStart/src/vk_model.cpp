@@ -67,20 +67,20 @@ namespace std {
 	}
 }
 
-Model::Model(const VulkanAppPtr& app, const TriMesh::CMeshPtr& meshPtr)
-	: _app(app)
-	, _vertexBuffer(app.get())
-	, _indexBuffer(app.get())
+Model::Model(const PipelineBasePtr& ownerPipeline, const TriMesh::CMeshPtr& meshPtr)
+	: SceneNode3D(ownerPipeline)
+	, _vertexBuffer(ownerPipeline->getApp().get())
+	, _indexBuffer(ownerPipeline->getApp().get())
 {
 	loadModel(meshPtr);
 	createVertexBuffer();
 	createIndexBuffer();
 }
 
-Model::Model(const VulkanAppPtr& app)
-	: _app(app)
-	, _vertexBuffer(app.get())
-	, _indexBuffer(app.get())
+Model::Model(const PipelineBasePtr& ownerPipeline)
+	: SceneNode3D(ownerPipeline)
+	, _vertexBuffer(ownerPipeline->getApp().get())
+	, _indexBuffer(ownerPipeline->getApp().get())
 {
 }
 

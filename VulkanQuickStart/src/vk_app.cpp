@@ -105,7 +105,7 @@ VulkanApp::VulkanApp(int width, int height)
 	_modelToWorld = glm::identity<glm::mat4>();
 
 	_scene = std::make_shared<Scene>();
-	_root3DNode = _scene->addRootSceneNode(std::make_shared<SceneNodeGroup>());
+	_root3DNode = _scene->addRootSceneNode(std::make_shared<SceneNodeGroup>(nullptr));
 
 
 	initWindow(width, height);
@@ -154,11 +154,12 @@ struct VulkanApp::SwapChainSupportDetails {
 
 SceneNode3DWithTexturePtr VulkanApp::addSceneNode3D(const std::string& path, const std::string& filename) {
 	std::lock_guard<mutex> guard(_swapChainMutex);
-	ModelObjPtr result = ModelObj::create(getAppPtr(), path, filename);
-	getRoot3D()->addChild(result);
-
 	auto pipeline = addPipeline(createPipelineWithSource<PipelineVertex3DWSampler>(getAppPtr(), "shaders/shader_depth_vert.spv", "shaders/shader_depth_frag.spv"));
 	pipeline->setUniformBufferPtr(&_ubo);
+
+	ModelObjPtr result = ModelObj::create(pipeline, path, filename);
+	getRoot3D()->addChild(result);
+
 	pipeline->addSceneNode(result);
 
 	_changeNumber++;
@@ -168,11 +169,13 @@ SceneNode3DWithTexturePtr VulkanApp::addSceneNode3D(const std::string& path, con
 
 SceneNode3DPtr VulkanApp::addSceneNode3D(const TriMesh::CMeshPtr& mesh) {
 	std::lock_guard<mutex> guard(_swapChainMutex);
-	ModelPtr result = Model::create(getAppPtr(), mesh);
-	getRoot3D()->addChild(result);
-
 	auto pipeline = addPipeline(createPipelineWithSource<PipelineVertex3D>(getAppPtr(), "shaders/shader_vert.spv", "shaders/shader_frag.spv"));
 	pipeline->setUniformBufferPtr(&_ubo);
+
+	ModelPtr result = Model::create(pipeline, mesh);
+
+	getRoot3D()->addChild(result);
+
 	pipeline->addSceneNode(result);
 
 	_changeNumber++;

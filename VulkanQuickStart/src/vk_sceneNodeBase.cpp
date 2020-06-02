@@ -33,6 +33,13 @@ This file is part of the VulkanQuickStart Project.
 
 using namespace VK;
 
+SceneNodeBase::SceneNodeBase(const PipelineBasePtr& ownerPipeline)
+	: _ownerPipeline(ownerPipeline)
+{}
+
+SceneNodeBase::~SceneNodeBase() {
+}
+
 void SceneNodeBase::updateUniformBuffer(PipelineBase* pipeline, size_t swapChainIndex) {
 
 }

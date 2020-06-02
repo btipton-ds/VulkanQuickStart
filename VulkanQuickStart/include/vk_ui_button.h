@@ -74,8 +74,8 @@ namespace VK {
 			// Currently using one, over featured, generic callback
 			using FuncMouse = std::function<void(int btnNum, int modifiers)>;
 
-			Button(const VulkanAppPtr& app);
-			Button(const VulkanAppPtr& app, const glm::vec4& backgroundColor, const std::string& label, const Rect& rect, const Accel& accel = Accel());
+			Button(const PipelineBasePtr& ownerPipeline);
+			Button(const PipelineBasePtr& ownerPipeline, const glm::vec4& backgroundColor, const std::string& label, const Rect& rect, const Accel& accel = Accel());
 
 			const glm::vec4& getFontColor() const;
 			const glm::vec4& getBackgroundColor() const;
@@ -100,7 +100,6 @@ namespace VK {
 			void createImageBackGround(size_t& width, size_t& height, int& frameWidth, std::vector<uint32_t>& image);
 			void renderLabel(size_t width, size_t height, int frameWidth, std::vector<uint32_t>& image);
 
-			VulkanAppPtr _app;
 			Rect _rect;
 			float _fontSizePoints = 14;
 			std::string _label;

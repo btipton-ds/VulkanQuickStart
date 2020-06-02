@@ -43,18 +43,18 @@ namespace VK::UI {
 
 	using namespace std;
 
-	Button::Button(const VulkanAppPtr& app) 
-	: _app(app)
-	, _vertexBuffer(app.get())
-	, _indexBuffer(app.get())
+	Button::Button(const PipelineBasePtr& ownerPipeline)
+	: SceneNodeUi(ownerPipeline)
+	, _vertexBuffer(ownerPipeline->getApp().get())
+	, _indexBuffer(ownerPipeline->getApp().get())
 	{
 		init();
 	}
 
-	Button::Button(const VulkanAppPtr& app, const glm::vec4& backgroundColor, const std::string& label, const Rect& rect, const Accel& accel)
-		: _app(app)
-		, _vertexBuffer(app.get())
-		, _indexBuffer(app.get())
+	Button::Button(const PipelineBasePtr& ownerPipeline, const glm::vec4& backgroundColor, const std::string& label, const Rect& rect, const Accel& accel)
+		: SceneNodeUi(ownerPipeline)
+		, _vertexBuffer(ownerPipeline->getApp().get())
+		, _indexBuffer(ownerPipeline->getApp().get())
 		, _backgroundColor(backgroundColor)
 		, _label(label)
 		, _rect(rect)
@@ -132,7 +132,7 @@ namespace VK::UI {
 
 		createImage(w, h, image);
 
-		_texture = TextureImage::create(_app.get(), w, h, (unsigned char*)image.data());
+		_texture = TextureImage::create(_ownerPipeline->getApp().get(), w, h, (unsigned char*)image.data());
 	}
 
 	void Button::createImage(size_t& width, size_t& height, vector<uint32_t>& image) {
@@ -206,7 +206,7 @@ namespace VK::UI {
 		else if (err)
 			throw std::runtime_error("Failed to read font file.");
 
-		unsigned int dpi = _app->getUiWindow()->getPixelDPI();
+		unsigned int dpi = _ownerPipeline->getApp()->getUiWindow()->getPixelDPI();
 
 		err = FT_Set_Char_Size(face, 0, (FT_F26Dot6)(_fontSizePoints * 64 * IMG_SCALE + 0.5), dpi, dpi);
 		if (err)

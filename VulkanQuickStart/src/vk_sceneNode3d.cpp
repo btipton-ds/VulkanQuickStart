@@ -37,10 +37,10 @@ This file is part of the VulkanQuickStart Project.
 using namespace std;
 using namespace VK;
 
-SceneNode3D::SceneNode3D()
-	: _modelXForm(glm::mat4(1.0f))
-{
-}
+SceneNode3D::SceneNode3D(const PipelineBasePtr& ownerPipeline)
+	: PipelineVertex3D::SceneNode(ownerPipeline)
+	, _modelXForm(glm::mat4(1.0f))
+{}
 
 SceneNode3D::~SceneNode3D() {
 }

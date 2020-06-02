@@ -39,7 +39,7 @@ namespace VK {
 
 	class SceneNodeGroup : public SceneNodeBase {
 	public:
-		SceneNodeGroup();
+		SceneNodeGroup(const PipelineBasePtr& ownerPipeline);
 		virtual ~SceneNodeGroup();
 
 		void addCommands(VkCommandBuffer cmdBuff, VkPipelineLayout pipelineLayout, const VkDescriptorSet& descSet) const override;
@@ -54,14 +54,6 @@ namespace VK {
 	private:
 		std::vector<SceneNodeBasePtr> _childScenes;
 	};
-
-	inline SceneNodeGroup::SceneNodeGroup() {
-
-	}
-
-	inline SceneNodeGroup::~SceneNodeGroup() {
-
-	}
 
 	inline size_t SceneNodeGroup::numChildNodes() const {
 		return _childScenes.size();

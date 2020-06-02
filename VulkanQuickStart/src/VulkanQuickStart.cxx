@@ -88,7 +88,7 @@ void buildUi(UI::WindowPtr& gui) {
 	uint32_t h = 22;
 	uint32_t row = 0;
 
-	gui->addButton(UI::Button(gApp, bkgColor, "Reset View", UI::Rect(row, 0, row + h, w)))->
+	gui->addButton(bkgColor, "Reset View", UI::Rect(row, 0, row + h, w))->
 		setAction(UI::Button::ActionType::ACT_CLICK, [&](int btnNum, int modifiers) {
 		if (btnNum == 0) {
 			glm::mat4 xform = glm::mat4(1.0f);
@@ -97,7 +97,7 @@ void buildUi(UI::WindowPtr& gui) {
 	});
 
 	row += h;
-	gui->addButton(UI::Button(gApp, bkgColor, "Screenshot", UI::Rect(row, 0, row + h, w)))->
+	gui->addButton(bkgColor, "Screenshot", UI::Rect(row, 0, row + h, w))->
 		setAction(UI::Button::ActionType::ACT_CLICK, [&](int btnNum, int modifiers) {
 		if (btnNum == 0) {
 			const auto& swapChain = gApp->getSwapChain();
@@ -112,7 +112,7 @@ void buildUi(UI::WindowPtr& gui) {
 	});
 
 	row += h;
-	gui->addButton(UI::Button(gApp, bkgColor, "Button 2", UI::Rect(row, 0, row + h, w)));
+	gui->addButton(bkgColor, "Button 2", UI::Rect(row, 0, row + h, w));
 }
 #endif
 

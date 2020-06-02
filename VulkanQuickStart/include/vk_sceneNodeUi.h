@@ -39,7 +39,7 @@ namespace VK {
 
 	class SceneNodeUi : public PipelineUi::SceneNode {
 	public:
-		SceneNodeUi();
+		SceneNodeUi(const PipelineBasePtr& ownerPipeline);
 
 		void updateUniformBuffer(PipelineBase* pipeline, size_t swapChainIndex) override;
 

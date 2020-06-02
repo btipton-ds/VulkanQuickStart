@@ -46,7 +46,7 @@ namespace VK {
 		using BoundingBox = PipelineVertex3D::BoundingBox;
 		using UniformBufferObject = PipelineVertex3D::UniformBufferObject;
 
-		SceneNode3D();
+		SceneNode3D(const PipelineBasePtr& ownerPipeline);
 		virtual ~SceneNode3D();
 
 		virtual BoundingBox getBounds() const = 0;

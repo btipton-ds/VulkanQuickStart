@@ -79,8 +79,8 @@ namespace VK::UI {
 		return ivec2(static_cast<int>(p.x + 0.5), static_cast<int>(p.y + 0.5));
 	}
 
-	ButtonPtr Window::addButton(const Button& btn) {
-		ButtonPtr btnPtr = make_shared<Button>(btn);
+	ButtonPtr Window::addButton(const glm::vec4& bkgColor, const std::string& label, const Rect& frame) {
+		ButtonPtr btnPtr = make_shared<Button>(_pipeline, bkgColor, label, frame);
 		btnPtr->createBuffers();
 		_buttons.push_back(btnPtr);
 

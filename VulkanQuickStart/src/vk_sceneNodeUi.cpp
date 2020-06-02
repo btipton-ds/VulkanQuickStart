@@ -35,7 +35,8 @@ This file is part of the VulkanQuickStart Project.
 using namespace std;
 using namespace VK;
 
-SceneNodeUi::SceneNodeUi()
+SceneNodeUi::SceneNodeUi(const PipelineBasePtr& ownerPipeline)
+	: PipelineUi::SceneNode(ownerPipeline)
 {}
 
 
