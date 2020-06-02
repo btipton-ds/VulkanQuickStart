@@ -40,9 +40,9 @@ namespace VK {
 	struct UniformBufferObject3D {
 		alignas(16) float ambient;
 
-		alignas(16) glm::mat4 modelView;
+		alignas(16) glm::mat4 model;
+		alignas(16) glm::mat4 view;
 		alignas(16) glm::mat4 proj;
-		alignas(16) int draw = 1;
 		alignas(16) int numLights;
 		alignas(16) glm::vec3 lightDir[2];
 	};

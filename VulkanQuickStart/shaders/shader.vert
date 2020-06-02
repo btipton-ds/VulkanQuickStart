@@ -30,19 +30,13 @@ This file is part of the VulkanQuickStart Project.
 #version 450
 #extension GL_ARB_separate_shader_objects : enable
 
-struct FragUbo {
-	int draw;
+layout(binding = 0) uniform UniformBufferObject {
 	float ambient;
-	int numLights;
-	vec3 lightDir[2];
-};
 
-layout(binding = 0) uniform UniformBufferBlock {
-	float ambient;
-	mat4 modelView;
+	mat4 model;
+	mat4 view;
 	mat4 proj;
-	int draw;
-	int numLights;
+    int numLights;
 	vec3 lightDir[2];
 } ubo;
 
@@ -52,15 +46,17 @@ layout(location = 2) in vec3 inColor;
 
 layout(location = 0) out vec3 fragColor;
 layout(location = 1) out vec3 fragNormal;
-layout(location = 2) out FragUbo fragUbo;
+layout(location = 2) out float fragAmbient;
+layout(location = 3) out int fragNumLights;
+layout(location = 4) out vec3 fragLights[2];
 
 void main() {
-    fragUbo.draw = ubo.draw;
-    fragUbo.ambient = ubo.ambient;
-    fragUbo.numLights = ubo.numLights;
-    fragUbo.lightDir = ubo.lightDir;
+    fragAmbient = ubo.ambient;
+    fragNumLights = ubo.numLights;
+    fragLights = ubo.lightDir;
 
-    gl_Position = ubo.proj * ubo.modelView * vec4(inPosition, 1.0);
+    mat4 modelView = ubo.view * ubo.model;
+    gl_Position = ubo.proj * modelView * vec4(inPosition, 1.0);
     fragColor = inColor;
-    fragNormal = normalize((ubo.modelView * vec4(inNormal, 0.0)).xyz);
+    fragNormal = normalize((modelView * vec4(inNormal, 0.0)).xyz);
 }

@@ -30,36 +30,37 @@ This file is part of the VulkanQuickStart Project.
 #version 450
 #extension GL_ARB_separate_shader_objects : enable
 
-layout(binding = 1) uniform sampler2D texSampler[7]; // Must match getMaxSamplers in Pipeline
+struct Lights {
+    int numLights;
+    vec3 lights[4];
 
-struct FragUbo {
-	int draw;
-	int texId;
-	float ambient;
-	int numLights;
-	vec3 lightDir[2];
+    float ambient;
 };
+
+layout(binding = 1) uniform sampler2D texSampler[7]; // Must match getMaxSamplers in Pipeline
 
 layout(location = 0) in vec3 fragColor;
 layout(location = 1) in vec3 fragNormal;
-layout(location = 2) in vec2 fragTexCoord;
-layout(location = 3) flat in FragUbo fragUbo;
+layout(location = 2) flat in int fragTexId;
+layout(location = 3) in vec2 fragTexCoord;
+layout(location = 4) flat in float fragAmbient;
+layout(location = 5) flat in int fragNumLights;
+layout(location = 6) flat in vec3 fragLights[2];
 
 layout(location = 0) out vec4 outColor;
 
 void main() {
-	if (fragUbo.draw == 0) discard;
     float intensity = 0.0;
-    for (int i = 0; i < fragUbo.numLights; i++) {
-        float dp = dot(fragUbo.lightDir[i], fragNormal);
+    for (int i = 0; i < fragNumLights; i++) {
+        float dp = dot(fragLights[i], fragNormal);
         dp = dp < 0.0 ? 0.0 : dp;
         intensity += dp;
     }
 
     intensity = min(intensity, 1.0);
 
-    float ambient = fragUbo.ambient;
+    float ambient = fragAmbient;
     intensity = ambient + (1.0 - ambient) * intensity;
 
-    outColor = intensity * texture(texSampler[fragUbo.texId], fragTexCoord);
+    outColor = intensity * texture(texSampler[fragTexId], fragTexCoord);
 }

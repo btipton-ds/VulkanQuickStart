@@ -30,30 +30,31 @@ This file is part of the VulkanQuickStart Project.
 #version 450
 #extension GL_ARB_separate_shader_objects : enable
 
-struct FragUbo {
-	int draw;
-	float ambient;
-	int numLights;
-	vec3 lightDir[2];
+struct Lights {
+    int numLights;
+    vec3 lights[4];
+
+    float ambient;
 };
 
 layout(location = 0) in vec3 fragColor;
 layout(location = 1) in vec3 fragNormal;
-layout(location = 2) flat in FragUbo fragUbo;
+layout(location = 2) flat in float fragAmbient;
+layout(location = 3) flat in int fragNumLights;
+layout(location = 4) flat in vec3 fragLights[2];
 
 layout(location = 0) out vec4 outColor;
 
 void main() {
-	if (fragUbo.draw == 0) discard;
     float intensity = 0.0;
-    for (int i = 0; i < fragUbo.numLights; i++) {
-        float dp = abs(dot(fragUbo.lightDir[i], fragNormal));
+    for (int i = 0; i < fragNumLights; i++) {
+        float dp = abs(dot(fragLights[i], fragNormal));
         intensity += dp;
     }
 
     intensity = min(intensity, 1.0);
 
-    float ambient = fragUbo.ambient;
+    float ambient = fragAmbient;
     intensity = ambient + (1.0 - ambient) * intensity;
 
     outColor = intensity * vec4(fragColor, 1);

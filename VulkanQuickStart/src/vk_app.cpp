@@ -889,12 +889,11 @@ void VulkanApp::updateUniformBuffer(uint32_t swapChainImageIndex) {
 	scale *= (float)getModelScale();
 
 	auto ctr = (modelBounds.getMin() + modelBounds.getMax()) / 2;
-	glm::mat4 model = getModelToWorldTransform();
-	model *= glm::scale(glm::mat4(1.0f), glm::vec3(scale, scale, scale));
-	model *= glm::translate(glm::mat4(1.0f), -conv(ctr));
+	_ubo.model = getModelToWorldTransform();
+	_ubo.model *= glm::scale(glm::mat4(1.0f), glm::vec3(scale, scale, scale));
+	_ubo.model *= glm::translate(glm::mat4(1.0f), -conv(ctr));
 
-	glm::mat4 view = glm::lookAt(glm::vec3(1.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
-	_ubo.modelView = view * model;
+	_ubo.view = glm::lookAt(glm::vec3(1.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
 	//		auto proj = glm::perspective(glm::radians(45.0f), _extent.width / (float)_extent.height, 0.1f, 10.0f);
 	float k = 0.5f;
 	_ubo.proj = glm::ortho(-w, w, -h, h, -10.0f, 10.0f);
@@ -926,9 +925,7 @@ void VulkanApp::drawFrame() {
 	if (_uiWindow)
 		needToRecreate = _uiWindow->getChangeNumber() != _uiWindowChangeNumber || needToRecreate;
 
-	needToRecreate = (result == VK_ERROR_OUT_OF_DATE_KHR) || 
-		(_changeNumber > _lastChangeNumber) || 
-		_framebufferResized;
+	needToRecreate = (result == VK_ERROR_OUT_OF_DATE_KHR || _changeNumber > _lastChangeNumber) || _framebufferResized;
 
 	// TODO, per scene node change numbers.
 	if (needToRecreate) {

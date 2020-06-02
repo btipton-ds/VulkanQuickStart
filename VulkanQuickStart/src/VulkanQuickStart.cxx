@@ -80,22 +80,16 @@ const std::string stlFilenameFine = "test_part_fine.stl";
 #endif
 
 VulkanAppPtr gApp;
-ModelObjPtr plant, dna, apricot;
-SceneNode3DPtr part, vase;
 
 #if TEST_GUI
 void buildUi(UI::WindowPtr& gui) {
-
-	using Button = UI::Button;
-	using Rect = UI::Rect;
-
 	glm::vec4 bkgColor(0.875f, 0.875f, 0.875f, 1);
 	uint32_t w = 120;
 	uint32_t h = 22;
 	uint32_t row = 0;
 
-	gui->addButton(Button(gApp, bkgColor, "Reset View", Rect(row, 0, row + h, w)))->
-		setAction(Button::ActionType::ACT_CLICK, [&](int btnNum, int modifiers) {
+	gui->addButton(UI::Button(gApp, bkgColor, "Reset View", UI::Rect(row, 0, row + h, w)))->
+		setAction(UI::Button::ActionType::ACT_CLICK, [&](int btnNum, int modifiers) {
 		if (btnNum == 0) {
 			glm::mat4 xform = glm::mat4(1.0f);
 			gApp->setModelToWorldTransform(xform);
@@ -103,8 +97,8 @@ void buildUi(UI::WindowPtr& gui) {
 	});
 
 	row += h;
-	gui->addButton(Button(gApp, bkgColor, "Screenshot", Rect(row, 0, row + h, w)))->
-		setAction(Button::ActionType::ACT_CLICK, [&](int btnNum, int modifiers) {
+	gui->addButton(UI::Button(gApp, bkgColor, "Screenshot", UI::Rect(row, 0, row + h, w)))->
+		setAction(UI::Button::ActionType::ACT_CLICK, [&](int btnNum, int modifiers) {
 		if (btnNum == 0) {
 			const auto& swapChain = gApp->getSwapChain();
 			const auto& images = swapChain._images;
@@ -118,52 +112,7 @@ void buildUi(UI::WindowPtr& gui) {
 	});
 
 	row += h;
-	gui->addButton(Button(gApp, bkgColor, "Hide Plant", Rect(row, 0, row + h, w)))->
-		setAction(Button::ActionType::ACT_CLICK, [&](int btnNum, int modifiers) {
-		if (btnNum == 0) {
-			plant->setDrawn(!plant->isDrawn());
-		}
-	});
-
-	row += h;
-	gui->addButton(Button(gApp, bkgColor, "Hide DNA", Rect(row, 0, row + h, w)))->
-		setAction(Button::ActionType::ACT_CLICK, [&](int btnNum, int modifiers) {
-		if (btnNum == 0) {
-			dna->setDrawn(!dna->isDrawn());
-		}
-	});
-
-	row += h;
-	gui->addButton(Button(gApp, bkgColor, "Hide Apricot", Rect(row, 0, row + h, w)))->
-		setAction(Button::ActionType::ACT_CLICK, [&](int btnNum, int modifiers) {
-		if (btnNum == 0) {
-			apricot->setDrawn(!apricot->isDrawn());
-		}
-	});
-
-	row += h;
-	gui->addButton(Button(gApp, bkgColor, "Hide Part", Rect(row, 0, row + h, w)))->
-		setAction(Button::ActionType::ACT_CLICK, [&](int btnNum, int modifiers) {
-		if (btnNum == 0) {
-			part->setDrawn(!part->isDrawn());
-		}
-	});
-
-	row += h;
-	gui->addButton(Button(gApp, bkgColor, "Hide Vase", Rect(row, 0, row + h, w)))->
-		setAction(Button::ActionType::ACT_CLICK, [&](int btnNum, int modifiers) {
-		if (btnNum == 0) {
-			vase->setDrawn(!vase->isDrawn());
-		}
-	});
-
-	row += h;
-	gui->addButton(Button(gApp, bkgColor, "Quit", Rect(row, 0, row + h, w)))->
-		setAction(Button::ActionType::ACT_CLICK, [&](int btnNum, int modifiers) {
-		if (btnNum == 0) {
-			gApp->stop();
-		}
-	});
+	gui->addButton(UI::Button(gApp, bkgColor, "Button 2", UI::Rect(row, 0, row + h, w)));
 }
 #endif
 
@@ -185,15 +134,15 @@ int main(int numArgs, char** args) {
 	glm::mat4 xform;
 #if TEST_OBJ
 
-	plant = std::dynamic_pointer_cast<ModelObj> (gApp->addSceneNode3D(pottedPlantPath, pottedPlantFilename));
+	ModelObjPtr plant = std::dynamic_pointer_cast<ModelObj> (gApp->addSceneNode3D(pottedPlantPath, pottedPlantFilename));
 	xform = glm::rotate(glm::mat4(1.0f), glm::radians(90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
 	plant->setModelTransform(xform);
 
-	dna = std::dynamic_pointer_cast<ModelObj> (gApp->addSceneNode3D(dnaPath, dnaFilename));
+	ModelObjPtr dna = std::dynamic_pointer_cast<ModelObj> (gApp->addSceneNode3D(dnaPath, dnaFilename));
 	xform = glm::translate(glm::mat4(1.0f), glm::vec3(0, 10, 0));
 	dna->setModelTransform(xform);
 
-	apricot = std::dynamic_pointer_cast<ModelObj> (gApp->addSceneNode3D(apricotPath, apricotFilename));
+	ModelObjPtr apricot = std::dynamic_pointer_cast<ModelObj> (gApp->addSceneNode3D(apricotPath, apricotFilename));
 	xform = glm::translate(glm::mat4(1.0f), glm::vec3(10, 10, 0));
 	xform *= glm::rotate(glm::mat4(1.0f), glm::radians(90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
 	apricot->setModelTransform(xform);
@@ -208,8 +157,8 @@ int main(int numArgs, char** args) {
 		CReadSTL readStl(meshPtr);
 		if (!readStl.read(modelPath, filename))
 			return 1;
-		part = gApp->addSceneNode3D(meshPtr);
-		part->setModelTransform(glm::scale(glm::mat4(1.0f), glm::vec3(.05f, .05f, .05f)));
+		auto meshModel = gApp->addSceneNode3D(meshPtr);
+		meshModel->setModelTransform(glm::scale(glm::mat4(1.0f), glm::vec3(.05f, .05f, .05f)));
 	}
 
 	{
@@ -217,10 +166,10 @@ int main(int numArgs, char** args) {
 		CReadSTL readStl(meshPtr);
 		if (!readStl.read(modelPath, "Vase.stl"))
 			return 1;
-		vase = gApp->addSceneNode3D(meshPtr);
+		auto meshModel = gApp->addSceneNode3D(meshPtr);
 		xform = glm::translate(glm::mat4(1.0f), glm::vec3(-5, -5, 0));
 		xform *= glm::scale(glm::mat4(1.0f), glm::vec3(.25f, .25f, .25f));
-		vase->setModelTransform(xform);
+		meshModel->setModelTransform(xform);
 	}
 #endif
 

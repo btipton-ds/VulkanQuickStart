@@ -35,22 +35,19 @@ using namespace VK;
 
 void SceneNodeGroup::addCommands(VkCommandBuffer cmdBuff, VkPipelineLayout pipelineLayout, const VkDescriptorSet& descSet) const {
 	for (const auto& child : _childScenes) {
-		if (child->isEnabled())
-			child->addCommands(cmdBuff, pipelineLayout, descSet);
+		child->addCommands(cmdBuff, pipelineLayout, descSet);
 	}
 }
 
 void SceneNodeGroup::buildImageInfoList(std::vector<VkDescriptorImageInfo>& imageInfoList) const {
 	for (const auto& child : _childScenes) {
-		if (child->isEnabled())
-			child->buildImageInfoList(imageInfoList);
+		child->buildImageInfoList(imageInfoList);
 	}
 }
 
 void SceneNodeGroup::updateUniformBuffer(PipelineBase* pipeline, size_t swapChainIndex) {
 	for (const auto& child : _childScenes) {
-		if (child->isEnabled())
-			child->updateUniformBuffer(pipeline, swapChainIndex);
+		child->updateUniformBuffer(pipeline, swapChainIndex);
 	}
 }
 

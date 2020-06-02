@@ -102,18 +102,12 @@ PipelineVertex3D::BoundingBox PipelineVertex3D::getBounds() const {
 
 void PipelineVertex3D::updateUniformBuffer(size_t swapChainIndex) {
 	for (auto& sceneNode : _sceneNodes) {
-		if (sceneNode->isEnabled())
-			sceneNode->updateUniformBuffer(this, swapChainIndex);
+		sceneNode->updateUniformBuffer(this, swapChainIndex);
 	}
 
 }
 
 void PipelineVertex3D::createDescriptorSetLayout() {
-
-	// Stage flags being a bit field, leads to the belief that you can use one layout binding for two shader stages.
-	// Reading and testing indicates this doesn't work. If there's a way to make it work, I haven't found it.
-	// It looks like there can be a UBO for each stage, but they need to be distinct - one for each stage.
-
 	VkDescriptorSetLayoutBinding uboLayoutBinding = {};
 	uboLayoutBinding.binding = 0;
 	uboLayoutBinding.descriptorCount = 1;
@@ -160,8 +154,7 @@ void PipelineVertex3D::createDescriptorSets() {
 
 		std::vector<VkDescriptorImageInfo> imageInfoList;
 		for (const auto& sceneNode : _sceneNodes) {
-			if (sceneNode->isEnabled())
-				sceneNode->buildImageInfoList(imageInfoList);
+			sceneNode->buildImageInfoList(imageInfoList);
 		}
 
 		std::array<VkWriteDescriptorSet, 1> descriptorWrites = {};

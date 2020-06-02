@@ -116,20 +116,14 @@ PipelineVertex3DWSampler::BoundingBox PipelineVertex3DWSampler::getBounds() cons
 
 void PipelineVertex3DWSampler::updateUniformBuffer(size_t swapChainIndex) {
 	for (auto& sceneNode : _sceneNodes) {
-		if (sceneNode->isEnabled())
-			sceneNode->updateUniformBuffer(this, swapChainIndex);
+		sceneNode->updateUniformBuffer(this, swapChainIndex);
 	}
 }
 
 void PipelineVertex3DWSampler::addCommands(VkCommandBuffer cmdBuff, size_t swapChainIdx) const {
 	for (const auto& sceneNode : _sceneNodes) {
-		if (sceneNode->isEnabled()) {
-			SceneNode3DWithTexturePtr node3D = dynamic_pointer_cast<SceneNode3DWTexture>(sceneNode);
-			node3D->addCommandsIdx(cmdBuff, _pipelineLayout, swapChainIdx);
-		}
-		else {
-			cout << "XXX\n";
-		}
+		SceneNode3DWithTexturePtr node3D = dynamic_pointer_cast<SceneNode3DWTexture>(sceneNode);
+		node3D->addCommandsIdx(cmdBuff, _pipelineLayout, swapChainIdx);
 	}
 }
 
