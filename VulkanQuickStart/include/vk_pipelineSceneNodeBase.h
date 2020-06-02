@@ -55,8 +55,15 @@ namespace VK {
 		virtual void buildImageInfoList(std::vector<VkDescriptorImageInfo>& imageInfoList) const = 0;
 		virtual void updateUniformBuffer(PipelineBase* pipeline, size_t swapChainIndex);
 
+		void createDescriptorPool();
+		void createUniformBuffers();
+
 	protected:
 		PipelineBasePtr _ownerPipeline;
+
+		std::vector<Buffer> _uniformBuffers;
+		VkDescriptorPool _descriptorPool = VK_NULL_HANDLE;
+		std::vector<VkDescriptorSet> _descriptorSets;
 	};
 
 

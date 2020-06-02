@@ -94,10 +94,13 @@ void PipelineBase::draw(VkCommandBuffer cmdBuff, size_t swapChainIndex) {
 
 void PipelineBase::build() {
 
+	createDescriptorSetLayout();
+
 	createDescriptorPool();
 	createUniformBuffers();
-	createDescriptorSetLayout();
 	createDescriptorSets();
+
+	buildSceneNodes();
 
 	/*
 		Caution!

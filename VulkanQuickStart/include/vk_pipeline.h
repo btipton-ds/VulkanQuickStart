@@ -50,8 +50,11 @@ namespace VK {
 		size_t numSceneNodes() const override;
 
 		void addCommands(VkCommandBuffer cmdBuff, size_t swapChainIdx) const override;
+		size_t getUboSize() const override;
 
 	protected:
+		void buildSceneNodes() override;
+
 		SceneNodeList _sceneNodes;
 	};
 
@@ -82,6 +85,18 @@ namespace VK {
 			sceneNode->addCommands(cmdBuff, _pipelineLayout, _descriptorSets[swapChainIdx]);
 	}
 
+	template<class UBO_TYPE, class VERT_TYPE>
+	inline size_t Pipeline<UBO_TYPE, VERT_TYPE>::getUboSize() const {
+		return sizeof(UBO_TYPE);
+	}
+
+	template<class UBO_TYPE, class VERT_TYPE>
+	inline void Pipeline<UBO_TYPE, VERT_TYPE>::buildSceneNodes() {
+		for (const auto& sceneNode : _sceneNodes) {
+			sceneNode->createDescriptorPool();
+			sceneNode->createUniformBuffers();
+		}
+	}
 
 	template<class UBO_TYPE, class VERT_TYPE>
 	inline void Pipeline<UBO_TYPE, VERT_TYPE>::addSceneNode(const SceneNodePtr& node) {

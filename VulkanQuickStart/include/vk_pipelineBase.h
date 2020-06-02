@@ -69,6 +69,7 @@ namespace VK {
 
 		virtual size_t numSceneNodes() const;
 		virtual void addCommands(VkCommandBuffer cmdBuff, size_t swapChainIdx) const = 0;
+		virtual size_t getUboSize() const = 0;
 
 		virtual void updateUniformBuffer(size_t swapChainIndex) = 0;
 		template<class BUF_TYPE>
@@ -80,6 +81,7 @@ namespace VK {
 	protected:
 		virtual void createDescriptorSetLayout() = 0;
 		void createDescriptorPool();
+		virtual void buildSceneNodes() = 0;
 		virtual void createDescriptorSets() = 0;
 		virtual void createUniformBuffers() = 0;
 		virtual std::string getShaderIdMethod() = 0;
@@ -87,10 +89,10 @@ namespace VK {
 		VulkanAppPtr _app;
 
 		VkVertexInputBindingDescription _vertBindDesc;
-		std::vector<VkVertexInputAttributeDescription> _vertAttribDesc;
-		std::vector<Buffer> _uniformBuffers;
 		VkDescriptorSetLayout _descriptorSetLayout;
 
+		std::vector<VkVertexInputAttributeDescription> _vertAttribDesc;
+		std::vector<Buffer> _uniformBuffers;
 		VkDescriptorPool _descriptorPool = VK_NULL_HANDLE;
 		std::vector<VkDescriptorSet> _descriptorSets;
 

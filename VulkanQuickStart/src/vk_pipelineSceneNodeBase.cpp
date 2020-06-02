@@ -30,6 +30,8 @@ This file is part of the VulkanQuickStart Project.
 #include <vk_defines.h>
 
 #include <vk_pipelineSceneNodeBase.h>
+#include <vk_pipelineBase.h>
+#include <vk_app.h>
 
 using namespace VK;
 
@@ -38,8 +40,53 @@ PipelineSceneNodeBase::PipelineSceneNodeBase(const PipelineBasePtr& ownerPipelin
 {}
 
 PipelineSceneNodeBase::~PipelineSceneNodeBase() {
+	auto& device = _ownerPipeline->getApp()->getDeviceContext().device_;
+	if (_descriptorPool != VK_NULL_HANDLE)
+		vkDestroyDescriptorPool(device, _descriptorPool, nullptr);
 }
 
 void PipelineSceneNodeBase::updateUniformBuffer(PipelineBase* pipeline, size_t swapChainIndex) {
 
+}
+
+void PipelineSceneNodeBase::createDescriptorPool() {
+	const auto& app = _ownerPipeline->getApp();
+	const auto& swap = app->getSwapChain();
+	auto devCon = app->getDeviceContext().device_;
+
+	std::array<VkDescriptorPoolSize, 2> poolSizes = {};
+	poolSizes[0].type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+	poolSizes[0].descriptorCount = static_cast<uint32_t>(swap._vkImages.size());
+	poolSizes[1].type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+	poolSizes[1].descriptorCount = static_cast<uint32_t>(swap._vkImages.size());
+
+	VkDescriptorPoolCreateInfo poolInfo = {};
+	poolInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
+	poolInfo.poolSizeCount = static_cast<uint32_t>(poolSizes.size());
+	poolInfo.pPoolSizes = poolSizes.data();
+	poolInfo.maxSets = static_cast<uint32_t>(swap._vkImages.size());
+
+	if (vkCreateDescriptorPool(devCon, &poolInfo, nullptr, &_descriptorPool) != VK_SUCCESS) {
+		throw std::runtime_error("failed to create descriptor pool!");
+	}
+}
+
+void PipelineSceneNodeBase::createUniformBuffers() {
+	size_t uboSize = _ownerPipeline->getUboSize();
+	if (uboSize == stm1)
+		return;
+
+	const auto& app = _ownerPipeline->getApp();
+	const auto& swap = app->getSwapChain();
+	auto devCon = app->getDeviceContext().device_;
+
+	size_t swapChainSize = (uint32_t)swap._vkImages.size();
+
+	_uniformBuffers.reserve(swapChainSize);
+
+	for (size_t i = 0; i < swapChainSize; i++) {
+		_uniformBuffers.push_back(Buffer(app.get()));
+		_uniformBuffers.back().create(uboSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
+			VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
+	}
 }
