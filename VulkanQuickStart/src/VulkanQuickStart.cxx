@@ -80,6 +80,10 @@ const std::string stlFilenameFine = "test_part_fine.stl";
 #endif
 
 VulkanAppPtr gApp;
+
+SceneNode3DPtr vase;
+SceneNode3DPtr part;
+
 ModelObjPtr plant;
 
 #if TEST_GUI
@@ -108,6 +112,26 @@ void buildUi(UI::WindowPtr& gui) {
 	});
 
 	row += h;
+	gui->addButton(bkgColor, "Show/Hide part", UI::Rect(row, 0, row + h, w))->
+		setAction(UI::Button::ActionType::ACT_CLICK, [&](int btnNum, int modifiers) {
+		if (btnNum == 0) {
+			if (part) {
+				part->toggleVisibility();
+			}
+		}
+	});
+
+	row += h;
+	gui->addButton(bkgColor, "Show/Hide vase", UI::Rect(row, 0, row + h, w))->
+		setAction(UI::Button::ActionType::ACT_CLICK, [&](int btnNum, int modifiers) {
+		if (btnNum == 0) {
+			if (vase) {
+				vase->toggleVisibility();
+			}
+		}
+	});
+
+	row += h;
 	gui->addButton(bkgColor, "Screenshot", UI::Rect(row, 0, row + h, w))->
 		setAction(UI::Button::ActionType::ACT_CLICK, [&](int btnNum, int modifiers) {
 		if (btnNum == 0) {
@@ -127,6 +151,48 @@ void buildUi(UI::WindowPtr& gui) {
 }
 #endif
 
+void addObj() {
+	glm::mat4 xform;
+
+	plant = std::dynamic_pointer_cast<ModelObj> (gApp->addSceneNode3D(pottedPlantPath, pottedPlantFilename));
+	xform = glm::rotate(glm::mat4(1.0f), glm::radians(90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
+	plant->setModelTransform(xform);
+
+	ModelObjPtr dna = std::dynamic_pointer_cast<ModelObj> (gApp->addSceneNode3D(dnaPath, dnaFilename));
+	xform = glm::translate(glm::mat4(1.0f), glm::vec3(0, 10, 0));
+	dna->setModelTransform(xform);
+
+	ModelObjPtr apricot = std::dynamic_pointer_cast<ModelObj> (gApp->addSceneNode3D(apricotPath, apricotFilename));
+	xform = glm::translate(glm::mat4(1.0f), glm::vec3(10, 10, 0));
+	xform *= glm::rotate(glm::mat4(1.0f), glm::radians(90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
+	apricot->setModelTransform(xform);
+}
+
+int readStl(const string& filename, SceneNode3DPtr& model) {
+	glm::mat4 xform;
+	TriMesh::CMeshPtr meshPtr = std::make_shared<TriMesh::CMesh>();
+	CReadSTL readStl(meshPtr);
+	if (!readStl.read(modelPath, filename))
+		return 1;
+	model = gApp->addSceneNode3D(meshPtr);
+	model->setModelTransform(glm::scale(glm::mat4(1.0f), glm::vec3(.05f, .05f, .05f)));
+}
+
+int addStl() {
+#if TEST_STL
+	bool fine = false;
+	std::string filename = fine ? stlFilenameFine : stlFilenameCourse;
+	readStl(filename, part);
+	part->setModelTransform(glm::scale(glm::mat4(1.0f), glm::vec3(.05f, .05f, .05f)));
+
+	readStl("Vase.stl", vase);
+	glm::mat4 xform = glm::translate(glm::mat4(1.0f), glm::vec3(-5, -5, 0));
+	xform *= glm::scale(glm::mat4(1.0f), glm::vec3(.25f, .25f, .25f));
+	vase->setModelTransform(xform);
+#endif
+	return 0;
+}
+
 int main(int numArgs, char** args) {
 	gApp = make_shared<VulkanApp>(1618, 1000);
 
@@ -142,47 +208,8 @@ int main(int numArgs, char** args) {
 
 	glfwSetWindowTitle(gApp->getWindow(), "Vulkan Quick Start");
 
-	glm::mat4 xform;
-#if TEST_OBJ
-
-	plant = std::dynamic_pointer_cast<ModelObj> (gApp->addSceneNode3D(pottedPlantPath, pottedPlantFilename));
-	xform = glm::rotate(glm::mat4(1.0f), glm::radians(90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
-	plant->setModelTransform(xform);
-
-	ModelObjPtr dna = std::dynamic_pointer_cast<ModelObj> (gApp->addSceneNode3D(dnaPath, dnaFilename));
-	xform = glm::translate(glm::mat4(1.0f), glm::vec3(0, 10, 0));
-	dna->setModelTransform(xform);
-
-	ModelObjPtr apricot = std::dynamic_pointer_cast<ModelObj> (gApp->addSceneNode3D(apricotPath, apricotFilename));
-	xform = glm::translate(glm::mat4(1.0f), glm::vec3(10, 10, 0));
-	xform *= glm::rotate(glm::mat4(1.0f), glm::radians(90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
-	apricot->setModelTransform(xform);
-#endif
-
-#if TEST_STL
-	{
-		bool fine = false;
-		std::string filename = fine ? stlFilenameFine : stlFilenameCourse;
-
-		TriMesh::CMeshPtr meshPtr = std::make_shared<TriMesh::CMesh>();
-		CReadSTL readStl(meshPtr);
-		if (!readStl.read(modelPath, filename))
-			return 1;
-		auto meshModel = gApp->addSceneNode3D(meshPtr);
-		meshModel->setModelTransform(glm::scale(glm::mat4(1.0f), glm::vec3(.05f, .05f, .05f)));
-	}
-
-	{
-		TriMesh::CMeshPtr meshPtr = std::make_shared<TriMesh::CMesh>();
-		CReadSTL readStl(meshPtr);
-		if (!readStl.read(modelPath, "Vase.stl"))
-			return 1;
-		auto meshModel = gApp->addSceneNode3D(meshPtr);
-		xform = glm::translate(glm::mat4(1.0f), glm::vec3(-5, -5, 0));
-		xform *= glm::scale(glm::mat4(1.0f), glm::vec3(.25f, .25f, .25f));
-		meshModel->setModelTransform(xform);
-	}
-#endif
+	addObj();
+	addStl();
 
 	try {
 		gApp->run();
