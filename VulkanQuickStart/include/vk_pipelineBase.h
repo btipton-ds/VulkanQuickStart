@@ -54,6 +54,7 @@ namespace VK {
 		PipelineBase(const VulkanAppPtr& app);
 		virtual ~PipelineBase();
 
+		void setToplogy(VkPrimitiveTopology topology);
 		void setCullMode(VkCullModeFlagBits cullMode);
 		void setPolygonMode(VkPolygonMode polygonMode);
 		void setLineWidth(double width);
@@ -100,6 +101,7 @@ namespace VK {
 		void setColorBlendAttachment(VkPipelineColorBlendAttachmentState& colorBlendAttachment);
 		void setColorBlending(VkPipelineColorBlendStateCreateInfo& colorBlending, VkPipelineColorBlendAttachmentState* colorBlendAttachmentPtr);
 
+		VkPrimitiveTopology _topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
 		VkCullModeFlagBits _cullMode = VK_CULL_MODE_NONE;
 		VkPolygonMode _polygonMode = VK_POLYGON_MODE_FILL;
 		float _lineWidth = 1.0f;
@@ -116,6 +118,10 @@ namespace VK {
 
 	inline VkDescriptorSetLayout PipelineBase::getDescriptorSetLayout() const {
 		return _descriptorSetLayout;
+	}
+
+	inline void PipelineBase::setToplogy(VkPrimitiveTopology topology) {
+		_topology = topology;
 	}
 
 	inline void PipelineBase::setCullMode(VkCullModeFlagBits cullMode) {

@@ -169,13 +169,13 @@ void addObj() {
 }
 
 int readStl(const string& filename, SceneNode3DPtr& model) {
-	glm::mat4 xform;
 	TriMesh::CMeshPtr meshPtr = std::make_shared<TriMesh::CMesh>();
 	CReadSTL readStl(meshPtr);
 	if (!readStl.read(modelPath, filename))
 		return 1;
 	model = gApp->addSceneNode3D(meshPtr);
 	model->setModelTransform(glm::scale(glm::mat4(1.0f), glm::vec3(.05f, .05f, .05f)));
+	return 0;
 }
 
 int addStl() {
