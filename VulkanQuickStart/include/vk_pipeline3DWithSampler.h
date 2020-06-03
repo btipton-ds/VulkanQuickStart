@@ -37,6 +37,8 @@ This file is part of the VulkanQuickStart Project.
 #include <vk_vertexTypes.h>
 
 namespace VK {
+	class Pipeline3DWSampler;
+	using Pipeline3DWSamplerPtr = std::shared_ptr<class Pipeline3DWSampler>;
 
 	class Pipeline3DWSampler : public Pipeline<UniformBufferObject3D, Vertex3_PNCTf> {
 	public:

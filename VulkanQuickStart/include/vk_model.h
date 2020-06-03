@@ -59,6 +59,8 @@ namespace TriMesh {
 }
 
 namespace VK {
+	class Model;
+	using ModelPtr = std::shared_ptr<Model>;
 
 	class Model : public PipelineSceneNode3D {
 	public:

@@ -60,6 +60,8 @@ namespace VK {
 		const UniformBufferObject* _ubo;
 	};
 
+	using Pipeline3DPtr = std::shared_ptr<Pipeline3D>;
+
 	inline void Pipeline3D::setUniformBufferPtr(const UniformBufferObject* ubo) {
 		_ubo = ubo;
 	}

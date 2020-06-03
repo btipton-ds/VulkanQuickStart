@@ -209,6 +209,8 @@ namespace VK {
 		ShaderPoolPtr _shaderPool;
 
 		UniformBufferObject3D _ubo;
+		Pipeline3DPtr _pipeline3D;
+		Pipeline3DWSamplerPtr _pipeline3DObj;
 		std::vector<PipelineBasePtr> _pipelines;
 
 		std::vector<VkCommandBuffer> _commandBuffers;

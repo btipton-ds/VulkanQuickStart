@@ -67,6 +67,9 @@ namespace VK {
 		Current project focus is on scientific visualization which is mostly about vertex colors. Off to work on that first.
 	*/
 
+	class ModelObj;
+	using ModelObjPtr = std::shared_ptr<ModelObj>;
+
 	class ModelObj : public PipelineSceneNode3DWSampler {
 	public:
 		using BoundingBox = CBoundingBox3D<float>;

@@ -61,6 +61,8 @@ namespace VK {
 		glm::mat4 _modelXForm;
 	};
 
+	using PipelineSceneNode3DWSamplerPtr = std::shared_ptr<PipelineSceneNode3DWSampler>;
+
 	using SceneNode3DWithTexturePtr = std::shared_ptr<PipelineSceneNode3DWSampler>;
 
 	inline void PipelineSceneNode3DWSampler::setModelTransform(const glm::mat4& xform) {

@@ -141,11 +141,14 @@ struct VulkanApp::SwapChainSupportDetails {
 
 SceneNode3DWithTexturePtr VulkanApp::addSceneNode3D(const std::string& path, const std::string& filename) {
 	std::lock_guard<mutex> guard(_swapChainMutex);
-	auto pipeline = addPipeline(createPipelineWithSource<Pipeline3DWSampler>(getAppPtr(), "shaders/shader_depth_vert.spv", "shaders/shader_depth_frag.spv"));
-	pipeline->setUniformBufferPtr(&_ubo);
 
-	ModelObjPtr result = ModelObj::create(pipeline, path, filename);
-	pipeline->addSceneNode(result);
+	if (!_pipeline3DObj) {
+		_pipeline3DObj = addPipeline(createPipelineWithSource<Pipeline3DWSampler>(getAppPtr(), "shaders/shader_depth_vert.spv", "shaders/shader_depth_frag.spv"));
+		_pipeline3DObj->setUniformBufferPtr(&_ubo);
+	}
+
+	ModelObjPtr result = ModelObj::create(_pipeline3DObj, path, filename);
+	_pipeline3DObj->addSceneNode(result);
 
 	_changeNumber++;
 
@@ -154,11 +157,14 @@ SceneNode3DWithTexturePtr VulkanApp::addSceneNode3D(const std::string& path, con
 
 SceneNode3DPtr VulkanApp::addSceneNode3D(const TriMesh::CMeshPtr& mesh) {
 	std::lock_guard<mutex> guard(_swapChainMutex);
-	auto pipeline = addPipeline(createPipelineWithSource<Pipeline3D>(getAppPtr(), "shaders/shader_vert.spv", "shaders/shader_frag.spv"));
-	pipeline->setUniformBufferPtr(&_ubo);
 
-	ModelPtr result = Model::create(pipeline, mesh);
-	pipeline->addSceneNode(result);
+	if (!_pipeline3D) {
+		_pipeline3D = addPipeline(createPipelineWithSource<Pipeline3D>(getAppPtr(), "shaders/shader_vert.spv", "shaders/shader_frag.spv"));
+		_pipeline3D->setUniformBufferPtr(&_ubo);
+	}
+
+	ModelPtr result = Model::create(_pipeline3D, mesh);
+	_pipeline3D->addSceneNode(result);
 
 	_changeNumber++;
 
