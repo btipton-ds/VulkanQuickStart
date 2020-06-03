@@ -35,32 +35,47 @@ This file is part of the VulkanQuickStart Project.
 using namespace std;
 using namespace VK;
 
-PipelineSceneNodeUi::PipelineSceneNodeUi(const PipelineBasePtr& ownerPipeline)
-	: PipelineUi::PipelineSceneNode(ownerPipeline)
+PipelineSceneNodeUi::PipelineSceneNodeUi(const PipelineBasePtr& _ownerPipeline)
+	: PipelineUi::PipelineSceneNode(_ownerPipeline)
 {}
 
 
-void PipelineSceneNodeUi::updateUniformBuffer(PipelineBase* pipeline, size_t swapChainIndex) {
-	auto pipelineUi = dynamic_cast<PipelineUi*> (pipeline);
-	auto ubo = pipelineUi->getUniformBuffer();
-	pipeline->updateUniformBufferTempl(swapChainIndex, ubo);
+void PipelineSceneNodeUi::createUniformBuffers() {
+	size_t bufferSize = sizeof(UniformBufferObject);
+	auto& app = _ownerPipeline->getApp();
+	const auto& swap = app->getSwapChain();
+	size_t swapChainSize = (uint32_t)swap._vkImages.size();
+
+	_uniformBuffers.reserve(swapChainSize);
+
+	for (size_t i = 0; i < swapChainSize; i++) {
+		_uniformBuffers.push_back(Buffer(app.get()));
+		_uniformBuffers.back().create(bufferSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
+			VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
+	}
 }
 
-void PipelineSceneNodeUi::cleanupSwapChain(PipelineUi* ownerPipeline) {
+void PipelineSceneNodeUi::updateUniformBuffer(size_t swapChainIndex) {
+	auto pipelineUi = dynamic_pointer_cast<PipelineUi> (_ownerPipeline);
+	auto ubo = pipelineUi->getUniformBuffer();
+	updateUniformBufferTempl(swapChainIndex, ubo);
+}
+
+void PipelineSceneNodeUi::cleanupSwapChain(PipelineUi* _ownerPipeline) {
 	_descriptorSets.clear();
 
-	auto devCon = ownerPipeline->getApp()->getDeviceContext().device_;
+	auto devCon = _ownerPipeline->getApp()->getDeviceContext().device_;
 	if (_descriptorPool != VK_NULL_HANDLE)
 		vkDestroyDescriptorPool(devCon, _descriptorPool, nullptr);
 }
 
 void PipelineSceneNodeUi::addCommandsIdx(VkCommandBuffer cmdBuff, VkPipelineLayout pipelineLayout, size_t swapChainIdx) {
-	addCommands(cmdBuff, pipelineLayout, _descriptorSets[swapChainIdx]);
+	addCommands(cmdBuff, pipelineLayout, swapChainIdx);
 }
 
 
-void PipelineSceneNodeUi::createDescriptorPool(PipelineUi* ownerPipeline) {
-	auto app = ownerPipeline->getApp();
+void PipelineSceneNodeUi::createDescriptorPool() {
+	auto app = _ownerPipeline->getApp();
 	const auto& swap = app->getSwapChain();
 	auto devCon = app->getDeviceContext().device_;
 
@@ -81,14 +96,14 @@ void PipelineSceneNodeUi::createDescriptorPool(PipelineUi* ownerPipeline) {
 	}
 }
 
-void PipelineSceneNodeUi::createDescriptorSets(PipelineUi* ownerPipeline) {
-	auto app = ownerPipeline->getApp();
+void PipelineSceneNodeUi::createDescriptorSets() {
+	auto app = _ownerPipeline->getApp();
 	auto dc = app->getDeviceContext().device_;
 
 	const auto& swap = app->getSwapChain();
 	size_t swapChainSize = (uint32_t)swap._vkImages.size();
 
-	std::vector<VkDescriptorSetLayout> layouts(swapChainSize, ownerPipeline->getDescriptorSetLayout());
+	std::vector<VkDescriptorSetLayout> layouts(swapChainSize, _ownerPipeline->getDescriptorSetLayout());
 	VkDescriptorSetAllocateInfo allocInfo = {};
 	allocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
 	allocInfo.descriptorPool = _descriptorPool; // TODO I haven't figured out yet if there should be one pool for the entire pipeline or not. Attempts to do that all crashed.
@@ -104,9 +119,9 @@ void PipelineSceneNodeUi::createDescriptorSets(PipelineUi* ownerPipeline) {
 	for (size_t i = 0; i < swapChainSize; i++) {
 		VkDescriptorBufferInfo bufferInfo = {};
 
-		bufferInfo.buffer = ownerPipeline->getUniformBuffers()[i];
+		bufferInfo.buffer = _uniformBuffers[i];
 		bufferInfo.offset = 0;
-		bufferInfo.range = sizeof(ownerPipeline->getUniformBuffers()[i]);
+		bufferInfo.range = sizeof(_uniformBuffers[i]);
 
 		vector<VkDescriptorImageInfo> imageInfoList;
 		buildImageInfoList(imageInfoList);

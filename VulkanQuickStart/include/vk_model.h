@@ -69,7 +69,7 @@ namespace VK {
 			return std::shared_ptr<Model>(new Model(ownerPipeline, meshPtr));
 		}
 
-		void addCommands(VkCommandBuffer cmdBuff, VkPipelineLayout pipelineLayout, const VkDescriptorSet& descSet) const override;
+		void addCommands(VkCommandBuffer cmdBuff, VkPipelineLayout pipelineLayout, size_t swapChainIndex) const override;
 		void buildImageInfoList(std::vector<VkDescriptorImageInfo>& imageInfoList) const override;
 		BoundingBox getBounds() const override;
 
@@ -93,6 +93,10 @@ namespace VK {
 			return static_cast<uint32_t>(_indices.size());
 		}
 
+		void createDescriptorPool() override;
+		void createDescriptorSets() override;
+		void createUniformBuffers() override;
+
 	protected:
 		Model(const PipelineBasePtr& ownerPipeline);
 		Model(const PipelineBasePtr& ownerPipeline, const TriMesh::CMeshPtr& meshPtr);
@@ -102,7 +106,6 @@ namespace VK {
 		void createVertexBuffer();
 		void createIndexBuffer();
 
-		VulkanAppPtr _app; // TODO I think this should be a parameter, not a member
 		BoundingBox _bounds;
 		std::vector<VertexType> _vertices;
 		std::vector<uint32_t> _indices;

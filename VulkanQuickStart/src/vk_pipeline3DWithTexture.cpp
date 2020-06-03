@@ -90,20 +90,6 @@ Pipeline3DWSampler::Pipeline3DWSampler(const VulkanAppPtr& app)
 	: Pipeline(app)
 {}
 
-void Pipeline3DWSampler::createUniformBuffers() {
-	size_t bufferSize = sizeof(UniformBufferObject);
-	const auto& swap = _app->getSwapChain();
-	size_t swapChainSize = (uint32_t)swap._vkImages.size();
-
-	_uniformBuffers.reserve(swapChainSize);
-
-	for (size_t i = 0; i < swapChainSize; i++) {
-		_uniformBuffers.push_back(Buffer(_app.get()));
-		_uniformBuffers.back().create(bufferSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
-			VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
-	}
-}
-
 Pipeline3DWSampler::BoundingBox Pipeline3DWSampler::getBounds() const {
 	BoundingBox bb;
 	for (auto& sceneNode : _sceneNodes) {
@@ -114,25 +100,10 @@ Pipeline3DWSampler::BoundingBox Pipeline3DWSampler::getBounds() const {
 	return bb;
 }
 
-void Pipeline3DWSampler::updateUniformBuffer(size_t swapChainIndex) {
-	for (auto& sceneNode : _sceneNodes) {
-		sceneNode->updateUniformBuffer(this, swapChainIndex);
-	}
-}
-
 void Pipeline3DWSampler::addCommands(VkCommandBuffer cmdBuff, size_t swapChainIdx) const {
 	for (const auto& sceneNode : _sceneNodes) {
 		SceneNode3DWithTexturePtr node3D = dynamic_pointer_cast<PipelineSceneNode3DWSampler>(sceneNode);
 		node3D->addCommandsIdx(cmdBuff, _pipelineLayout, swapChainIdx);
-	}
-}
-
-void Pipeline3DWSampler::cleanupSwapChain() {
-	PipelineBase::cleanupSwapChain();
-
-	for (auto& sceneNode : _sceneNodes) {
-		SceneNode3DWithTexturePtr node3D = dynamic_pointer_cast<PipelineSceneNode3DWSampler>(sceneNode);
-		node3D->cleanupSwapChain(this);
 	}
 }
 
@@ -159,14 +130,6 @@ void Pipeline3DWSampler::createDescriptorSetLayout() {
 
 	if (vkCreateDescriptorSetLayout(_app->getDeviceContext().device_, &layoutInfo, nullptr, &_descriptorSetLayout) != VK_SUCCESS) {
 		throw std::runtime_error("failed to create descriptor set layout!");
-	}
-}
-
-void Pipeline3DWSampler::createDescriptorSets() {
-	for (auto sceneNode : _sceneNodes) {
-		SceneNode3DWithTexturePtr ptr = dynamic_pointer_cast<PipelineSceneNode3DWSampler>(sceneNode);
-		ptr->createDescriptorPool(this);
-		ptr->createDescriptorSets(this);
 	}
 }
 

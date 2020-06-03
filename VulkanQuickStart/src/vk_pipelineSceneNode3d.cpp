@@ -32,6 +32,7 @@ This file is part of the VulkanQuickStart Project.
 #include <memory>
 
 #include <vk_pipelineSceneNode3D.h>
+#include <vk_pipelineBase.h>
 #include <vk_pipeline3D.h>
 
 using namespace std;
@@ -46,9 +47,9 @@ PipelineSceneNode3D::~PipelineSceneNode3D() {
 }
 
 
-void PipelineSceneNode3D::updateUniformBuffer(PipelineBase* pipeline, size_t swapChainIndex) {
-	auto pipeline3D = dynamic_cast<Pipeline3D*>(pipeline);
+void PipelineSceneNode3D::updateUniformBuffer(size_t swapChainIndex) {
+	auto pipeline3D = dynamic_pointer_cast<Pipeline3D>(_ownerPipeline);
 	auto ubo = pipeline3D->getUniformBuffer();
 	ubo.model *= _modelXForm;
-	pipeline->updateUniformBufferTempl(swapChainIndex, ubo);
+	updateUniformBufferTempl(swapChainIndex, ubo);
 }

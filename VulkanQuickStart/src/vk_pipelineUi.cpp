@@ -71,7 +71,7 @@ void PipelineUi::cleanupSwapChain() {
 	}
 }
 
-void PipelineUi::updateUniformBuffer(size_t swapChainIndex) {
+void PipelineUi::updateUniformBuffers(size_t swapChainIndex) {
 	int widthPx, heightPx;
 
 	auto win = _app->getWindow();
@@ -88,21 +88,7 @@ void PipelineUi::updateUniformBuffer(size_t swapChainIndex) {
 	_ubo._color = glm::vec4(1, 0, 0, 1);
 
 	for (auto& sceneNode : _sceneNodes) {
-		sceneNode->updateUniformBuffer(this, swapChainIndex);
-	}
-}
-
-void PipelineUi::createUniformBuffers() {
-	size_t bufferSize = sizeof(UniformBufferObject);
-	const auto& swap = _app->getSwapChain();
-	size_t swapChainSize = (uint32_t)swap._vkImages.size();
-
-	_uniformBuffers.reserve(swapChainSize);
-
-	for (size_t i = 0; i < swapChainSize; i++) {
-		_uniformBuffers.push_back(Buffer(_app.get()));
-		_uniformBuffers.back().create(bufferSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
-			VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
+		sceneNode->updateUniformBuffer(swapChainIndex);
 	}
 }
 
@@ -132,14 +118,6 @@ void PipelineUi::createDescriptorSetLayout() {
 
 	if (vkCreateDescriptorSetLayout(_app->getDeviceContext().device_, &layoutInfo, nullptr, &_descriptorSetLayout) != VK_SUCCESS) {
 		throw std::runtime_error("failed to create descriptor set layout!");
-	}
-}
-
-void PipelineUi::createDescriptorSets() {
-	for (auto sceneNode : _sceneNodes) {
-		SceneNodeUiPtr ptr = dynamic_pointer_cast<PipelineSceneNodeUi>(sceneNode);
-		ptr->createDescriptorPool(this);
-		ptr->createDescriptorSets(this);
 	}
 }
 

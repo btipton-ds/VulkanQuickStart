@@ -45,7 +45,7 @@ namespace VK {
 		Scene();
 		virtual ~Scene();
 
-		void addCommands(VkCommandBuffer cmdBuff, VkPipelineLayout pipelineLayout, VkDescriptorSet& descSet);
+		void addCommands(VkCommandBuffer cmdBuff, VkPipelineLayout pipelineLayout, size_t swapChainIndex);
 	
 		void buildImageInfoList(std::vector<VkDescriptorImageInfo>& imageInfoList);
 

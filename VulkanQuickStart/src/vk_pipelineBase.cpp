@@ -68,12 +68,6 @@ size_t PipelineBase::numSceneNodes() const {
 }
 
 void PipelineBase::cleanupSwapChain() {
-	if (_uniformBuffers.empty())
-		return;
-
-	_uniformBuffers.clear();
-	_descriptorSets.clear();
-
 	auto devCon = _app->getDeviceContext().device_;
 	if (_descriptorSetLayout != VK_NULL_HANDLE)
 		vkDestroyDescriptorSetLayout(devCon, _descriptorSetLayout, nullptr);
@@ -81,8 +75,6 @@ void PipelineBase::cleanupSwapChain() {
 		vkDestroyPipeline(devCon, _graphicsPipeline, nullptr);
 	if (_pipelineLayout != VK_NULL_HANDLE)
 		vkDestroyPipelineLayout(devCon, _pipelineLayout, nullptr);
-	if (_descriptorPool != VK_NULL_HANDLE)
-		vkDestroyDescriptorPool(devCon, _descriptorPool, nullptr);
 }
 
 void PipelineBase::draw(VkCommandBuffer cmdBuff, size_t swapChainIndex) {
@@ -93,13 +85,7 @@ void PipelineBase::draw(VkCommandBuffer cmdBuff, size_t swapChainIndex) {
 }
 
 void PipelineBase::build() {
-
 	createDescriptorSetLayout();
-
-	createDescriptorPool();
-	createUniformBuffers();
-	createDescriptorSets();
-
 	buildSceneNodes();
 
 	/*
@@ -292,25 +278,3 @@ inline void PipelineBase::createPipelineLayout() {
 		throw std::runtime_error("failed to create pipeline layout!");
 	}
 }
-
-void PipelineBase::createDescriptorPool() {
-	const auto& swap = _app->getSwapChain();
-	auto devCon = _app->getDeviceContext().device_;
-
-	std::array<VkDescriptorPoolSize, 2> poolSizes = {};
-	poolSizes[0].type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-	poolSizes[0].descriptorCount = static_cast<uint32_t>(swap._vkImages.size());
-	poolSizes[1].type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-	poolSizes[1].descriptorCount = static_cast<uint32_t>(swap._vkImages.size());
-
-	VkDescriptorPoolCreateInfo poolInfo = {};
-	poolInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
-	poolInfo.poolSizeCount = static_cast<uint32_t>(poolSizes.size());
-	poolInfo.pPoolSizes = poolSizes.data();
-	poolInfo.maxSets = static_cast<uint32_t>(swap._vkImages.size());
-
-	if (vkCreateDescriptorPool(devCon, &poolInfo, nullptr, &_descriptorPool) != VK_SUCCESS) {
-		throw std::runtime_error("failed to create descriptor pool!");
-	}
-}
-

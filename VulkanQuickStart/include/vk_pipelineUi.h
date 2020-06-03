@@ -66,7 +66,7 @@ namespace VK {
 		static std::string getShaderId();
 		PipelineUi(const VulkanAppPtr& app);
 
-		void updateUniformBuffer(size_t swapChainIndex) override;
+		void updateUniformBuffers(size_t swapChainIndex) override;
 		const UniformBufferObject& getUniformBuffer() const;
 
 		void addCommands(VkCommandBuffer cmdBuff, size_t swapChainIdx) const override;
@@ -75,8 +75,6 @@ namespace VK {
 	protected:
 		std::string getShaderIdMethod() override;
 		virtual void createDescriptorSetLayout() override;
-		virtual void createDescriptorSets() override;
-		virtual void createUniformBuffers() override;
 
 		UniformBufferObject _ubo;
 	};

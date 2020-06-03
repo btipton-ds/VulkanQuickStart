@@ -51,17 +51,13 @@ namespace VK {
 		void setUniformBufferPtr(const UniformBufferObject* ubo);
 		BoundingBox getBounds() const;
 
-		void updateUniformBuffer(size_t swapChainIndex) override;
 		void addCommands(VkCommandBuffer cmdBuff, size_t swapChainIdx) const override;
-		void cleanupSwapChain() override;
 
 		const UniformBufferObject& getUniformBuffer() const;
 
 	protected:
 		std::string getShaderIdMethod() override;
 		virtual void createDescriptorSetLayout() override;
-		virtual void createDescriptorSets() override;
-		virtual void createUniformBuffers() override;
 
 		const UniformBufferObject* _ubo;
 

@@ -45,30 +45,20 @@ PipelineSceneNodeBase::~PipelineSceneNodeBase() {
 		vkDestroyDescriptorPool(device, _descriptorPool, nullptr);
 }
 
-void PipelineSceneNodeBase::updateUniformBuffer(PipelineBase* pipeline, size_t swapChainIndex) {
+void PipelineSceneNodeBase::updateUniformBuffer(size_t swapChainIndex) {
 
 }
 
-void PipelineSceneNodeBase::createDescriptorPool() {
-	const auto& app = _ownerPipeline->getApp();
-	const auto& swap = app->getSwapChain();
-	auto devCon = app->getDeviceContext().device_;
+void PipelineSceneNodeBase::cleanupSwapChain() {
+	if (_uniformBuffers.empty())
+		return;
 
-	std::array<VkDescriptorPoolSize, 2> poolSizes = {};
-	poolSizes[0].type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-	poolSizes[0].descriptorCount = static_cast<uint32_t>(swap._vkImages.size());
-	poolSizes[1].type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-	poolSizes[1].descriptorCount = static_cast<uint32_t>(swap._vkImages.size());
+	_uniformBuffers.clear();
+	_descriptorSets.clear();
 
-	VkDescriptorPoolCreateInfo poolInfo = {};
-	poolInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
-	poolInfo.poolSizeCount = static_cast<uint32_t>(poolSizes.size());
-	poolInfo.pPoolSizes = poolSizes.data();
-	poolInfo.maxSets = static_cast<uint32_t>(swap._vkImages.size());
-
-	if (vkCreateDescriptorPool(devCon, &poolInfo, nullptr, &_descriptorPool) != VK_SUCCESS) {
-		throw std::runtime_error("failed to create descriptor pool!");
-	}
+	auto devCon = _ownerPipeline->getApp()->getDeviceContext().device_;
+	if (_descriptorPool != VK_NULL_HANDLE)
+		vkDestroyDescriptorPool(devCon, _descriptorPool, nullptr);
 }
 
 void PipelineSceneNodeBase::createUniformBuffers() {

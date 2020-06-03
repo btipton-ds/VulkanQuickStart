@@ -39,18 +39,18 @@ namespace VK {
 
 	class PipelineSceneNodeUi : public PipelineUi::PipelineSceneNode {
 	public:
+		using UniformBufferObject = PipelineUi::UniformBufferObject;
+
 		PipelineSceneNodeUi(const PipelineBasePtr& ownerPipeline);
 
-		void updateUniformBuffer(PipelineBase* pipeline, size_t swapChainIndex) override;
+		void updateUniformBuffer(size_t swapChainIndex) override;
 
-		void createDescriptorPool(PipelineUi* ownerPipeline);
-		virtual void createDescriptorSets(PipelineUi* ownerPipeline);
+		void PipelineSceneNodeUi::createUniformBuffers() override;
+		void createDescriptorPool() override;
+		void createDescriptorSets() override;
 		void cleanupSwapChain(PipelineUi* ownerPipeline);
 		void addCommandsIdx(VkCommandBuffer cmdBuff, VkPipelineLayout pipelineLayout, size_t swapChainIdx);
 
-	private:
-		VkDescriptorPool _descriptorPool = VK_NULL_HANDLE;
-		std::vector<VkDescriptorSet> _descriptorSets;
 	};
 
 	using SceneNodeUiPtr = std::shared_ptr<PipelineSceneNodeUi>;

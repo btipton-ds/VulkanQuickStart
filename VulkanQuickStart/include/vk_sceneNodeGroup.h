@@ -42,9 +42,12 @@ namespace VK {
 		SceneNodeGroup(const PipelineBasePtr& ownerPipeline);
 		virtual ~SceneNodeGroup();
 
-		void addCommands(VkCommandBuffer cmdBuff, VkPipelineLayout pipelineLayout, const VkDescriptorSet& descSet) const override;
+		void addCommands(VkCommandBuffer cmdBuff, VkPipelineLayout pipelineLayout, size_t swapChainIndex) const override;
 		void buildImageInfoList(std::vector<VkDescriptorImageInfo>& imageInfoList) const override;
-		void updateUniformBuffer(PipelineBase* pipeline, size_t swapChainIndex) override;
+		void updateUniformBuffer(size_t swapChainIndex) override;
+		void createUniformBuffers() override;
+		void createDescriptorPool() override;
+		void createDescriptorSets() override;
 
 		size_t numChildNodes() const;
 		size_t addChild(const SceneNodeBasePtr& child);

@@ -80,9 +80,14 @@ namespace VK {
 			return std::shared_ptr<ModelObj>(new ModelObj(ownerPipeline, path, filename));
 		}
 
-		void addCommands(VkCommandBuffer cmdBuff, VkPipelineLayout pipelineLayout, const VkDescriptorSet& descSet) const override;
+		void addCommands(VkCommandBuffer cmdBuff, VkPipelineLayout pipelineLayout, size_t swapChainIndex) const override;
 		void buildImageInfoList(std::vector<VkDescriptorImageInfo>& imageInfoList) const override;
 		BoundingBox getBounds() const override;
+
+		void createDescriptorPool() override;
+		void createDescriptorSets() override;
+		void createUniformBuffers() override;
+
 
 		inline const std::vector<VertexType>& getVertices() const {
 			return _vertices;

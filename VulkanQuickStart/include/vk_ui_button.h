@@ -81,7 +81,7 @@ namespace VK {
 			const glm::vec4& getBackgroundColor() const;
 
 			void createBuffers();
-			void addCommands(VkCommandBuffer cmdBuff, VkPipelineLayout pipelineLayout, const VkDescriptorSet& descSet) const override;
+			void addCommands(VkCommandBuffer cmdBuff, VkPipelineLayout pipelineLayout, size_t swapChainIndex) const override;
 
 			void buildImageInfoList(std::vector<VkDescriptorImageInfo>& imageInfoList) const override;
 

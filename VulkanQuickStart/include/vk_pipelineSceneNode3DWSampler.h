@@ -49,23 +49,18 @@ namespace VK {
 		virtual ~PipelineSceneNode3DWSampler();
 
 		virtual BoundingBox getBounds() const = 0;
-		void updateUniformBuffer(PipelineBase* pipeline, size_t swapChainIndex) override;
+		void updateUniformBuffer(size_t swapChainIndex) override;
 
 		void setModelTransform(const glm::mat4& xform);
 		const glm::mat4& getModelTransform() const;
 		glm::mat4& getModelTransform();
 
-		void createDescriptorPool(Pipeline3DWSampler* ownerPipeline);
-		virtual void createDescriptorSets(Pipeline3DWSampler* ownerPipeline);
-		void cleanupSwapChain(Pipeline3DWSampler* ownerPipeline);
 		void addCommandsIdx(VkCommandBuffer cmdBuff, VkPipelineLayout pipelineLayout, size_t swapChainIdx);
 
 	private:
 		glm::mat4 _modelXForm;
-
-		VkDescriptorPool _descriptorPool = VK_NULL_HANDLE;
-		std::vector<VkDescriptorSet> _descriptorSets;
 	};
+
 	using SceneNode3DWithTexturePtr = std::shared_ptr<PipelineSceneNode3DWSampler>;
 
 	inline void PipelineSceneNode3DWSampler::setModelTransform(const glm::mat4& xform) {

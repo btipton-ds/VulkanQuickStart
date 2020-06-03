@@ -41,9 +41,9 @@ SceneNodeGroup::~SceneNodeGroup() {
 
 }
 
-void SceneNodeGroup::addCommands(VkCommandBuffer cmdBuff, VkPipelineLayout pipelineLayout, const VkDescriptorSet& descSet) const {
+void SceneNodeGroup::addCommands(VkCommandBuffer cmdBuff, VkPipelineLayout pipelineLayout, size_t swapChainIndex) const {
 	for (const auto& child : _childScenes) {
-		child->addCommands(cmdBuff, pipelineLayout, descSet);
+		child->addCommands(cmdBuff, pipelineLayout, swapChainIndex);
 	}
 }
 
@@ -53,9 +53,17 @@ void SceneNodeGroup::buildImageInfoList(std::vector<VkDescriptorImageInfo>& imag
 	}
 }
 
-void SceneNodeGroup::updateUniformBuffer(PipelineBase* pipeline, size_t swapChainIndex) {
+void SceneNodeGroup::updateUniformBuffer(size_t swapChainIndex) {
 	for (const auto& child : _childScenes) {
-		child->updateUniformBuffer(pipeline, swapChainIndex);
+		child->updateUniformBuffer(swapChainIndex);
 	}
 }
 
+void SceneNodeGroup::createUniformBuffers() {
+}
+
+void SceneNodeGroup::createDescriptorPool() {
+}
+
+void SceneNodeGroup::createDescriptorSets() {
+}

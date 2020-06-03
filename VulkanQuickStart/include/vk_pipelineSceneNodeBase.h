@@ -51,13 +51,17 @@ namespace VK {
 		PipelineSceneNodeBase(const PipelineBasePtr& ownerPipeline);
 		virtual ~PipelineSceneNodeBase();
 
-		virtual void addCommands(VkCommandBuffer cmdBuff, VkPipelineLayout pipelineLayout, const VkDescriptorSet& descSet) const = 0;
+		virtual void addCommands(VkCommandBuffer cmdBuff, VkPipelineLayout pipelineLayout, size_t swapChainIndex) const = 0;
 		virtual void buildImageInfoList(std::vector<VkDescriptorImageInfo>& imageInfoList) const = 0;
-		virtual void updateUniformBuffer(PipelineBase* pipeline, size_t swapChainIndex);
+		virtual void updateUniformBuffer(size_t swapChainIndex);
 
-		void createDescriptorPool();
-		void createUniformBuffers();
+		void cleanupSwapChain();
+		virtual void createDescriptorPool() = 0;
+		virtual void createUniformBuffers() = 0;
+		virtual void createDescriptorSets() = 0;
 
+		template<class BUF_TYPE>
+		void updateUniformBufferTempl(size_t swapChainIndex, const BUF_TYPE& ubo);
 	protected:
 		PipelineBasePtr _ownerPipeline;
 
@@ -66,5 +70,9 @@ namespace VK {
 		std::vector<VkDescriptorSet> _descriptorSets;
 	};
 
+	template<class BUF_TYPE>
+	inline void PipelineSceneNodeBase::updateUniformBufferTempl(size_t swapChainIndex, const BUF_TYPE& ubo) {
+		_uniformBuffers[swapChainIndex].update(ubo);
+	}
 
 }

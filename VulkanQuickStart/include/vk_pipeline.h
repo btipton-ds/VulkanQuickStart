@@ -46,10 +46,13 @@ namespace VK {
 
 		Pipeline(const VulkanAppPtr& app);
 
+		void cleanupSwapChain() override;
 		void addSceneNode(const SceneNodePtr& node);
 		size_t numSceneNodes() const override;
 
 		void addCommands(VkCommandBuffer cmdBuff, size_t swapChainIdx) const override;
+		void updateUniformBuffers(size_t swapChainIndex) override;
+
 		size_t getUboSize() const override;
 
 	protected:
@@ -80,9 +83,16 @@ namespace VK {
 	}
 
 	template<class UBO_TYPE, class VERT_TYPE>
+	inline void Pipeline<UBO_TYPE, VERT_TYPE>::cleanupSwapChain() {
+		PipelineBase::cleanupSwapChain();
+		for (auto& sceneNode : _sceneNodes)
+			sceneNode->cleanupSwapChain();
+	}
+
+	template<class UBO_TYPE, class VERT_TYPE>
 	inline void Pipeline<UBO_TYPE, VERT_TYPE>::addCommands(VkCommandBuffer cmdBuff, size_t swapChainIdx) const {
 		for (const auto& sceneNode : _sceneNodes)
-			sceneNode->addCommands(cmdBuff, _pipelineLayout, _descriptorSets[swapChainIdx]);
+			sceneNode->addCommands(cmdBuff, _pipelineLayout, swapChainIdx);
 	}
 
 	template<class UBO_TYPE, class VERT_TYPE>
@@ -95,6 +105,7 @@ namespace VK {
 		for (const auto& sceneNode : _sceneNodes) {
 			sceneNode->createDescriptorPool();
 			sceneNode->createUniformBuffers();
+			sceneNode->createDescriptorSets();
 		}
 	}
 
@@ -106,6 +117,13 @@ namespace VK {
 	template<class UBO_TYPE, class VERT_TYPE>
 	inline size_t Pipeline<UBO_TYPE, VERT_TYPE>::numSceneNodes() const {
 		return _sceneNodes.size();
+	}
+
+	template<class UBO_TYPE, class VERT_TYPE>
+	inline void Pipeline<UBO_TYPE, VERT_TYPE>::updateUniformBuffers(size_t swapChainIndex) {
+		for (auto& sceneNode : _sceneNodes) {
+			sceneNode->updateUniformBuffer(swapChainIndex);
+		}
 	}
 
 }

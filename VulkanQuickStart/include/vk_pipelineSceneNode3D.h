@@ -50,7 +50,7 @@ namespace VK {
 		virtual ~PipelineSceneNode3D();
 
 		virtual BoundingBox getBounds() const = 0;
-		void updateUniformBuffer(PipelineBase* pipeline, size_t swapChainIndex) override;
+		void updateUniformBuffer(size_t swapChainIndex) override;
 
 		void setModelTransform(const glm::mat4& xform);
 		const glm::mat4& getModelTransform() const;

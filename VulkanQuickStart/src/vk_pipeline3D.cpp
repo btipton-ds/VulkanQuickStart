@@ -100,13 +100,6 @@ Pipeline3D::BoundingBox Pipeline3D::getBounds() const {
 	return bb;
 }
 
-void Pipeline3D::updateUniformBuffer(size_t swapChainIndex) {
-	for (auto& sceneNode : _sceneNodes) {
-		sceneNode->updateUniformBuffer(this, swapChainIndex);
-	}
-
-}
-
 void Pipeline3D::createDescriptorSetLayout() {
 	VkDescriptorSetLayoutBinding uboLayoutBinding = {};
 	uboLayoutBinding.binding = 0;
@@ -123,65 +116,6 @@ void Pipeline3D::createDescriptorSetLayout() {
 
 	if (vkCreateDescriptorSetLayout(_app->getDeviceContext().device_, &layoutInfo, nullptr, &_descriptorSetLayout) != VK_SUCCESS) {
 		throw std::runtime_error("failed to create descriptor set layout!");
-	}
-}
-
-void Pipeline3D::createDescriptorSets() {
-	auto dc = _app->getDeviceContext().device_;
-
-	const auto& swap = _app->getSwapChain();
-	size_t swapChainSize = (uint32_t)swap._vkImages.size();
-
-	std::vector<VkDescriptorSetLayout> layouts(swapChainSize, _descriptorSetLayout);
-	VkDescriptorSetAllocateInfo allocInfo = {};
-	allocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
-	allocInfo.descriptorPool = _descriptorPool;
-	allocInfo.descriptorSetCount = static_cast<uint32_t>(swapChainSize);
-	allocInfo.pSetLayouts = layouts.data();
-
-	_descriptorSets.resize(swapChainSize);
-
-	if (vkAllocateDescriptorSets(dc, &allocInfo, _descriptorSets.data()) != VK_SUCCESS) {
-		throw std::runtime_error("failed to allocate descriptor sets!");
-	}
-
-	for (size_t i = 0; i < swapChainSize; i++) {
-		VkDescriptorBufferInfo bufferInfo = {};
-
-		bufferInfo.buffer = _uniformBuffers[i];
-		bufferInfo.offset = 0;
-		bufferInfo.range = sizeof(UniformBufferObject);
-
-		std::vector<VkDescriptorImageInfo> imageInfoList;
-		for (const auto& sceneNode : _sceneNodes) {
-			sceneNode->buildImageInfoList(imageInfoList);
-		}
-
-		std::array<VkWriteDescriptorSet, 1> descriptorWrites = {};
-
-		descriptorWrites[0].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-		descriptorWrites[0].dstSet = _descriptorSets[i];
-		descriptorWrites[0].dstBinding = 0;
-		descriptorWrites[0].dstArrayElement = 0;
-		descriptorWrites[0].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-		descriptorWrites[0].descriptorCount = 1;
-		descriptorWrites[0].pBufferInfo = &bufferInfo;
-
-		vkUpdateDescriptorSets(dc, static_cast<uint32_t>(descriptorWrites.size()), descriptorWrites.data(), 0, nullptr);
-	}
-}
-
-void Pipeline3D::createUniformBuffers() {
-	size_t bufferSize = sizeof(UniformBufferObject);
-	const auto& swap = _app->getSwapChain();
-	size_t swapChainSize = (uint32_t)swap._vkImages.size();
-
-	_uniformBuffers.reserve(swapChainSize);
-
-	for (size_t i = 0; i < swapChainSize; i++) {
-		_uniformBuffers.push_back(Buffer(_app.get()));
-		_uniformBuffers.back().create(bufferSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
-			VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
 	}
 }
 

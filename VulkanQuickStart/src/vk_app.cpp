@@ -904,7 +904,7 @@ void VulkanApp::updateUniformBuffer(uint32_t swapChainImageIndex) {
 
 	for (auto& pipeline : _pipelines) {
 		if (pipeline->numSceneNodes() > 0) {
-			pipeline->updateUniformBuffer(swapChainImageIndex);
+			pipeline->updateUniformBuffers(swapChainImageIndex);
 		}
 	}
 }

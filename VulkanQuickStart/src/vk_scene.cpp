@@ -41,9 +41,9 @@ Scene::~Scene() {
 
 }
 
-void Scene::addCommands(VkCommandBuffer cmdBuff, VkPipelineLayout pipelineLayout, VkDescriptorSet& descSet) {
+void Scene::addCommands(VkCommandBuffer cmdBuff, VkPipelineLayout pipelineLayout, size_t swapChainIndex) {
 	for (auto& node : _rootNodes)
-		node->addCommands(cmdBuff, pipelineLayout, descSet);
+		node->addCommands(cmdBuff, pipelineLayout, swapChainIndex);
 }
 
 void Scene::buildImageInfoList(std::vector<VkDescriptorImageInfo>& imageInfoList) {
