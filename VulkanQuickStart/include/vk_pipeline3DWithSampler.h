@@ -40,7 +40,7 @@ namespace VK {
 	class Pipeline3DWSampler;
 	using Pipeline3DWSamplerPtr = std::shared_ptr<class Pipeline3DWSampler>;
 
-	class Pipeline3DWSampler : public Pipeline<UniformBufferObject3D, Vertex3_PNCTf> {
+	class Pipeline3DWSampler : public Pipeline<Vertex3_PNCTf, UniformBufferObject3D> {
 	public:
 		static uint32_t getMaxSamplers();
 		using UniformBufferObject = UniformBufferObject3D;

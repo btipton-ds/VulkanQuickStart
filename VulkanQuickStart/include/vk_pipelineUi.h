@@ -57,7 +57,7 @@ namespace VK {
 		glm::vec2 _texCoord;
 	};
 
-	class PipelineUi : public Pipeline<UniformBufferObjectUi, VertexUi> {
+	class PipelineUi : public Pipeline<VertexUi, UniformBufferObjectUi> {
 	public:
 		using UniformBufferObject = UniformBufferObjectUi;
 		using PipelinePtr = std::shared_ptr<PipelineUi>;

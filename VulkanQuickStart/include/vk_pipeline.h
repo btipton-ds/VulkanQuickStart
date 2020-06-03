@@ -36,11 +36,11 @@ This file is part of the VulkanQuickStart Project.
 
 namespace VK {
 
-	template<class UBO_TYPE, class VERT_TYPE>
+	template<class VERT_TYPE, class UBO_TYPE>
 	class Pipeline : public PipelineBase {
 	public:
 		using VertexType = VERT_TYPE;
-		using PipelineSceneNode = GCC_CLASS PipelineSceneNode<Pipeline<UBO_TYPE, VERT_TYPE>>;
+		using PipelineSceneNode = GCC_CLASS PipelineSceneNode<Pipeline<VERT_TYPE, UBO_TYPE>>;
 		using SceneNodePtr = std::shared_ptr<PipelineSceneNode>;
 		using SceneNodeList = std::vector<SceneNodePtr>;
 
@@ -74,34 +74,34 @@ namespace VK {
 		return createPipeline<PIPELINE_TYPE>(app);
 	}
 
-	template<class UBO_TYPE, class VERT_TYPE>
-	inline Pipeline<UBO_TYPE, VERT_TYPE>::Pipeline(const VulkanAppPtr& app)
+	template<class VERT_TYPE, class UBO_TYPE>
+	inline Pipeline<VERT_TYPE, UBO_TYPE>::Pipeline(const VulkanAppPtr& app)
 	: PipelineBase(app)
 	{ 
 		_vertBindDesc = VERT_TYPE::getBindingDescription();
 		_vertAttribDesc = VERT_TYPE::getAttributeDescriptions();
 	}
 
-	template<class UBO_TYPE, class VERT_TYPE>
-	inline void Pipeline<UBO_TYPE, VERT_TYPE>::cleanupSwapChain() {
+	template<class VERT_TYPE, class UBO_TYPE>
+	inline void Pipeline<VERT_TYPE, UBO_TYPE>::cleanupSwapChain() {
 		PipelineBase::cleanupSwapChain();
 		for (auto& sceneNode : _sceneNodes)
 			sceneNode->cleanupSwapChain();
 	}
 
-	template<class UBO_TYPE, class VERT_TYPE>
-	inline void Pipeline<UBO_TYPE, VERT_TYPE>::addCommands(VkCommandBuffer cmdBuff, size_t swapChainIdx) const {
+	template<class VERT_TYPE, class UBO_TYPE>
+	inline void Pipeline<VERT_TYPE, UBO_TYPE>::addCommands(VkCommandBuffer cmdBuff, size_t swapChainIdx) const {
 		for (const auto& sceneNode : _sceneNodes)
 			sceneNode->addCommands(cmdBuff, _pipelineLayout, swapChainIdx);
 	}
 
-	template<class UBO_TYPE, class VERT_TYPE>
-	inline size_t Pipeline<UBO_TYPE, VERT_TYPE>::getUboSize() const {
+	template<class VERT_TYPE, class UBO_TYPE>
+	inline size_t Pipeline<VERT_TYPE, UBO_TYPE>::getUboSize() const {
 		return sizeof(UBO_TYPE);
 	}
 
-	template<class UBO_TYPE, class VERT_TYPE>
-	inline void Pipeline<UBO_TYPE, VERT_TYPE>::buildSceneNodes() {
+	template<class VERT_TYPE, class UBO_TYPE>
+	inline void Pipeline<VERT_TYPE, UBO_TYPE>::buildSceneNodes() {
 		for (const auto& sceneNode : _sceneNodes) {
 			sceneNode->createDescriptorPool();
 			sceneNode->createUniformBuffers();
@@ -109,18 +109,18 @@ namespace VK {
 		}
 	}
 
-	template<class UBO_TYPE, class VERT_TYPE>
-	inline void Pipeline<UBO_TYPE, VERT_TYPE>::addSceneNode(const SceneNodePtr& node) {
+	template<class VERT_TYPE, class UBO_TYPE>
+	inline void Pipeline<VERT_TYPE, UBO_TYPE>::addSceneNode(const SceneNodePtr& node) {
 		_sceneNodes.push_back(node);
 	}
 
-	template<class UBO_TYPE, class VERT_TYPE>
-	inline size_t Pipeline<UBO_TYPE, VERT_TYPE>::numSceneNodes() const {
+	template<class VERT_TYPE, class UBO_TYPE>
+	inline size_t Pipeline<VERT_TYPE, UBO_TYPE>::numSceneNodes() const {
 		return _sceneNodes.size();
 	}
 
-	template<class UBO_TYPE, class VERT_TYPE>
-	inline void Pipeline<UBO_TYPE, VERT_TYPE>::updateUniformBuffers(size_t swapChainIndex) {
+	template<class VERT_TYPE, class UBO_TYPE>
+	inline void Pipeline<VERT_TYPE, UBO_TYPE>::updateUniformBuffers(size_t swapChainIndex) {
 		for (auto& sceneNode : _sceneNodes) {
 			sceneNode->updateUniformBuffer(swapChainIndex);
 		}

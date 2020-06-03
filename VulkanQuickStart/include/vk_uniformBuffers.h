@@ -46,5 +46,16 @@ namespace VK {
 		alignas(16) glm::vec3 lightDir[2];
 	};
 
+	struct UBO3DVert {
+		alignas(16) glm::mat4 modelView;
+		alignas(16) glm::mat4 proj;
+	};
+
+	struct UBO3DFrag {
+		alignas(16) float ambient;
+		alignas(16) int numLights;
+		alignas(16) glm::vec3 lightDir[2];
+	};
+
 }
 

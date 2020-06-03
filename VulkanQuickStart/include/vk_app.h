@@ -295,8 +295,8 @@ namespace VK {
 		return _swapChainIndex;
 	}
 
-	template<class UBO_TYPE>
-	inline const PipelinePtr<UBO_TYPE>& VulkanApp::addPipeline(const PipelinePtr<UBO_TYPE>& pipeline) {
+	template<class PIPELINE_TYPE>
+	inline const PipelinePtr<PIPELINE_TYPE>& VulkanApp::addPipeline(const PipelinePtr<PIPELINE_TYPE>& pipeline) {
 		_pipelines.push_back(pipeline);
 		return pipeline;
 	}
