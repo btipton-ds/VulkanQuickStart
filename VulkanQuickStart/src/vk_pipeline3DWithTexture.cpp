@@ -100,13 +100,6 @@ Pipeline3DWSampler::BoundingBox Pipeline3DWSampler::getBounds() const {
 	return bb;
 }
 
-void Pipeline3DWSampler::addCommands(VkCommandBuffer cmdBuff, size_t swapChainIdx) const {
-	for (const auto& sceneNode : _sceneNodes) {
-		SceneNode3DWithTexturePtr node3D = dynamic_pointer_cast<PipelineSceneNode3DWSampler>(sceneNode);
-		node3D->addCommandsIdx(cmdBuff, _pipelineLayout, swapChainIdx);
-	}
-}
-
 void Pipeline3DWSampler::createDescriptorSetLayout() {
 	VkDescriptorSetLayoutBinding uboLayoutBinding = {};
 	uboLayoutBinding.binding = 0;

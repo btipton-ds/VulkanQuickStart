@@ -53,8 +53,6 @@ namespace VK {
 		void setUniformBufferPtr(const UniformBufferObject* ubo);
 		BoundingBox getBounds() const;
 
-		void addCommands(VkCommandBuffer cmdBuff, size_t swapChainIdx) const override;
-
 		const UniformBufferObject& getUniformBuffer() const;
 
 	protected:

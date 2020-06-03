@@ -68,7 +68,7 @@ namespace VK {
 			return bufferMemory_;
 		}
 
-		VulkanApp* _app;
+		VulkanApp* _app = nullptr;
 		VkBuffer buffer_ = VK_NULL_HANDLE;
 		VkDeviceMemory bufferMemory_ = VK_NULL_HANDLE;
 	};

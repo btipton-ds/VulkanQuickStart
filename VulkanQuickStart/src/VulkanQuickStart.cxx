@@ -80,11 +80,12 @@ const std::string stlFilenameFine = "test_part_fine.stl";
 #endif
 
 VulkanAppPtr gApp;
+ModelObjPtr plant;
 
 #if TEST_GUI
 void buildUi(UI::WindowPtr& gui) {
 	glm::vec4 bkgColor(0.875f, 0.875f, 0.875f, 1);
-	uint32_t w = 120;
+	uint32_t w = 160;
 	uint32_t h = 22;
 	uint32_t row = 0;
 
@@ -93,6 +94,16 @@ void buildUi(UI::WindowPtr& gui) {
 		if (btnNum == 0) {
 			glm::mat4 xform = glm::mat4(1.0f);
 			gApp->setModelToWorldTransform(xform);
+		}
+	});
+
+	row += h;
+	gui->addButton(bkgColor, "Show/Hide plant", UI::Rect(row, 0, row + h, w))->
+		setAction(UI::Button::ActionType::ACT_CLICK, [&](int btnNum, int modifiers) {
+		if (btnNum == 0) {
+			if (plant) {
+				plant->toggleVisibility();
+			}
 		}
 	});
 
@@ -134,7 +145,7 @@ int main(int numArgs, char** args) {
 	glm::mat4 xform;
 #if TEST_OBJ
 
-	ModelObjPtr plant = std::dynamic_pointer_cast<ModelObj> (gApp->addSceneNode3D(pottedPlantPath, pottedPlantFilename));
+	plant = std::dynamic_pointer_cast<ModelObj> (gApp->addSceneNode3D(pottedPlantPath, pottedPlantFilename));
 	xform = glm::rotate(glm::mat4(1.0f), glm::radians(90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
 	plant->setModelTransform(xform);
 

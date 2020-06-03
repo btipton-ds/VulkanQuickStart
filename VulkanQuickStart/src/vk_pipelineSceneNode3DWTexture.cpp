@@ -55,7 +55,3 @@ void PipelineSceneNode3DWSampler::updateUniformBuffer(size_t swapChainIndex) {
 	ubo.modelView *= _modelXForm;
 	updateUniformBufferTempl(swapChainIndex, ubo);
 }
-
-void PipelineSceneNode3DWSampler::addCommandsIdx(VkCommandBuffer cmdBuff, VkPipelineLayout pipelineLayout, size_t swapChainIdx) {
-	addCommands(cmdBuff, pipelineLayout, swapChainIdx);
-}

@@ -55,8 +55,6 @@ namespace VK {
 		const glm::mat4& getModelTransform() const;
 		glm::mat4& getModelTransform();
 
-		void addCommandsIdx(VkCommandBuffer cmdBuff, VkPipelineLayout pipelineLayout, size_t swapChainIdx);
-
 	private:
 		glm::mat4 _modelXForm;
 	};

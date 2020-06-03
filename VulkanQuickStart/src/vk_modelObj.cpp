@@ -301,6 +301,7 @@ void ModelObj::createUniformBuffers() {
 	const auto& swap = app->getSwapChain();
 	size_t swapChainSize = (uint32_t)swap._vkImages.size();
 
+	_uniformBuffers.clear();
 	_uniformBuffers.reserve(swapChainSize);
 
 	for (size_t i = 0; i < swapChainSize; i++) {

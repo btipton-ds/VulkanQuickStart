@@ -63,6 +63,11 @@ PipelineBase::~PipelineBase() {
 	cleanupSwapChain();
 }
 
+void PipelineSceneNodeBase::toggleVisibility() {
+	_visible = !_visible;
+	_ownerPipeline->getApp()->changed();
+}
+
 size_t PipelineBase::numSceneNodes() const {
 	return 0;
 }

@@ -90,6 +90,7 @@ namespace VK {
 
 		SceneNode3DWithTexturePtr addSceneNode3D(const std::string& path, const std::string& filename);
 		SceneNode3DPtr addSceneNode3D(const TriMesh::CMeshPtr& mesh);
+		void changed();
 
 		template<class PIPELINE_TYPE>
 		const PipelinePtr<PIPELINE_TYPE>& addPipeline(const PipelinePtr<PIPELINE_TYPE>& pipeline);
@@ -225,6 +226,10 @@ namespace VK {
 
 	inline VulkanAppPtr VulkanApp::getAppPtr() {
 		return shared_from_this();
+	}
+
+	inline void VulkanApp::changed() {
+		_changeNumber++;
 	}
 
 	inline const DeviceContext& VulkanApp::getDeviceContext() const {

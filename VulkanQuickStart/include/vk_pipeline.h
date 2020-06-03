@@ -85,14 +85,17 @@ namespace VK {
 	template<class VERT_TYPE, class UBO_TYPE>
 	inline void Pipeline<VERT_TYPE, UBO_TYPE>::cleanupSwapChain() {
 		PipelineBase::cleanupSwapChain();
-		for (auto& sceneNode : _sceneNodes)
+		for (auto& sceneNode : _sceneNodes) {
 			sceneNode->cleanupSwapChain();
+		}
 	}
 
 	template<class VERT_TYPE, class UBO_TYPE>
 	inline void Pipeline<VERT_TYPE, UBO_TYPE>::addCommands(VkCommandBuffer cmdBuff, size_t swapChainIdx) const {
-		for (const auto& sceneNode : _sceneNodes)
-			sceneNode->addCommands(cmdBuff, _pipelineLayout, swapChainIdx);
+		for (const auto& sceneNode : _sceneNodes) {
+			if (sceneNode->isVisible())
+				sceneNode->addCommands(cmdBuff, _pipelineLayout, swapChainIdx);
+		}
 	}
 
 	template<class VERT_TYPE, class UBO_TYPE>

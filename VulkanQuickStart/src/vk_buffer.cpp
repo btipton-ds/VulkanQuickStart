@@ -50,6 +50,7 @@ void Buffer::destroy() {
 		vkFreeMemory(dc.device_, bufferMemory_, nullptr);
 		buffer_ = VK_NULL_HANDLE;
 		dc.buffers_.erase(this);
+		buffer_ = VK_NULL_HANDLE;
 	}
 	if (buffer_ != VK_NULL_HANDLE) {
 		cout << "device leak\n";
