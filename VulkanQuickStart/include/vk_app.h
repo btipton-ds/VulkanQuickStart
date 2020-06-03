@@ -48,10 +48,8 @@ This file is part of the VulkanQuickStart Project.
 #include "vk_deviceContext.h"
 #include "vk_image.h"
 #include <vk_pipelineSceneNode.h>
-#include <vk_sceneNodeGroup.h>
 #include <vk_pipelineSceneNode3D.h>
 #include <vk_pipelineSceneNode3DWSampler.h>
-#include <vk_scene.h>
 #include <vk_pipeline3D.h>
 #include <vk_shaderPool.h>
 
@@ -95,12 +93,6 @@ namespace VK {
 
 		template<class PIPELINE_TYPE>
 		const PipelinePtr<PIPELINE_TYPE>& addPipeline(const PipelinePtr<PIPELINE_TYPE>& pipeline);
-
-		const ScenePtr& getScene() const;
-		void setScene(const ScenePtr& scene);
-
-		SceneNodeGroupConstPtr getRoot3D() const;
-		SceneNodeGroupPtr getRoot3D();
 
 		const DeviceContext& getDeviceContext() const;
 		DeviceContext& getDeviceContext();
@@ -219,9 +211,6 @@ namespace VK {
 		UniformBufferObject3D _ubo;
 		std::vector<PipelineBasePtr> _pipelines;
 
-		ScenePtr _scene;
-		size_t _root3DNode = stm1;
-
 		std::vector<VkCommandBuffer> _commandBuffers;
 
 		std::vector<VkSemaphore> imageAvailableSemaphores;
@@ -234,14 +223,6 @@ namespace VK {
 
 	inline VulkanAppPtr VulkanApp::getAppPtr() {
 		return shared_from_this();
-	}
-
-	inline const ScenePtr& VulkanApp::getScene() const {
-		return _scene;
-	}
-
-	inline void VulkanApp::setScene(const ScenePtr& scene) {
-		_scene = scene;
 	}
 
 	inline const DeviceContext& VulkanApp::getDeviceContext() const {

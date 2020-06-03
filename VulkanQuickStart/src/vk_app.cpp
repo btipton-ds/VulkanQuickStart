@@ -46,7 +46,6 @@ This file is part of the VulkanQuickStart Project.
 #include "vk_model.h"
 #include <vk_modelObj.h>
 #include <vk_pipelineSceneNode.h>
-#include <vk_scene.h>
 #include <vk_pipeline3D.h>
 #include <vk_pipeline3DWithSampler.h>
 #include <vk_pipelineUi.h>
@@ -104,10 +103,6 @@ VulkanApp::VulkanApp(int width, int height)
 	_shaderPool = make_shared<ShaderPool>(deviceContext);
 	_modelToWorld = glm::identity<glm::mat4>();
 
-	_scene = std::make_shared<Scene>();
-	_root3DNode = _scene->addRootSceneNode(std::make_shared<SceneNodeGroup>(nullptr));
-
-
 	initWindow(width, height);
 	initVulkan();
 }
@@ -120,14 +115,6 @@ void VulkanApp::setUiWindow(const UI::WindowPtr& uiWindow) {
 	if (uiWindow) {
 		_uiWindow = uiWindow;
 	}
-}
-
-SceneNodeGroupConstPtr VulkanApp::getRoot3D() const {
-	return dynamic_pointer_cast<const SceneNodeGroup> (_scene->getRootSceneNode(_root3DNode));
-}
-SceneNodeGroupPtr VulkanApp::getRoot3D() {
-	SceneNodeBasePtr n = _scene->getRootSceneNode(_root3DNode);
-	return dynamic_pointer_cast<SceneNodeGroup> (n);
 }
 
 void DestroyDebugUtilsMessengerEXT(VkInstance instance, VkDebugUtilsMessengerEXT debugMessenger, const VkAllocationCallbacks* pAllocator) {
@@ -158,8 +145,6 @@ SceneNode3DWithTexturePtr VulkanApp::addSceneNode3D(const std::string& path, con
 	pipeline->setUniformBufferPtr(&_ubo);
 
 	ModelObjPtr result = ModelObj::create(pipeline, path, filename);
-	getRoot3D()->addChild(result);
-
 	pipeline->addSceneNode(result);
 
 	_changeNumber++;
@@ -173,9 +158,6 @@ SceneNode3DPtr VulkanApp::addSceneNode3D(const TriMesh::CMeshPtr& mesh) {
 	pipeline->setUniformBufferPtr(&_ubo);
 
 	ModelPtr result = Model::create(pipeline, mesh);
-
-	getRoot3D()->addChild(result);
-
 	pipeline->addSceneNode(result);
 
 	_changeNumber++;

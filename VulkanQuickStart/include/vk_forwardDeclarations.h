@@ -70,18 +70,11 @@ namespace VK {
 	template<class PIPELINE_TYPE>
 	class PipelineSceneNode;
 
-	class SceneNodeGroup;
-	using SceneNodeGroupPtr = std::shared_ptr<SceneNodeGroup>;
-	using SceneNodeGroupConstPtr = std::shared_ptr<const SceneNodeGroup>;
-
 	class Model;
 	using ModelPtr = std::shared_ptr<Model>;
 
 	class ModelObj;
 	using ModelObjPtr = std::shared_ptr<ModelObj>;
-
-	class Scene;
-	using ScenePtr = std::shared_ptr<Scene>;
 
 	namespace UI {
 		class Window;
