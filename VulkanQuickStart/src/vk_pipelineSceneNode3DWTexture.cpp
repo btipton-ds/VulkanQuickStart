@@ -52,7 +52,7 @@ PipelineSceneNode3DWSampler::~PipelineSceneNode3DWSampler() {
 void PipelineSceneNode3DWSampler::updateUniformBuffer(size_t swapChainIndex) {
 	auto pipeline3D = dynamic_pointer_cast<Pipeline3DWSampler>(_ownerPipeline);
 	auto ubo = pipeline3D->getUniformBuffer();
-	ubo.model *= _modelXForm;
+	ubo.modelView *= _modelXForm;
 	updateUniformBufferTempl(swapChainIndex, ubo);
 }
 
