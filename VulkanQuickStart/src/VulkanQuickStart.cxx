@@ -79,12 +79,17 @@ const std::string stlFilenameCourse = "test_part_course.stl";
 const std::string stlFilenameFine = "test_part_fine.stl";
 #endif
 
+Pipeline3DPtr pipeline3D;
+Pipeline3DWSamplerPtr pipeline3DWSampler;
+
 VulkanAppPtr gApp;
 
 SceneNode3DPtr vase;
 SceneNode3DPtr part;
 
 ModelObjPtr plant;
+ModelObjPtr dna;
+ModelObjPtr apricot;
 
 #if TEST_GUI
 void buildUi(UI::WindowPtr& gui) {
@@ -154,15 +159,17 @@ void buildUi(UI::WindowPtr& gui) {
 void addObj() {
 	glm::mat4 xform;
 
-	plant = std::dynamic_pointer_cast<ModelObj> (gApp->addSceneNode3D(pottedPlantPath, pottedPlantFilename));
+	plant = ModelObj::create(pipeline3DWSampler, pottedPlantPath, pottedPlantFilename);
+	pipeline3DWSampler->addSceneNode(plant);
 	xform = glm::rotate(glm::mat4(1.0f), glm::radians(90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
 	plant->setModelTransform(xform);
 
-	ModelObjPtr dna = std::dynamic_pointer_cast<ModelObj> (gApp->addSceneNode3D(dnaPath, dnaFilename));
+	dna = ModelObj::create(pipeline3DWSampler, dnaPath, dnaFilename);
+	pipeline3DWSampler->addSceneNode(dna);
 	xform = glm::translate(glm::mat4(1.0f), glm::vec3(0, 10, 0));
 	dna->setModelTransform(xform);
 
-	ModelObjPtr apricot = std::dynamic_pointer_cast<ModelObj> (gApp->addSceneNode3D(apricotPath, apricotFilename));
+	apricot = ModelObj::create(pipeline3DWSampler, apricotPath, apricotFilename);
 	xform = glm::translate(glm::mat4(1.0f), glm::vec3(10, 10, 0));
 	xform *= glm::rotate(glm::mat4(1.0f), glm::radians(90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
 	apricot->setModelTransform(xform);
@@ -173,8 +180,9 @@ int readStl(const string& filename, SceneNode3DPtr& model) {
 	CReadSTL readStl(meshPtr);
 	if (!readStl.read(modelPath, filename))
 		return 1;
-	model = gApp->addSceneNode3D(meshPtr);
-	model->setModelTransform(glm::scale(glm::mat4(1.0f), glm::vec3(.05f, .05f, .05f)));
+
+	model = Model::create(pipeline3D, meshPtr);
+	pipeline3D->addSceneNode(model);
 	return 0;
 }
 
@@ -207,6 +215,9 @@ int main(int numArgs, char** args) {
 #endif
 
 	glfwSetWindowTitle(gApp->getWindow(), "Vulkan Quick Start");
+
+	pipeline3DWSampler = gApp->addPipelineWithSource<Pipeline3DWSampler>("shaders/shader_depth_vert.spv", "shaders/shader_depth_frag.spv");
+	pipeline3D = gApp->addPipelineWithSource<Pipeline3D>("shaders/shader_vert.spv", "shaders/shader_frag.spv");
 
 	addObj();
 	addStl();

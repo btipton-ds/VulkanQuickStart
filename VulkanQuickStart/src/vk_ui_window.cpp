@@ -252,7 +252,9 @@ namespace VK::UI {
 	void Window::init() {
 		auto win = _app->getWindow();
 
-		_pipeline = _app->addPipeline(createPipeline<PipelineUi>(_app->getAppPtr()));
+		_pipeline = make_shared<PipelineUi>(_app);
+		_app->addPipeline(_pipeline);
+
 
 		glfwSetMouseButtonCallback(win, mouseButtonCB);
 		glfwSetCursorPosCallback(win, cursorPosCB);

@@ -88,12 +88,12 @@ namespace VK {
 
 		void setUiWindow(const UI::WindowPtr& uiWindow );
 
-		SceneNode3DWithTexturePtr addSceneNode3D(const std::string& path, const std::string& filename);
-		SceneNode3DPtr addSceneNode3D(const TriMesh::CMeshPtr& mesh);
 		void changed();
 
+		PipelineBasePtr addPipeline(const PipelineBasePtr& pipeline);
+
 		template<class PIPELINE_TYPE>
-		const PipelinePtr<PIPELINE_TYPE>& addPipeline(const PipelinePtr<PIPELINE_TYPE>& pipeline);
+		PipelinePtr<PIPELINE_TYPE> addPipelineWithSource(const std::string& vertShaderFilename, const std::string& fragShaderFilename);
 
 		const DeviceContext& getDeviceContext() const;
 		DeviceContext& getDeviceContext();
@@ -210,8 +210,6 @@ namespace VK {
 		ShaderPoolPtr _shaderPool;
 
 		UniformBufferObject3D _ubo;
-		Pipeline3DPtr _pipeline3D;
-		Pipeline3DWSamplerPtr _pipeline3DObj;
 		std::vector<PipelineBasePtr> _pipelines;
 
 		std::vector<VkCommandBuffer> _commandBuffers;
@@ -300,9 +298,17 @@ namespace VK {
 		return _swapChainIndex;
 	}
 
-	template<class PIPELINE_TYPE>
-	inline const PipelinePtr<PIPELINE_TYPE>& VulkanApp::addPipeline(const PipelinePtr<PIPELINE_TYPE>& pipeline) {
+	inline PipelineBasePtr VulkanApp::addPipeline(const PipelineBasePtr& pipeline) {
 		_pipelines.push_back(pipeline);
+		changed();
+		return pipeline;
+	}
+
+	template<class PIPELINE_TYPE>
+	inline PipelinePtr<PIPELINE_TYPE> VulkanApp::addPipelineWithSource(const std::string& vertShaderFilename, const std::string& fragShaderFilename) {
+		auto pipeline = createPipelineWithSource<PIPELINE_TYPE>(getAppPtr(), vertShaderFilename, fragShaderFilename);
+		pipeline->setUniformBufferPtr(&_ubo);
+		addPipeline(pipeline);
 		return pipeline;
 	}
 
