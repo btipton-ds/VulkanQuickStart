@@ -89,7 +89,7 @@ namespace VK {
 		VkImage getVkImage() const;
 
 	protected:
-		void Image::saveImage(const std::string& filename, const VkSubresourceLayout& vkLayout, bool colorSwizzle, const char* pix) const;
+		void saveImage(const std::string& filename, const VkSubresourceLayout& vkLayout, bool colorSwizzle, const char* pix) const;
 
 		VulkanApp* _app;
 		VkImageCreateInfo _imageInfo = {};

@@ -42,6 +42,7 @@ This file is part of the VulkanQuickStart Project.
 #include <vulkan/vulkan_core.h>
 
 #include <vk_forwardDeclarations.h>
+#include <vk_buffer.h>
 #include <vk_textureImage.h>
 
 namespace VK {

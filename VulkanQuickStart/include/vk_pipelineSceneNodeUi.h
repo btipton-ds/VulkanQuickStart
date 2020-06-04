@@ -45,7 +45,7 @@ namespace VK {
 
 		void updateUniformBuffer(size_t swapChainIndex) override;
 
-		void PipelineSceneNodeUi::createUniformBuffers() override;
+		void createUniformBuffers() override;
 		void createDescriptorPool() override;
 		void createDescriptorSets() override;
 		void cleanupSwapChain(PipelineUi* ownerPipeline);

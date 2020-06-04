@@ -35,7 +35,6 @@ This file is part of the VulkanQuickStart Project.
 #include <GLFW/glfw3.h>
 
 #include <vk_forwardDeclarations.h>
-#include <vk_image.h>
 
 namespace VK {
 

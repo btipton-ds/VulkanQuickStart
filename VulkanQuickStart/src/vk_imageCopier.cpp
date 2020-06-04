@@ -30,6 +30,7 @@ This file is part of the VulkanQuickStart Project.
 #include <vk_defines.h>
 
 #include <vk_imageCopier.h>
+#include <vk_image.h>
 #include <vk_app.h>
 
 #include <VulkanDevice.hpp>
