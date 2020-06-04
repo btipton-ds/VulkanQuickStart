@@ -63,7 +63,6 @@ namespace VK {
 		using PipelinePtr = std::shared_ptr<PipelineUi>;
 		using VertexType = VertexUi;
 
-		static std::string getShaderId();
 		PipelineUi(const VulkanAppPtr& app);
 
 		void updateUniformBuffers(size_t swapChainIndex) override;
@@ -73,7 +72,6 @@ namespace VK {
 		void cleanupSwapChain() override;
 
 	protected:
-		std::string getShaderIdMethod() override;
 		virtual void createDescriptorSetLayout() override;
 
 		UniformBufferObject _ubo;

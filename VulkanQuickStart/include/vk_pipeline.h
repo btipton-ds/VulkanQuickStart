@@ -44,7 +44,7 @@ namespace VK {
 		using SceneNodePtr = std::shared_ptr<PipelineSceneNode>;
 		using SceneNodeList = std::vector<SceneNodePtr>;
 
-		Pipeline(const VulkanAppPtr& app);
+		Pipeline(const VulkanAppPtr& app, const std::string& shaderId);
 
 		void cleanupSwapChain() override;
 		void addSceneNode(const SceneNodePtr& node);
@@ -62,21 +62,21 @@ namespace VK {
 	};
 
 	template<class PIPELINE_TYPE>
-	inline typename PIPELINE_TYPE::PipelinePtr createPipeline(const VulkanAppPtr& app) {
-		PIPELINE_TYPE* ptr = new PIPELINE_TYPE(app);
+	inline typename PIPELINE_TYPE::PipelinePtr createPipeline(const VulkanAppPtr& app, const std::string& shaderId) {
+		PIPELINE_TYPE* ptr = new PIPELINE_TYPE(app, shaderId);
 		return PipelinePtr<PIPELINE_TYPE>(ptr);
 	}
 
 	template<class PIPELINE_TYPE>
-	inline typename PIPELINE_TYPE::PipelinePtr createPipelineWithSource(const VulkanAppPtr& app, const std::string& vertShaderFilename, const std::string& fragShaderFilename) {
-		const std::string shaderId = PIPELINE_TYPE::getShaderId();
+	inline typename PIPELINE_TYPE::PipelinePtr createPipelineWithSource(const VulkanAppPtr& app, const std::string& shaderId, const std::string& vertShaderFilename, const std::string& fragShaderFilename) {
+		auto pipeline = createPipeline<PIPELINE_TYPE>(app, shaderId);
 		PipelineBase::addShaders(app, shaderId, { vertShaderFilename , fragShaderFilename });
-		return createPipeline<PIPELINE_TYPE>(app);
+		return pipeline;
 	}
 
 	template<class VERT_TYPE, class UBO_TYPE>
-	inline Pipeline<VERT_TYPE, UBO_TYPE>::Pipeline(const VulkanAppPtr& app)
-	: PipelineBase(app)
+	inline Pipeline<VERT_TYPE, UBO_TYPE>::Pipeline(const VulkanAppPtr& app, const std::string& shaderId)
+	: PipelineBase(app, shaderId)
 	{ 
 		_vertBindDesc = VERT_TYPE::getBindingDescription();
 		_vertAttribDesc = VERT_TYPE::getAttributeDescriptions();

@@ -52,16 +52,8 @@ This file is part of the VulkanQuickStart Project.
 using namespace VK;
 using namespace std;
 
-string Pipeline3D::getShaderId() {
-	return "Pipeline3D";
-}
-
-string Pipeline3D::getShaderIdMethod() {
-	return getShaderId();
-}
-
-Pipeline3D::Pipeline3D(const VulkanAppPtr& app)
-	: Pipeline(app)
+Pipeline3D::Pipeline3D(const VulkanAppPtr& app, const std::string& shaderId)
+	: Pipeline(app, shaderId)
 {}
 
 namespace {

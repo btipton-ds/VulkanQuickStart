@@ -1,5 +1,3 @@
-#pragma once
-
 /*
 
 This file is part of the VulkanQuickStart Project.
@@ -29,42 +27,24 @@ This file is part of the VulkanQuickStart Project.
 
 */
 
-#include <vk_defines.h>
+#version 450
+#extension GL_ARB_separate_shader_objects : enable
 
-#include <tm_boundingBox.h>
-#include <vk_pipeline.h>
-#include <vk_uniformBuffers.h>
-#include <vk_vertexTypes.h>
+struct Lights {
+    int numLights;
+    vec3 lights[4];
 
-namespace VK {
+    float ambient;
+};
 
-	class Pipeline3D : public Pipeline<Vertex3_PNCf, UniformBufferObject3D> {
-	public:
-		using UniformBufferObject = UniformBufferObject3D;
-		using BoundingBox = CBoundingBox3D<float>;
-		using PipelinePtr = std::shared_ptr<Pipeline3D>;
+layout(location = 0) in vec3 fragColor;
+layout(location = 1) in vec3 fragNormal;
+layout(location = 2) flat in float fragAmbient;
+layout(location = 3) flat in int fragNumLights;
+layout(location = 4) flat in vec3 fragLights[2];
 
-		Pipeline3D(const VulkanAppPtr& app, const std::string& shaderId);
+layout(location = 0) out vec4 outColor;
 
-		void setUniformBufferPtr(const UniformBufferObject* ubo);
-		BoundingBox getBounds() const;
-
-		const UniformBufferObject& getUniformBuffer() const;
-
-	protected:
-		virtual void createDescriptorSetLayout() override;
-
-		const UniformBufferObject* _ubo;
-	};
-
-	using Pipeline3DPtr = std::shared_ptr<Pipeline3D>;
-
-	inline void Pipeline3D::setUniformBufferPtr(const UniformBufferObject* ubo) {
-		_ubo = ubo;
-	}
-
-	inline const Pipeline3D::UniformBufferObject& Pipeline3D::getUniformBuffer() const {
-		return *_ubo;
-	}
-
+void main() {
+    outColor = vec4(fragColor, 1);
 }

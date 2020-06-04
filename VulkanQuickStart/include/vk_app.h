@@ -93,7 +93,7 @@ namespace VK {
 		PipelineBasePtr addPipeline(const PipelineBasePtr& pipeline);
 
 		template<class PIPELINE_TYPE>
-		PipelinePtr<PIPELINE_TYPE> addPipelineWithSource(const std::string& vertShaderFilename, const std::string& fragShaderFilename);
+		PipelinePtr<PIPELINE_TYPE> addPipelineWithSource(const std::string& shaderId, const std::string& vertShaderFilename, const std::string& fragShaderFilename);
 
 		const DeviceContext& getDeviceContext() const;
 		DeviceContext& getDeviceContext();
@@ -305,8 +305,8 @@ namespace VK {
 	}
 
 	template<class PIPELINE_TYPE>
-	inline PipelinePtr<PIPELINE_TYPE> VulkanApp::addPipelineWithSource(const std::string& vertShaderFilename, const std::string& fragShaderFilename) {
-		auto pipeline = createPipelineWithSource<PIPELINE_TYPE>(getAppPtr(), vertShaderFilename, fragShaderFilename);
+	inline PipelinePtr<PIPELINE_TYPE> VulkanApp::addPipelineWithSource(const std::string& shaderId, const std::string& vertShaderFilename, const std::string& fragShaderFilename) {
+		auto pipeline = createPipelineWithSource<PIPELINE_TYPE>(getAppPtr(), shaderId, vertShaderFilename, fragShaderFilename);
 		pipeline->setUniformBufferPtr(&_ubo);
 		addPipeline(pipeline);
 		return pipeline;

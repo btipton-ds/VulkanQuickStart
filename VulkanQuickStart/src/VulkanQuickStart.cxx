@@ -79,13 +79,15 @@ const std::string stlFilenameCourse = "test_part_course.stl";
 const std::string stlFilenameFine = "test_part_fine.stl";
 #endif
 
-Pipeline3DPtr pipeline3D;
+Pipeline3DPtr pipeline3DShaded;
+Pipeline3DPtr pipeline3DWireframe;
+
 Pipeline3DWSamplerPtr pipeline3DWSampler;
 
 VulkanAppPtr gApp;
 
-SceneNode3DPtr vase;
-SceneNode3DPtr part;
+SceneNode3DPtr vaseShaded, vaseWf;
+SceneNode3DPtr partShaded, partWf;
 
 ModelObjPtr plant;
 ModelObjPtr dna;
@@ -107,6 +109,15 @@ void buildUi(UI::WindowPtr& gui) {
 	});
 
 	row += h;
+	gui->addButton(bkgColor, "Toggle Wireframe", UI::Rect(row, 0, row + h, w))->
+		setAction(UI::Button::ActionType::ACT_CLICK, [&](int btnNum, int modifiers) {
+		if (btnNum == 0) {
+			pipeline3DShaded->toggleVisiblity();
+			pipeline3DWireframe->toggleVisiblity();
+		}
+	});
+
+	row += h;
 	gui->addButton(bkgColor, "Show/Hide plant", UI::Rect(row, 0, row + h, w))->
 		setAction(UI::Button::ActionType::ACT_CLICK, [&](int btnNum, int modifiers) {
 		if (btnNum == 0) {
@@ -120,9 +131,10 @@ void buildUi(UI::WindowPtr& gui) {
 	gui->addButton(bkgColor, "Show/Hide part", UI::Rect(row, 0, row + h, w))->
 		setAction(UI::Button::ActionType::ACT_CLICK, [&](int btnNum, int modifiers) {
 		if (btnNum == 0) {
-			if (part) {
-				part->toggleVisibility();
-			}
+			if (partWf)
+				partWf->toggleVisibility();
+			if (partShaded)
+				partShaded->toggleVisibility();
 		}
 	});
 
@@ -130,9 +142,10 @@ void buildUi(UI::WindowPtr& gui) {
 	gui->addButton(bkgColor, "Show/Hide vase", UI::Rect(row, 0, row + h, w))->
 		setAction(UI::Button::ActionType::ACT_CLICK, [&](int btnNum, int modifiers) {
 		if (btnNum == 0) {
-			if (vase) {
-				vase->toggleVisibility();
-			}
+			if (vaseShaded) 
+				vaseShaded->toggleVisibility();
+			if (vaseWf)
+				vaseWf->toggleVisibility();
 		}
 	});
 
@@ -175,28 +188,38 @@ void addObj() {
 	apricot->setModelTransform(xform);
 }
 
-int readStl(const string& filename, SceneNode3DPtr& model) {
+int readStl(const string& filename, SceneNode3DPtr& modelShaded, SceneNode3DPtr& modelWF) {
 	TriMesh::CMeshPtr meshPtr = std::make_shared<TriMesh::CMesh>();
 	CReadSTL readStl(meshPtr);
 	if (!readStl.read(modelPath, filename))
 		return 1;
 
-	model = Model::create(pipeline3D, meshPtr);
-	pipeline3D->addSceneNode(model);
+
+	modelShaded = Model::create(pipeline3DShaded, meshPtr);
+	pipeline3DShaded->addSceneNode(modelShaded);
+
+	modelWF = Model::create(pipeline3DWireframe, meshPtr);
+	pipeline3DWireframe->addSceneNode(modelWF);
+
 	return 0;
 }
 
 int addStl() {
 #if TEST_STL
+	glm::mat4 xform;
+
 	bool fine = false;
 	std::string filename = fine ? stlFilenameFine : stlFilenameCourse;
-	readStl(filename, part);
-	part->setModelTransform(glm::scale(glm::mat4(1.0f), glm::vec3(.05f, .05f, .05f)));
+	readStl(filename, partShaded, partWf);
+	xform = glm::scale(glm::mat4(1.0f), glm::vec3(.05f, .05f, .05f));
+	partShaded->setModelTransform(xform);
+	partWf->setModelTransform(xform);
 
-	readStl("Vase.stl", vase);
-	glm::mat4 xform = glm::translate(glm::mat4(1.0f), glm::vec3(-5, -5, 0));
+	readStl("Vase.stl", vaseShaded, vaseWf);
+	xform = glm::translate(glm::mat4(1.0f), glm::vec3(-5, -5, 0));
 	xform *= glm::scale(glm::mat4(1.0f), glm::vec3(.25f, .25f, .25f));
-	vase->setModelTransform(xform);
+	vaseShaded->setModelTransform(xform);
+	vaseWf->setModelTransform(xform);
 #endif
 	return 0;
 }
@@ -216,8 +239,12 @@ int main(int numArgs, char** args) {
 
 	glfwSetWindowTitle(gApp->getWindow(), "Vulkan Quick Start");
 
-	pipeline3DWSampler = gApp->addPipelineWithSource<Pipeline3DWSampler>("shaders/shader_depth_vert.spv", "shaders/shader_depth_frag.spv");
-	pipeline3D = gApp->addPipelineWithSource<Pipeline3D>("shaders/shader_vert.spv", "shaders/shader_frag.spv");
+	pipeline3DWSampler = gApp->addPipelineWithSource<Pipeline3DWSampler>("obj_shader", "shaders/shader_depth_vert.spv", "shaders/shader_depth_frag.spv");
+
+	pipeline3DShaded = gApp->addPipelineWithSource<Pipeline3D>("stl_shaded", "shaders/shader_vert.spv", "shaders/shader_frag.spv");
+	pipeline3DWireframe = gApp->addPipelineWithSource<Pipeline3D>("stl_wireframe", "shaders/shader_vert.spv", "shaders/shader_wireframe_frag.spv");
+	pipeline3DWireframe->setPolygonMode(VK_POLYGON_MODE_LINE);
+	pipeline3DWireframe->toggleVisiblity();
 
 	addObj();
 	addStl();

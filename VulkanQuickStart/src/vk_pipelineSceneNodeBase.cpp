@@ -45,6 +45,11 @@ PipelineSceneNodeBase::~PipelineSceneNodeBase() {
 		vkDestroyDescriptorPool(device, _descriptorPool, nullptr);
 }
 
+void PipelineSceneNodeBase::toggleVisibility() {
+	_visible = !_visible;
+	_ownerPipeline->getApp()->changed();
+}
+
 void PipelineSceneNodeBase::updateUniformBuffer(size_t swapChainIndex) {
 
 }

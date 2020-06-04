@@ -38,16 +38,8 @@ This file is part of the VulkanQuickStart Project.
 using namespace std;
 using namespace VK;
 
-string PipelineUi::getShaderId() {
-	return "PipelineUi";
-}
-
-string PipelineUi::getShaderIdMethod() {
-	return getShaderId();
-}
-
 PipelineUi::PipelineUi(const VulkanAppPtr& app)
-	: Pipeline(app)
+	: Pipeline(app, "UiPipeline")
 {
 	_ubo._color = glm::vec4(1, 0, 0, 1);
 	auto& shaders = app->getShaderPool();

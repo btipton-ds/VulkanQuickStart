@@ -47,8 +47,7 @@ namespace VK {
 		using BoundingBox = CBoundingBox3D<float>;
 		using PipelinePtr = std::shared_ptr<Pipeline3DWSampler>;
 
-		static std::string getShaderId();
-		Pipeline3DWSampler(const VulkanAppPtr& app);
+		Pipeline3DWSampler(const VulkanAppPtr& app, const std::string& shaderId);
 
 		void setUniformBufferPtr(const UniformBufferObject* ubo);
 		BoundingBox getBounds() const;
@@ -56,7 +55,6 @@ namespace VK {
 		const UniformBufferObject& getUniformBuffer() const;
 
 	protected:
-		std::string getShaderIdMethod() override;
 		virtual void createDescriptorSetLayout() override;
 
 		const UniformBufferObject* _ubo;

@@ -51,8 +51,9 @@ void PipelineBase::addShaders(const VulkanAppPtr& app, const std::string& shader
 		shaders.addShader(shaderId, filenames);
 }
 
-PipelineBase::PipelineBase(const VulkanAppPtr& app)
+PipelineBase::PipelineBase(const VulkanAppPtr& app, const std::string& shaderId)
 	: _app(app)
+	, _shaderId(shaderId)
 {
 	_viewportRect.offset = { 0,0 };
 	_viewportRect.extent = _app->getSwapChain()._extent;
@@ -63,9 +64,9 @@ PipelineBase::~PipelineBase() {
 	cleanupSwapChain();
 }
 
-void PipelineSceneNodeBase::toggleVisibility() {
+void PipelineBase::toggleVisiblity() {
 	_visible = !_visible;
-	_ownerPipeline->getApp()->changed();
+	_app->changed();
 }
 
 size_t PipelineBase::numSceneNodes() const {
@@ -80,6 +81,10 @@ void PipelineBase::cleanupSwapChain() {
 		vkDestroyPipeline(devCon, _graphicsPipeline, nullptr);
 	if (_pipelineLayout != VK_NULL_HANDLE)
 		vkDestroyPipelineLayout(devCon, _pipelineLayout, nullptr);
+
+	_descriptorSetLayout = VK_NULL_HANDLE;
+	_graphicsPipeline = VK_NULL_HANDLE;
+	_pipelineLayout = VK_NULL_HANDLE;
 }
 
 void PipelineBase::draw(VkCommandBuffer cmdBuff, size_t swapChainIndex) {
@@ -175,7 +180,7 @@ void PipelineBase::build() {
 }
 
 inline void PipelineBase::setShaderStages(vector<VkPipelineShaderStageCreateInfo>& shaderStages) {
-	string shaderId = getShaderIdMethod();
+	string shaderId = getShaderId();
 	ShaderPool& shaders = _app->getShaderPool();
 	auto shader = shaders.getShader(shaderId);
 	for (size_t i = 0; i < shader->_shaderModules.size(); i++) {

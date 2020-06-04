@@ -78,16 +78,8 @@ namespace {
 	}
 }
 
-string Pipeline3DWSampler::getShaderId() {
-	return "Pipeline3DWSampler";
-}
-
-string Pipeline3DWSampler::getShaderIdMethod() {
-	return getShaderId();
-}
-
-Pipeline3DWSampler::Pipeline3DWSampler(const VulkanAppPtr& app)
-	: Pipeline(app)
+Pipeline3DWSampler::Pipeline3DWSampler(const VulkanAppPtr& app, const std::string& shaderId)
+	: Pipeline(app, shaderId)
 {}
 
 Pipeline3DWSampler::BoundingBox Pipeline3DWSampler::getBounds() const {

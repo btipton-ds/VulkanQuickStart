@@ -51,9 +51,10 @@ namespace VK {
 	public:
 		static void addShaders(const VulkanAppPtr& app, const std::string& shaderId, const std::vector<std::string>& filenames);
 
-		PipelineBase(const VulkanAppPtr& app);
+		PipelineBase(const VulkanAppPtr& app, const std::string& shaderId);
 		virtual ~PipelineBase();
 
+		const std::string& getShaderId() const;
 		void setToplogy(VkPrimitiveTopology topology);
 		void setCullMode(VkCullModeFlagBits cullMode);
 		void setPolygonMode(VkPolygonMode polygonMode);
@@ -68,6 +69,9 @@ namespace VK {
 
 		const VulkanAppPtr& getApp() const;
 
+		bool isVisible() const;
+		void toggleVisiblity();
+
 		virtual size_t numSceneNodes() const;
 		virtual void updateUniformBuffers(size_t swapChainIndex) = 0;
 
@@ -79,7 +83,6 @@ namespace VK {
 	protected:
 		virtual void createDescriptorSetLayout() = 0;
 		virtual void buildSceneNodes() = 0;
-		virtual std::string getShaderIdMethod() = 0;
 
 		VulkanAppPtr _app;
 
@@ -101,6 +104,7 @@ namespace VK {
 		void setColorBlendAttachment(VkPipelineColorBlendAttachmentState& colorBlendAttachment);
 		void setColorBlending(VkPipelineColorBlendStateCreateInfo& colorBlending, VkPipelineColorBlendAttachmentState* colorBlendAttachmentPtr);
 
+		std::string _shaderId;
 		VkPrimitiveTopology _topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
 		VkCullModeFlagBits _cullMode = VK_CULL_MODE_NONE;
 		VkPolygonMode _polygonMode = VK_POLYGON_MODE_FILL;
@@ -110,7 +114,14 @@ namespace VK {
 	protected:
 		VkPipelineLayout _pipelineLayout = VK_NULL_HANDLE;
 		VkPipeline _graphicsPipeline = VK_NULL_HANDLE;
+
+	private:
+		bool _visible = true;
 	};
+
+	inline const std::string& PipelineBase::getShaderId() const {
+		return _shaderId;
+	}
 
 	inline const VulkanAppPtr& PipelineBase::getApp() const {
 		return _app;
@@ -143,5 +154,10 @@ namespace VK {
 	inline void PipelineBase::setScissorRect(const VkRect2D& rect) {
 		_scissorRect = rect;
 	}
+
+	inline bool PipelineBase::isVisible() const {
+		return _visible;
+	}
+
 
 }

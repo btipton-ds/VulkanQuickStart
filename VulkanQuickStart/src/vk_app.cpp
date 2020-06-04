@@ -537,8 +537,10 @@ void VulkanApp::createRenderPass() {
 }
 
 void VulkanApp::createGraphicsPipeline() {
-	for (auto& pl : _pipelines)
-		pl->build();
+	for (auto& pl : _pipelines) {
+		if (pl->isVisible())
+			pl->build();
+	}
 }
 
 void VulkanApp::createFramebuffers() {
@@ -750,7 +752,8 @@ void VulkanApp::drawCmdBufferLoop(size_t swapChainIndex,
 	vkCmdBeginRenderPass(cmdBuff, &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
 
 	for (auto& pipeline : _pipelines) {
-		pipeline->draw(cmdBuff, swapChainIndex);
+		if (pipeline->isVisible())
+			pipeline->draw(cmdBuff, swapChainIndex);
 	}
 
 	vkCmdEndRenderPass(cmdBuff);
@@ -862,7 +865,7 @@ void VulkanApp::updateUniformBuffer(uint32_t swapChainImageIndex) {
 	_ubo.proj[1][1] *= -1;
 
 	for (auto& pipeline : _pipelines) {
-		if (pipeline->numSceneNodes() > 0) {
+		if (pipeline->isVisible() && pipeline->numSceneNodes() > 0) {
 			pipeline->updateUniformBuffers(swapChainImageIndex);
 		}
 	}
