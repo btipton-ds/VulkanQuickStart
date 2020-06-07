@@ -50,6 +50,11 @@ void PipelineSceneNodeBase::toggleVisibility() {
 	_ownerPipeline->getApp()->changed();
 }
 
+void PipelineSceneNodeBase::setVisibility(bool visible) {
+	_visible = visible;
+	_ownerPipeline->getApp()->changed();
+}
+
 void PipelineSceneNodeBase::updateUniformBuffer(size_t swapChainIndex) {
 
 }

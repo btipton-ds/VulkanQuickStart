@@ -59,6 +59,7 @@ namespace VK {
 		void setCullMode(VkCullModeFlagBits cullMode);
 		void setPolygonMode(VkPolygonMode polygonMode);
 		void setLineWidth(double width);
+		void setDepthTestEnabled(bool depthTestEnabled);
 
 		virtual void cleanupSwapChain();
 		void draw(VkCommandBuffer cmdBuff, size_t swapChainIndex);
@@ -108,6 +109,7 @@ namespace VK {
 		VkPrimitiveTopology _topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
 		VkCullModeFlagBits _cullMode = VK_CULL_MODE_NONE;
 		VkPolygonMode _polygonMode = VK_POLYGON_MODE_FILL;
+		bool _depthTestEnabled = true;
 		float _lineWidth = 1.0f;
 		VkRect2D _viewportRect, _scissorRect;
 
@@ -145,6 +147,10 @@ namespace VK {
 
 	inline void PipelineBase::setLineWidth(double width) {
 		_lineWidth = (float)width;
+	}
+
+	inline void PipelineBase::setDepthTestEnabled(bool depthTestEnabled) {
+		_depthTestEnabled = depthTestEnabled;
 	}
 
 	inline void PipelineBase::setViewportRect(const VkRect2D& rect) {

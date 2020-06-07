@@ -53,6 +53,7 @@ namespace VK {
 		virtual ~PipelineSceneNodeBase();
 
 		void toggleVisibility();
+		void setVisibility(bool visible);
 		bool isVisible() const;
 
 		virtual void addCommands(VkCommandBuffer cmdBuff, VkPipelineLayout pipelineLayout, size_t swapChainIndex) const = 0;
