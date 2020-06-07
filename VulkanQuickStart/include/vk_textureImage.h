@@ -44,16 +44,16 @@ namespace VK {
 
 	class TextureImage : public Image {
 	public:
-		TextureImage(VulkanApp* app);
+		TextureImage(const DeviceContextPtr& context);
 		TextureImage(const TextureImage& src) = default;
 		~TextureImage();
 		void destroy();
 
 		VkSampler getSampler() const;
 
-		static TextureImagePtr create(VulkanApp* app, const std::string& filename);
-		static TextureImagePtr create(VulkanApp* app, size_t width, size_t height, const unsigned char* pixelsRGBA);
-		static TextureImagePtr createImage(VulkanApp* app, uint32_t width, uint32_t height,
+		static TextureImagePtr create(const DeviceContextPtr& context, const std::string& filename);
+		static TextureImagePtr create(const DeviceContextPtr& context, size_t width, size_t height, const unsigned char* pixelsRGBA);
+		static TextureImagePtr createImage(const DeviceContextPtr& context, uint32_t width, uint32_t height,
 			VkSampleCountFlagBits numSamples, VkFormat format, VkImageTiling tiling,
 			VkImageUsageFlags usage, VkMemoryPropertyFlags properties);
 
@@ -77,29 +77,29 @@ namespace VK {
 		return _samplerInfo;
 	}
 
-	inline TextureImage::TextureImage(VulkanApp* app)
-	: Image(app)
+	inline TextureImage::TextureImage(const DeviceContextPtr& context)
+	: Image(context)
 	{}
 
 	inline VkSampler TextureImage::getSampler() const {
 		return textureSampler_;
 	}
 
-	inline TextureImagePtr TextureImage::create(VulkanApp* app, const std::string& filename) {
-		TextureImagePtr result(new TextureImage(app));
+	inline TextureImagePtr TextureImage::create(const DeviceContextPtr& context, const std::string& filename) {
+		TextureImagePtr result(new TextureImage(context));
 		result->init(filename);
 		return result;
 	}
 	
-	inline TextureImagePtr TextureImage::create(VulkanApp* app, size_t width, size_t height, const unsigned char* pixelsRGBA) {
-		TextureImagePtr result(new TextureImage(app));
+	inline TextureImagePtr TextureImage::create(const DeviceContextPtr& context, size_t width, size_t height, const unsigned char* pixelsRGBA) {
+		TextureImagePtr result(new TextureImage(context));
 		result->init(width, height, pixelsRGBA);
 		return result;
 	}
 	
-	inline TextureImagePtr TextureImage::createImage(VulkanApp* app, uint32_t width, uint32_t height, VkSampleCountFlagBits numSamples,
+	inline TextureImagePtr TextureImage::createImage(const DeviceContextPtr& context, uint32_t width, uint32_t height, VkSampleCountFlagBits numSamples,
 		VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage, VkMemoryPropertyFlags properties) {
-		TextureImagePtr result(new TextureImage(app));
+		TextureImagePtr result(new TextureImage(context));
 		result->initImage(width, height, numSamples, format, tiling, usage, properties);
 		return result;
 	}

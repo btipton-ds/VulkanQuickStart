@@ -61,8 +61,8 @@ namespace std {
 
 ModelObj::ModelObj(const PipelineBasePtr& _ownerPipeline, const std::string& path, const std::string& filename)
 	: PipelineSceneNode3DWSampler(_ownerPipeline)
-	, _vertexBuffer(_ownerPipeline->getApp().get())
-	, _indexBuffer(_ownerPipeline->getApp().get())
+	, _vertexBuffer(_ownerPipeline->getApp()->getDeviceContext())
+	, _indexBuffer(_ownerPipeline->getApp()->getDeviceContext())
 {
 	loadModel(path, filename);
 	createVertexBuffer();
@@ -200,7 +200,7 @@ void ModelObj::loadModel(string path, string filename) {
 			throw runtime_error("This option is not supported yet.");
 		}
 		replaceAllDirTokens(fName);
-		auto tex = TextureImage::create(_ownerPipeline->getApp().get(), path + fName);
+		auto tex = TextureImage::create(_ownerPipeline->getApp()->getDeviceContext(), path + fName);
 		_textureImagesDiffuse.push_back(tex);
 	}
 
@@ -218,7 +218,7 @@ void ModelObj::createIndexBuffer() {
 void ModelObj::createDescriptorPool() {
 	auto app = _ownerPipeline->getApp();
 	const auto& swap = app->getSwapChain();
-	auto devCon = app->getDeviceContext().device_;
+	auto devCon = app->getDeviceContext()->device_;
 
 	std::array<VkDescriptorPoolSize, 2> poolSizes = {};
 	poolSizes[0].type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
@@ -239,7 +239,7 @@ void ModelObj::createDescriptorPool() {
 
 void ModelObj::createDescriptorSets() {
 	auto app = _ownerPipeline->getApp();
-	auto dc = app->getDeviceContext().device_;
+	auto dc = app->getDeviceContext()->device_;
 
 	const auto& swap = app->getSwapChain();
 	size_t swapChainSize = (uint32_t)swap._vkImages.size();
@@ -305,7 +305,7 @@ void ModelObj::createUniformBuffers() {
 	_uniformBuffers.reserve(swapChainSize);
 
 	for (size_t i = 0; i < swapChainSize; i++) {
-		_uniformBuffers.push_back(Buffer(app.get()));
+		_uniformBuffers.push_back(Buffer(app->getDeviceContext()));
 		_uniformBuffers.back().create(bufferSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
 			VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
 	}

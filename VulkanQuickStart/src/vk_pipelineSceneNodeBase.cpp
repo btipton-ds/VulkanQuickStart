@@ -40,7 +40,7 @@ PipelineSceneNodeBase::PipelineSceneNodeBase(const PipelineBasePtr& ownerPipelin
 {}
 
 PipelineSceneNodeBase::~PipelineSceneNodeBase() {
-	auto& device = _ownerPipeline->getApp()->getDeviceContext().device_;
+	auto& device = _ownerPipeline->getApp()->getDeviceContext()->device_;
 	if (_descriptorPool != VK_NULL_HANDLE)
 		vkDestroyDescriptorPool(device, _descriptorPool, nullptr);
 }
@@ -66,7 +66,7 @@ void PipelineSceneNodeBase::cleanupSwapChain() {
 	_uniformBuffers.clear();
 	_descriptorSets.clear();
 
-	auto devCon = _ownerPipeline->getApp()->getDeviceContext().device_;
+	auto devCon = _ownerPipeline->getApp()->getDeviceContext()->device_;
 	if (_descriptorPool != VK_NULL_HANDLE)
 		vkDestroyDescriptorPool(devCon, _descriptorPool, nullptr);
 }
@@ -78,7 +78,7 @@ void PipelineSceneNodeBase::createUniformBuffers() {
 
 	const auto& app = _ownerPipeline->getApp();
 	const auto& swap = app->getSwapChain();
-	auto devCon = app->getDeviceContext().device_;
+	auto devCon = app->getDeviceContext()->device_;
 
 	size_t swapChainSize = (uint32_t)swap._vkImages.size();
 
@@ -86,7 +86,7 @@ void PipelineSceneNodeBase::createUniformBuffers() {
 	_uniformBuffers.reserve(swapChainSize);
 
 	for (size_t i = 0; i < swapChainSize; i++) {
-		_uniformBuffers.push_back(Buffer(app.get()));
+		_uniformBuffers.push_back(Buffer(app->getDeviceContext()));
 		_uniformBuffers.back().create(uboSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
 			VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
 	}

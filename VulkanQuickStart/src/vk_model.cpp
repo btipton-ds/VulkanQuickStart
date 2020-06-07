@@ -72,8 +72,8 @@ namespace std {
 
 Model::Model(const PipelineBasePtr& _ownerPipeline, const TriMesh::CMeshPtr& meshPtr)
 	: PipelineSceneNode3D(_ownerPipeline)
-	, _vertexBuffer(_ownerPipeline->getApp().get())
-	, _indexBuffer(_ownerPipeline->getApp().get())
+	, _vertexBuffer(_ownerPipeline->getApp()->getDeviceContext())
+	, _indexBuffer(_ownerPipeline->getApp()->getDeviceContext())
 {
 	loadModel(meshPtr);
 	createVertexBuffer();
@@ -82,8 +82,8 @@ Model::Model(const PipelineBasePtr& _ownerPipeline, const TriMesh::CMeshPtr& mes
 
 Model::Model(const PipelineBasePtr& _ownerPipeline)
 	: PipelineSceneNode3D(_ownerPipeline)
-	, _vertexBuffer(_ownerPipeline->getApp().get())
-	, _indexBuffer(_ownerPipeline->getApp().get())
+	, _vertexBuffer(_ownerPipeline->getApp()->getDeviceContext())
+	, _indexBuffer(_ownerPipeline->getApp()->getDeviceContext())
 {
 }
 
@@ -191,7 +191,7 @@ void Model::createIndexBuffer() {
 void Model::createDescriptorPool() {
 	auto app = _ownerPipeline->getApp();
 	const auto& swap = app->getSwapChain();
-	auto devCon = app->getDeviceContext().device_;
+	auto devCon = app->getDeviceContext()->device_;
 
 	std::array<VkDescriptorPoolSize, 2> poolSizes = {};
 	poolSizes[0].type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
@@ -212,7 +212,7 @@ void Model::createDescriptorPool() {
 
 void Model::createDescriptorSets() {
 	auto app = _ownerPipeline->getApp();
-	auto dc = app->getDeviceContext().device_;
+	auto dc = app->getDeviceContext()->device_;
 
 	const auto& swap = app->getSwapChain();
 	size_t swapChainSize = (uint32_t)swap._vkImages.size();
@@ -261,7 +261,7 @@ void Model::createUniformBuffers() {
 	_uniformBuffers.reserve(swapChainSize);
 
 	for (size_t i = 0; i < swapChainSize; i++) {
-		_uniformBuffers.push_back(Buffer(app.get()));
+		_uniformBuffers.push_back(Buffer(app->getDeviceContext()));
 		_uniformBuffers.back().create(bufferSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
 			VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
 	}

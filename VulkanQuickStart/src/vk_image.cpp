@@ -50,12 +50,12 @@ namespace {
 	}
 }
 
-Image::Image(VulkanApp* app) 
-	: _app(app)
+Image::Image(const DeviceContextPtr& context)
+	: _context(context)
 {}
 
-Image::Image(VulkanApp* app, const VkSwapchainCreateInfoKHR& info, VkImage image)
-	:_app(app)
+Image::Image(const DeviceContextPtr& context, const VkSwapchainCreateInfoKHR& info, VkImage image)
+	: _context(context)
 {
 	_image = image;
 
@@ -75,8 +75,7 @@ Image::Image(VulkanApp* app, const VkSwapchainCreateInfoKHR& info, VkImage image
 }
 
 void Image::set(VkImage image, VkDeviceMemory memory, VkImageView view) {
-	auto& dc = _app->getDeviceContext();
-	dc.images_.insert(this);
+	_context->images_.insert(this);
 	_image = image;
 	_memory = memory;
 	_view = view;
@@ -87,13 +86,12 @@ Image::~Image() {
 }
 
 void Image::destroy() {
-	auto& dc = _app->getDeviceContext();
 	if (_view != VK_NULL_HANDLE && _memory != VK_NULL_HANDLE) {
-		vkDestroyImageView(dc.device_, _view, nullptr);
-		vkDestroyImage(dc.device_, _image, nullptr);
-		vkFreeMemory(dc.device_, _memory, nullptr);
+		vkDestroyImageView(_context->device_, _view, nullptr);
+		vkDestroyImage(_context->device_, _image, nullptr);
+		vkFreeMemory(_context->device_, _memory, nullptr);
 		_view = VK_NULL_HANDLE;
-		dc.images_.erase(this);
+		_context->images_.erase(this);
 	}
 	if (_view != VK_NULL_HANDLE)
 		cout << "Image leak\n";
@@ -101,8 +99,8 @@ void Image::destroy() {
 
 void Image::create(VkFormat format, VkImageUsageFlags flagBits, uint32_t width, uint32_t height, VkSampleCountFlagBits _msaaSamples) {
 	destroy();
-	auto& dc = _app->getDeviceContext();
-	dc.images_.insert(this);
+
+	_context->images_.insert(this);
 	// VK_IMAGE_USAGE_TRANSIENT_ATTACHMENT_BIT | VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT
 	createImage(width, height, 1, _msaaSamples, format, VK_IMAGE_TILING_OPTIMAL,
 		flagBits, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
@@ -120,7 +118,6 @@ void Image::create(VkFormat format, VkImageUsageFlags flagBits, uint32_t width, 
 
 void Image::createImage(uint32_t width, uint32_t height, uint32_t mipLevels, VkSampleCountFlagBits numSamples,
 	VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage, VkMemoryPropertyFlags properties) {
-	auto& dc = _app->getDeviceContext();
 
 	_imageInfo = {};
 	_imageInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
@@ -137,26 +134,26 @@ void Image::createImage(uint32_t width, uint32_t height, uint32_t mipLevels, VkS
 	_imageInfo.samples = numSamples;
 	_imageInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
 
-	if (vkCreateImage(dc.device_, &_imageInfo, nullptr, &_image) != VK_SUCCESS) {
+	if (vkCreateImage(_context->device_, &_imageInfo, nullptr, &_image) != VK_SUCCESS) {
 		throw runtime_error("failed to create image!");
 	}
 
 	VkMemoryRequirements memRequirements;
-	vkGetImageMemoryRequirements(dc.device_, _image, &memRequirements);
+	vkGetImageMemoryRequirements(_context->device_, _image, &memRequirements);
 
 	VkMemoryAllocateInfo allocInfo = {};
 	allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
 	allocInfo.allocationSize = memRequirements.size;
-	allocInfo.memoryTypeIndex = dc.findMemoryType(memRequirements.memoryTypeBits, properties);
+	allocInfo.memoryTypeIndex = _context->findMemoryType(memRequirements.memoryTypeBits, properties);
 
-	if (vkAllocateMemory(dc.device_, &allocInfo, nullptr, &_memory) != VK_SUCCESS) {
+	if (vkAllocateMemory(_context->device_, &allocInfo, nullptr, &_memory) != VK_SUCCESS) {
 		throw runtime_error("failed to allocate image memory!");
 	}
 
-	vkBindImageMemory(dc.device_, _image, _memory, 0);
+	vkBindImageMemory(_context->device_, _image, _memory, 0);
 }
 
-VkImageView Image::createImageView(VkDevice device, VkImage image, VkFormat format, VkImageAspectFlags aspectFlags, uint32_t mipLevels) {
+VkImageView Image::createImageView(const DeviceContextPtr& context, VkImage image, VkFormat format, VkImageAspectFlags aspectFlags, uint32_t mipLevels) {
 	VkImageViewCreateInfo viewInfo = {};
 	viewInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
 	viewInfo.image = image;
@@ -169,20 +166,18 @@ VkImageView Image::createImageView(VkDevice device, VkImage image, VkFormat form
 	viewInfo.subresourceRange.layerCount = 1;
 
 	VkImageView view;
-	if (vkCreateImageView(device, &viewInfo, nullptr, &view) != VK_SUCCESS) {
+	if (vkCreateImageView(context->device_, &viewInfo, nullptr, &view) != VK_SUCCESS) {
 		throw runtime_error("failed to create texture image view!");
 	}
 	return view;
 }
 
 VkImageView Image::createImageView(VkFormat format, VkImageAspectFlags aspectFlags, uint32_t mipLevels) {
-	auto& dc = _app->getDeviceContext();
-	return Image::createImageView(dc.device_, _image, format, aspectFlags, mipLevels);
+	return Image::createImageView(_context, _image, format, aspectFlags, mipLevels);
 }
 
 void Image::transitionImageLayout(VkFormat format, VkImageLayout oldLayout, VkImageLayout newLayout, uint32_t mipLevels) {
-	auto& dc = _app->getDeviceContext();
-	VkCommandBuffer commandBuffer = dc.beginSingleTimeCommands();
+	VkCommandBuffer commandBuffer = _context->beginSingleTimeCommands();
 
 	VkImageMemoryBarrier barrier = {};
 	barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
@@ -251,7 +246,7 @@ void Image::transitionImageLayout(VkFormat format, VkImageLayout oldLayout, VkIm
 		1, &barrier
 	);
 
-	dc.endSingleTimeCommands(commandBuffer);
+	_context->endSingleTimeCommands(commandBuffer);
 }
 
 // Copied from Sacha Willems take a screenshot, except this places the image in memory. Then you can save it of use it as you choose.
@@ -607,7 +602,7 @@ size_t Image::getImageData(const char*& data, size_t bufSize) const {
 	if (bufSize != newBufSize )
 		return newBufSize;
 
-	ImageCopier copier(_app, *this, bufSize);
+	ImageCopier copier(_context, *this, bufSize);
 
 	data = copier.getPersistentCopy();
 

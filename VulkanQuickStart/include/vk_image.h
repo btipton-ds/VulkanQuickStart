@@ -46,7 +46,7 @@ namespace VK {
 		static size_t pixelSize(VkFormat format);
 		size_t imageSize() const;
 
-		static VkImageView createImageView(VkDevice device, VkImage image, VkFormat format, VkImageAspectFlags aspectFlags, uint32_t mipLevels);
+		static VkImageView createImageView(const DeviceContextPtr& context, VkImage image, VkFormat format, VkImageAspectFlags aspectFlags, uint32_t mipLevels);
 
 		template<typename FUNC_TYPE>
 		size_t processImage(size_t bufSize, FUNC_TYPE func) const {
@@ -54,7 +54,7 @@ namespace VK {
 			if (bufSize != newBufSize)
 				return newBufSize;
 
-			ImageCopier copier(_app, *this, bufSize);
+			ImageCopier copier(_context, *this, bufSize);
 
 			func(copier.getVolitileCopy(), copier.getSubResourceLayout(), copier.getColorSwizzle());
 
@@ -64,9 +64,9 @@ namespace VK {
 		void saveImage(const std::string& filename) const;
 		size_t getImageData(const char*& data, size_t bufSize) const;
 
-		Image(VulkanApp* app);
+		Image(const DeviceContextPtr& context);
 		Image(const Image& src) = default;
-		Image(VulkanApp* app, const VkSwapchainCreateInfoKHR& info, VkImage image);
+		Image(const DeviceContextPtr& context, const VkSwapchainCreateInfoKHR& info, VkImage image);
 		~Image();
 
 		void destroy();
@@ -91,7 +91,7 @@ namespace VK {
 	protected:
 		void saveImage(const std::string& filename, const VkSubresourceLayout& vkLayout, bool colorSwizzle, const char* pix) const;
 
-		VulkanApp* _app;
+		DeviceContextPtr _context;
 		VkImageCreateInfo _imageInfo = {};
 		VkImage _image = VK_NULL_HANDLE;
 		VkDeviceMemory _memory = VK_NULL_HANDLE;

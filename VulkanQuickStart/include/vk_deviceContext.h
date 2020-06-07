@@ -35,11 +35,15 @@ This file is part of the VulkanQuickStart Project.
 #include <GLFW/glfw3.h>
 
 #include <set>
+#include <memory>
 
 namespace VK {
 	struct Buffer;
 	class Image;
 	class TextureImage;
+
+	struct DeviceContext;
+	using DeviceContextPtr = std::shared_ptr<DeviceContext>;
 
 	struct DeviceContext {
 		~DeviceContext();

@@ -60,9 +60,9 @@ namespace TriMesh {
 
 namespace VK {
 	struct SwapChain {
-		inline SwapChain(VulkanApp* app)
-		: _colorImage(app)
-		, _depthImage(app)
+		inline SwapChain(const DeviceContextPtr& context)
+		: _colorImage(context)
+		, _depthImage(context)
 		{}
 
 		VkSwapchainKHR _vkSwapChain;
@@ -95,8 +95,7 @@ namespace VK {
 		template<class PIPELINE_TYPE>
 		PipelinePtr<PIPELINE_TYPE> addPipelineWithSource(const std::string& shaderId, const std::string& vertShaderFilename, const std::string& fragShaderFilename);
 
-		const DeviceContext& getDeviceContext() const;
-		DeviceContext& getDeviceContext();
+		const DeviceContextPtr& getDeviceContext() const;
 
 		const SwapChain& getSwapChain() const;
 		SwapChain& getSwapChain();
@@ -120,8 +119,6 @@ namespace VK {
 		uint32_t getSwapChainIndex() const;
 
 		void run();
-		VkCommandBuffer beginSingleTimeCommands();
-		void endSingleTimeCommands(VkCommandBuffer commandBuffer);
 
 		void stop();
 
@@ -197,7 +194,7 @@ namespace VK {
 		VkInstance instance;
 		VkDebugUtilsMessengerEXT debugMessenger;
 
-		DeviceContext deviceContext;
+		DeviceContextPtr _deviceContext;
 		VkSampleCountFlagBits _msaaSamples = VK_SAMPLE_COUNT_1_BIT;
 
 		VkQueue presentQueue;
@@ -230,12 +227,8 @@ namespace VK {
 		_changeNumber++;
 	}
 
-	inline const DeviceContext& VulkanApp::getDeviceContext() const {
-		return deviceContext;
-	}
-
-	inline DeviceContext& VulkanApp::getDeviceContext() {
-		return deviceContext;
+	inline const DeviceContextPtr& VulkanApp::getDeviceContext() const {
+		return _deviceContext;
 	}
 
 	inline const SwapChain& VulkanApp::getSwapChain() const {

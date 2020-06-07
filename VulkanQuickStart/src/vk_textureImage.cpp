@@ -50,8 +50,7 @@ TextureImage::~TextureImage() {
 
 void TextureImage::destroy() {
 	if (textureSampler_ != VK_NULL_HANDLE) {
-		auto& dc = _app->getDeviceContext();
-		vkDestroySampler(dc.device_, textureSampler_, nullptr);
+		vkDestroySampler(_context->device_, textureSampler_, nullptr);
 		textureSampler_ = VK_NULL_HANDLE;
 		Image::destroy();
 	}
@@ -62,8 +61,7 @@ void TextureImage::destroy() {
 
 void TextureImage::init(const string& filename) {
 	destroy();
-	auto& dc = _app->getDeviceContext();
-	dc.textureImages_.insert(this);
+	_context->textureImages_.insert(this);
 	int texWidth, texHeight, texChannels;
 	stbi_uc* pixels = stbi_load(filename.c_str(), &texWidth, &texHeight, &texChannels, STBI_rgb_alpha);
 	if (!pixels)
@@ -75,8 +73,7 @@ void TextureImage::init(const string& filename) {
 void TextureImage::init(size_t texWidth, size_t texHeight, const unsigned char* pixelsRGBA) {
 	destroy();
 
-	auto& dc = _app->getDeviceContext();
-	dc.textureImages_.insert(this);
+	_context->textureImages_.insert(this);
 
 	VkDeviceSize imageSize = texWidth * texHeight * 4;
 	mipLevels_ = static_cast<uint32_t>(floor(log2(max(texWidth, texHeight)))) + 1;
@@ -85,7 +82,7 @@ void TextureImage::init(size_t texWidth, size_t texHeight, const unsigned char* 
 		throw runtime_error("failed to load texture image!");
 	}
 
-	Buffer stagingBuffer(_app);
+	Buffer stagingBuffer(_context);
 	stagingBuffer.create(imageSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
 		VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
 	stagingBuffer.update(pixelsRGBA, static_cast<size_t>(imageSize));
@@ -105,7 +102,6 @@ void TextureImage::init(size_t texWidth, size_t texHeight, const unsigned char* 
 
 void TextureImage::initImage(uint32_t width, uint32_t height, VkSampleCountFlagBits numSamples, VkFormat format, VkImageTiling tiling,
 	VkImageUsageFlags usage, VkMemoryPropertyFlags properties) {
-	auto& dc = _app->getDeviceContext();
 
 	_imageInfo = {};
 	_imageInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
@@ -122,28 +118,27 @@ void TextureImage::initImage(uint32_t width, uint32_t height, VkSampleCountFlagB
 	_imageInfo.samples = numSamples;
 	_imageInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
 
-	if (vkCreateImage(dc.device_, &_imageInfo, nullptr, &_image) != VK_SUCCESS) {
+	if (vkCreateImage(_context->device_, &_imageInfo, nullptr, &_image) != VK_SUCCESS) {
 		throw runtime_error("failed to create image!");
 	}
 
 	VkMemoryRequirements memRequirements;
-	vkGetImageMemoryRequirements(dc.device_, _image, &memRequirements);
+	vkGetImageMemoryRequirements(_context->device_, _image, &memRequirements);
 
 	VkMemoryAllocateInfo allocInfo = {};
 	allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
 	allocInfo.allocationSize = memRequirements.size;
-	allocInfo.memoryTypeIndex = dc.findMemoryType(memRequirements.memoryTypeBits, properties);
+	allocInfo.memoryTypeIndex = _context->findMemoryType(memRequirements.memoryTypeBits, properties);
 
-	if (vkAllocateMemory(dc.device_, &allocInfo, nullptr, &_memory) != VK_SUCCESS) {
+	if (vkAllocateMemory(_context->device_, &allocInfo, nullptr, &_memory) != VK_SUCCESS) {
 		throw runtime_error("failed to allocate image memory!");
 	}
 
-	vkBindImageMemory(dc.device_, _image, _memory, 0);
+	vkBindImageMemory(_context->device_, _image, _memory, 0);
 }
 
 void TextureImage::copyBufferToImage(const Buffer& buffer, uint32_t width, uint32_t height) {
-	auto& dc = _app->getDeviceContext();
-	VkCommandBuffer commandBuffer = dc.beginSingleTimeCommands();
+	VkCommandBuffer commandBuffer = _context->beginSingleTimeCommands();
 
 	VkBufferImageCopy region = {};
 	region.bufferOffset = 0;
@@ -162,21 +157,20 @@ void TextureImage::copyBufferToImage(const Buffer& buffer, uint32_t width, uint3
 
 	vkCmdCopyBufferToImage(commandBuffer, buffer, _image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &region);
 
-	dc.endSingleTimeCommands(commandBuffer);
+	_context->endSingleTimeCommands(commandBuffer);
 }
 
 void TextureImage::generateMipmaps(VkFormat imageFormat, int32_t texWidth, int32_t texHeight) {
-	auto& dc = _app->getDeviceContext();
 
 	// Check if image format supports linear blitting
 	VkFormatProperties formatProperties;
-	vkGetPhysicalDeviceFormatProperties(dc.physicalDevice_, imageFormat, &formatProperties);
+	vkGetPhysicalDeviceFormatProperties(_context->physicalDevice_, imageFormat, &formatProperties);
 
 	if (!(formatProperties.optimalTilingFeatures & VK_FORMAT_FEATURE_SAMPLED_IMAGE_FILTER_LINEAR_BIT)) {
 		throw runtime_error("texture image format does not support linear blitting!");
 	}
 
-	VkCommandBuffer commandBuffer = dc.beginSingleTimeCommands();
+	VkCommandBuffer commandBuffer = _context->beginSingleTimeCommands();
 
 	VkImageMemoryBarrier barrier = {};
 	barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
@@ -251,7 +245,7 @@ void TextureImage::generateMipmaps(VkFormat imageFormat, int32_t texWidth, int32
 		0, nullptr,
 		1, &barrier);
 
-	dc.endSingleTimeCommands(commandBuffer);
+	_context->endSingleTimeCommands(commandBuffer);
 }
 
 void TextureImage::createTextureSampler() {
@@ -273,8 +267,7 @@ void TextureImage::createTextureSampler() {
 	_samplerInfo.maxLod = static_cast<float>(mipLevels_);
 	_samplerInfo.mipLodBias = 0;
 
-	auto& dc = _app->getDeviceContext();
-	if (vkCreateSampler(dc.device_, &_samplerInfo, nullptr, &textureSampler_) != VK_SUCCESS) {
+	if (vkCreateSampler(_context->device_, &_samplerInfo, nullptr, &textureSampler_) != VK_SUCCESS) {
 		throw runtime_error("failed to create texture sampler!");
 	}
 }

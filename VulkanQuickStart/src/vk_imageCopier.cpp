@@ -40,15 +40,14 @@ This file is part of the VulkanQuickStart Project.
 using namespace VK;
 
 
-ImageCopier::ImageCopier(VulkanApp* app, const Image& srcImage, size_t bufSize)
-	: _app(app)
+ImageCopier::ImageCopier(const DeviceContextPtr& context, const Image& srcImage, size_t bufSize)
+	: _context(context)
 	, _bufSize(bufSize)
 	, _srcImage(srcImage)
 	, _extent(srcImage.getImageInfo().extent)
 	, _format(srcImage.getImageInfo().format)
 {
-	auto& dc = _app->getDeviceContext();
-	_device = _app->getDeviceContext().device_;
+	_device = _context->device_;
 
 	createVkImage();
 
@@ -58,7 +57,7 @@ ImageCopier::ImageCopier(VulkanApp* app, const Image& srcImage, size_t bufSize)
 	VkMemoryAllocateInfo memAllocInfo(vks::initializers::memoryAllocateInfo());
 	memAllocInfo.allocationSize = memRequirements.size;
 	// Memory must be host visible to copy from
-	memAllocInfo.memoryTypeIndex = dc.getMemoryType(memRequirements.memoryTypeBits, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
+	memAllocInfo.memoryTypeIndex = _context->getMemoryType(memRequirements.memoryTypeBits, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
 	VK_CHECK_RESULT(vkAllocateMemory(_device, &memAllocInfo, nullptr, &_dstImageMemory));
 	VK_CHECK_RESULT(vkBindImageMemory(_device, _dstImage, _dstImageMemory, 0));
 
@@ -95,7 +94,6 @@ const char* ImageCopier::getVolitileCopy() const {
 }
 
 void ImageCopier::copyImages() {
-	auto& dc = _app->getDeviceContext();
 	bool supportsBlit = doesSupportsBlit();
 
 	_colorSwizzle = false;
@@ -108,7 +106,7 @@ void ImageCopier::copyImages() {
 	}
 
 	// Do the actual blit from the swapchain image to our host visible destination image
-	VkCommandBuffer copyCmd = _app->beginSingleTimeCommands();
+	VkCommandBuffer copyCmd = _context->beginSingleTimeCommands();
 
 	lockImages(copyCmd);
 	if (supportsBlit)
@@ -119,7 +117,7 @@ void ImageCopier::copyImages() {
 	unlockImages(copyCmd);
 
 	//	vulkanDevice->flushCommandBuffer(copyCmd, queue);
-	_app->endSingleTimeCommands(copyCmd);
+	_context->endSingleTimeCommands(copyCmd);
 }
 
 void ImageCopier::lockImages(VkCommandBuffer copyCmd) {
@@ -194,19 +192,18 @@ void ImageCopier::createVkImage() {
 }
 
 bool ImageCopier::doesSupportsBlit() {
-	auto& dc = _app->getDeviceContext();
 	// Check blit support for source and destination
 	VkFormatProperties formatProps;
 
 	// Check if the device supports blitting from optimal images (the swapchain images are in optimal format)
-	vkGetPhysicalDeviceFormatProperties(dc.physicalDevice_, _format, &formatProps);
+	vkGetPhysicalDeviceFormatProperties(_context->physicalDevice_, _format, &formatProps);
 
 	if (!(formatProps.optimalTilingFeatures & VK_FORMAT_FEATURE_BLIT_SRC_BIT)) {
 		return false;
 	}
 
 	// Check if the device supports blitting to linear images 
-	vkGetPhysicalDeviceFormatProperties(dc.physicalDevice_, VK_FORMAT_R8G8B8A8_UNORM, &formatProps);
+	vkGetPhysicalDeviceFormatProperties(_context->physicalDevice_, VK_FORMAT_R8G8B8A8_UNORM, &formatProps);
 	if (!(formatProps.linearTilingFeatures & VK_FORMAT_FEATURE_BLIT_DST_BIT)) {
 		return false;
 	}

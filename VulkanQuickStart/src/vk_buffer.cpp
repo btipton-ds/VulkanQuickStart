@@ -45,11 +45,10 @@ Buffer::~Buffer() {
 
 void Buffer::destroy() {
 	if (buffer_ != VK_NULL_HANDLE) {
-		auto& dc = _app->getDeviceContext();
-		vkDestroyBuffer(dc.device_, buffer_, nullptr);
-		vkFreeMemory(dc.device_, bufferMemory_, nullptr);
+		vkDestroyBuffer(_context->device_, buffer_, nullptr);
+		vkFreeMemory(_context->device_, bufferMemory_, nullptr);
 		buffer_ = VK_NULL_HANDLE;
-		dc.buffers_.erase(this);
+		_context->buffers_.erase(this);
 		buffer_ = VK_NULL_HANDLE;
 	}
 	if (buffer_ != VK_NULL_HANDLE) {
@@ -58,11 +57,10 @@ void Buffer::destroy() {
 }
 
 void Buffer::update(const void* value, size_t size) {
-	auto& dc = _app->getDeviceContext();
 	void* data;
-	vkMapMemory(dc.device_, bufferMemory_, 0, size, 0, &data);
+	vkMapMemory(_context->device_, bufferMemory_, 0, size, 0, &data);
 	memcpy(data, value, size);
-	vkUnmapMemory(dc.device_, bufferMemory_);
+	vkUnmapMemory(_context->device_, bufferMemory_);
 }
 
 void Buffer::create(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties) {
@@ -70,8 +68,8 @@ void Buffer::create(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropert
 		throw runtime_error("tryint to create a buffer larger than DEV_MAX_BUF_SIZE.");
 	}
 	destroy();
-	auto& dc = _app->getDeviceContext();
-	dc.buffers_.insert(this);
+
+	_context->buffers_.insert(this);
 
 	VkBufferCreateInfo bufferInfo = {};
 	bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
@@ -79,26 +77,26 @@ void Buffer::create(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropert
 	bufferInfo.usage = usage;
 	bufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
 
-	if (vkCreateBuffer(dc.device_, &bufferInfo, nullptr, &buffer_) != VK_SUCCESS) {
+	if (vkCreateBuffer(_context->device_, &bufferInfo, nullptr, &buffer_) != VK_SUCCESS) {
 		throw runtime_error("failed to create buffer!");
 	}
 
 	VkMemoryRequirements memRequirements;
-	vkGetBufferMemoryRequirements(dc.device_, buffer_, &memRequirements);
+	vkGetBufferMemoryRequirements(_context->device_, buffer_, &memRequirements);
 
 	VkMemoryAllocateInfo allocInfo = {};
 	allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
 	allocInfo.allocationSize = memRequirements.size;
-	allocInfo.memoryTypeIndex = dc.findMemoryType(memRequirements.memoryTypeBits, properties);
+	allocInfo.memoryTypeIndex = _context->findMemoryType(memRequirements.memoryTypeBits, properties);
 
-	if (vkAllocateMemory(dc.device_, &allocInfo, nullptr, &bufferMemory_) != VK_SUCCESS) {
+	if (vkAllocateMemory(_context->device_, &allocInfo, nullptr, &bufferMemory_) != VK_SUCCESS) {
 		throw runtime_error("failed to allocate buffer memory!");
 	}
 
 	if (bufferMemory_ == (VkDeviceMemory)0x12 || bufferMemory_ == (VkDeviceMemory)0x58) {
 		cout << "Leaked memory\n";
 	}
-	vkBindBufferMemory(dc.device_, buffer_, bufferMemory_, 0);
+	vkBindBufferMemory(_context->device_, buffer_, bufferMemory_, 0);
 }
 
 void Buffer::create(const void* value, VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties) {
@@ -106,7 +104,7 @@ void Buffer::create(const void* value, VkDeviceSize size, VkBufferUsageFlags usa
 		throw runtime_error("tryint to create a buffer larger than DEV_MAX_BUF_SIZE.");
 	}
 
-	Buffer stagingBuffer(_app);
+	Buffer stagingBuffer(_context);
 	stagingBuffer.create(size, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
 	stagingBuffer.update(value, size);
 
@@ -116,12 +114,11 @@ void Buffer::create(const void* value, VkDeviceSize size, VkBufferUsageFlags usa
 }
 
 void Buffer::copyBuffer(const Buffer& srcBuffer, size_t size) {
-	auto& dc = _app->getDeviceContext();
-	VkCommandBuffer commandBuffer = dc.beginSingleTimeCommands();
+	VkCommandBuffer commandBuffer = _context->beginSingleTimeCommands();
 
 	VkBufferCopy copyRegion = {};
 	copyRegion.size = size;
 	vkCmdCopyBuffer(commandBuffer, srcBuffer.buffer_, buffer_, 1, &copyRegion);
 
-	dc.endSingleTimeCommands(commandBuffer);
+	_context->endSingleTimeCommands(commandBuffer);
 }

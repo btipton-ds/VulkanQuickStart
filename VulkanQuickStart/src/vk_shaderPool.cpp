@@ -42,7 +42,7 @@ void ShaderPool::ShaderRec::add(const std::string& filename, const VkShaderModul
 	_shaderModules.push_back(shaderModule);
 }
 
-ShaderPool::ShaderPool(const DeviceContext& dc) 
+ShaderPool::ShaderPool(const DeviceContextPtr& dc) 
 	: _dc(dc)
 {
 }
@@ -51,7 +51,7 @@ ShaderPool::~ShaderPool() {
 	for (auto& iter : _shaderRecs) {
 		auto& shaderStages = iter.second->_shaderModules;
 		for (auto& shaderModule : shaderStages) {
-			vkDestroyShaderModule(_dc.device_, shaderModule, nullptr);
+			vkDestroyShaderModule(_dc->device_, shaderModule, nullptr);
 		}
 		shaderStages.clear();
 	}
@@ -67,7 +67,7 @@ ShaderPool::ShaderRecPtr ShaderPool::addShader(const std::string& shaderId, cons
 	ShaderRecPtr shader = make_shared<ShaderRec>();
 	for (const auto& filename : filenames) {
 		auto vertCode = readFile(filename);
-		shader->add(filename, createShaderModule(_dc, vertCode));
+		shader->add(filename, createShaderModule(vertCode));
 	}
 
 	addShader(shaderId, shader);
@@ -91,15 +91,15 @@ void ShaderPool::removeShader(const string& shaderId) {
 	if (iter != _shaderRecs.end()) {
 		auto& shaderStages = iter->second->_shaderModules;
 		for (auto& shaderModule : shaderStages) {
-			vkDestroyShaderModule(_dc.device_, shaderModule, nullptr);
+			vkDestroyShaderModule(_dc->device_, shaderModule, nullptr);
 		}
 		shaderStages.clear();
 		_shaderRecs.erase(shaderId);
 	}
 }
 
-VkShaderModule ShaderPool::createShaderModule(const DeviceContext& dc, const std::vector<char>& code) const {
-	auto device = dc.device_;
+VkShaderModule ShaderPool::createShaderModule(const std::vector<char>& code) const {
+	auto device = _dc->device_;
 
 	VkShaderModuleCreateInfo createInfo = {};
 	createInfo.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;

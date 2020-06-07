@@ -40,6 +40,8 @@ This file is part of the VulkanQuickStart Project.
 
 namespace VK {
 	struct DeviceContext;
+	using DeviceContextPtr = std::shared_ptr<DeviceContext>;
+
 	struct Buffer;
 
 	class Image;

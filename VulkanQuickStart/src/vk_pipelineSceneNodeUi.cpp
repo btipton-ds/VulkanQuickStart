@@ -50,7 +50,7 @@ void PipelineSceneNodeUi::createUniformBuffers() {
 	_uniformBuffers.reserve(swapChainSize);
 
 	for (size_t i = 0; i < swapChainSize; i++) {
-		_uniformBuffers.push_back(Buffer(app.get()));
+		_uniformBuffers.push_back(Buffer(app->getDeviceContext()));
 		_uniformBuffers.back().create(bufferSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
 			VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
 	}
@@ -65,7 +65,7 @@ void PipelineSceneNodeUi::updateUniformBuffer(size_t swapChainIndex) {
 void PipelineSceneNodeUi::cleanupSwapChain(PipelineUi* _ownerPipeline) {
 	_descriptorSets.clear();
 
-	auto devCon = _ownerPipeline->getApp()->getDeviceContext().device_;
+	auto devCon = _ownerPipeline->getApp()->getDeviceContext()->device_;
 	if (_descriptorPool != VK_NULL_HANDLE)
 		vkDestroyDescriptorPool(devCon, _descriptorPool, nullptr);
 }
@@ -78,7 +78,7 @@ void PipelineSceneNodeUi::addCommandsIdx(VkCommandBuffer cmdBuff, VkPipelineLayo
 void PipelineSceneNodeUi::createDescriptorPool() {
 	auto app = _ownerPipeline->getApp();
 	const auto& swap = app->getSwapChain();
-	auto devCon = app->getDeviceContext().device_;
+	auto devCon = app->getDeviceContext()->device_;
 
 	std::array<VkDescriptorPoolSize, 2> poolSizes = {};
 	poolSizes[0].type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
@@ -99,7 +99,7 @@ void PipelineSceneNodeUi::createDescriptorPool() {
 
 void PipelineSceneNodeUi::createDescriptorSets() {
 	auto app = _ownerPipeline->getApp();
-	auto dc = app->getDeviceContext().device_;
+	auto dc = app->getDeviceContext()->device_;
 
 	const auto& swap = app->getSwapChain();
 	size_t swapChainSize = (uint32_t)swap._vkImages.size();

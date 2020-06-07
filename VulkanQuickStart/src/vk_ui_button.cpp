@@ -45,16 +45,16 @@ namespace VK::UI {
 
 	Button::Button(const PipelineBasePtr& ownerPipeline)
 	: PipelineSceneNodeUi(ownerPipeline)
-	, _vertexBuffer(ownerPipeline->getApp().get())
-	, _indexBuffer(ownerPipeline->getApp().get())
+	, _vertexBuffer(ownerPipeline->getApp()->getDeviceContext())
+	, _indexBuffer(ownerPipeline->getApp()->getDeviceContext())
 	{
 		init();
 	}
 
 	Button::Button(const PipelineBasePtr& ownerPipeline, const glm::vec4& backgroundColor, const std::string& label, const Rect& rect, const Accel& accel)
 		: PipelineSceneNodeUi(ownerPipeline)
-		, _vertexBuffer(ownerPipeline->getApp().get())
-		, _indexBuffer(ownerPipeline->getApp().get())
+		, _vertexBuffer(ownerPipeline->getApp()->getDeviceContext())
+		, _indexBuffer(ownerPipeline->getApp()->getDeviceContext())
 		, _backgroundColor(backgroundColor)
 		, _label(label)
 		, _rect(rect)
@@ -132,7 +132,7 @@ namespace VK::UI {
 
 		createImage(w, h, image);
 
-		_texture = TextureImage::create(_ownerPipeline->getApp().get(), w, h, (unsigned char*)image.data());
+		_texture = TextureImage::create(_ownerPipeline->getApp()->getDeviceContext(), w, h, (unsigned char*)image.data());
 	}
 
 	void Button::createImage(size_t& width, size_t& height, vector<uint32_t>& image) {

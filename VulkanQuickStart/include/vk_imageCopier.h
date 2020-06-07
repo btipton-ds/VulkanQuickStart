@@ -40,7 +40,7 @@ namespace VK {
 
 	class ImageCopier {
 	public:
-		ImageCopier(VulkanApp* app, const Image& srcImage, size_t bufSize);
+		ImageCopier(const DeviceContextPtr& context, const Image& srcImage, size_t bufSize);
 		~ImageCopier();
 		const char* getPersistentCopy() const;
 		const char* getVolitileCopy() const;
@@ -59,7 +59,7 @@ namespace VK {
 		void blitImage(VkCommandBuffer copyCmd);
 		void copyImage(VkCommandBuffer copyCmd);
 
-		VulkanApp* _app;
+		DeviceContextPtr _context;
 		VkDevice _device;
 		const Image& _srcImage;
 		VkExtent3D _extent;
