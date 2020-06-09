@@ -47,7 +47,7 @@ ImageCopier::ImageCopier(const DeviceContextPtr& context, const Image& srcImage,
 	, _extent(srcImage.getImageInfo().extent)
 	, _format(srcImage.getImageInfo().format)
 {
-	_device = _context->device_;
+	_device = _context->_device;
 
 	createVkImage();
 
@@ -196,14 +196,14 @@ bool ImageCopier::doesSupportsBlit() {
 	VkFormatProperties formatProps;
 
 	// Check if the device supports blitting from optimal images (the swapchain images are in optimal format)
-	vkGetPhysicalDeviceFormatProperties(_context->physicalDevice_, _format, &formatProps);
+	vkGetPhysicalDeviceFormatProperties(_context->_physicalDevice, _format, &formatProps);
 
 	if (!(formatProps.optimalTilingFeatures & VK_FORMAT_FEATURE_BLIT_SRC_BIT)) {
 		return false;
 	}
 
 	// Check if the device supports blitting to linear images 
-	vkGetPhysicalDeviceFormatProperties(_context->physicalDevice_, VK_FORMAT_R8G8B8A8_UNORM, &formatProps);
+	vkGetPhysicalDeviceFormatProperties(_context->_physicalDevice, VK_FORMAT_R8G8B8A8_UNORM, &formatProps);
 	if (!(formatProps.linearTilingFeatures & VK_FORMAT_FEATURE_BLIT_DST_BIT)) {
 		return false;
 	}

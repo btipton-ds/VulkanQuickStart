@@ -124,7 +124,7 @@ namespace VK {
 		template<typename FUNC_TYPE>
 		inline void safeUpdate(bool needToRecreateSwapChain, FUNC_TYPE func) {
 			_isReady = false;
-			vkDeviceWaitIdle(_deviceContext->device_);
+			vkDeviceWaitIdle(_deviceContext->_device);
 			func();
 			if (needToRecreateSwapChain)
 				recreateSwapChain();

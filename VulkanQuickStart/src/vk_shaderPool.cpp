@@ -51,7 +51,7 @@ ShaderPool::~ShaderPool() {
 	for (auto& iter : _shaderRecs) {
 		auto& shaderStages = iter.second->_shaderModules;
 		for (auto& shaderModule : shaderStages) {
-			vkDestroyShaderModule(_dc->device_, shaderModule, nullptr);
+			vkDestroyShaderModule(_dc->_device, shaderModule, nullptr);
 		}
 		shaderStages.clear();
 	}
@@ -91,7 +91,7 @@ void ShaderPool::removeShader(const string& shaderId) {
 	if (iter != _shaderRecs.end()) {
 		auto& shaderStages = iter->second->_shaderModules;
 		for (auto& shaderModule : shaderStages) {
-			vkDestroyShaderModule(_dc->device_, shaderModule, nullptr);
+			vkDestroyShaderModule(_dc->_device, shaderModule, nullptr);
 		}
 		shaderStages.clear();
 		_shaderRecs.erase(shaderId);
@@ -99,7 +99,7 @@ void ShaderPool::removeShader(const string& shaderId) {
 }
 
 VkShaderModule ShaderPool::createShaderModule(const std::vector<char>& code) const {
-	auto device = _dc->device_;
+	auto device = _dc->_device;
 
 	VkShaderModuleCreateInfo createInfo = {};
 	createInfo.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;

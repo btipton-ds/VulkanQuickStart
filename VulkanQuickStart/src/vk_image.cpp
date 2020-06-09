@@ -75,7 +75,6 @@ Image::Image(const DeviceContextPtr& context, const VkSwapchainCreateInfoKHR& in
 }
 
 void Image::set(VkImage image, VkDeviceMemory memory, VkImageView view) {
-	_context->images_.insert(this);
 	_image = image;
 	_memory = memory;
 	_view = view;
@@ -87,20 +86,16 @@ Image::~Image() {
 
 void Image::destroy() {
 	if (_view != VK_NULL_HANDLE && _memory != VK_NULL_HANDLE) {
-		vkDestroyImageView(_context->device_, _view, nullptr);
-		vkDestroyImage(_context->device_, _image, nullptr);
-		vkFreeMemory(_context->device_, _memory, nullptr);
+		vkDestroyImageView(_context->_device, _view, nullptr);
+		vkDestroyImage(_context->_device, _image, nullptr);
+		vkFreeMemory(_context->_device, _memory, nullptr);
 		_view = VK_NULL_HANDLE;
-		_context->images_.erase(this);
 	}
-	if (_view != VK_NULL_HANDLE)
-		cout << "Image leak\n";
 }
 
 void Image::create(VkFormat format, VkImageUsageFlags flagBits, uint32_t width, uint32_t height, VkSampleCountFlagBits _msaaSamples) {
 	destroy();
 
-	_context->images_.insert(this);
 	// VK_IMAGE_USAGE_TRANSIENT_ATTACHMENT_BIT | VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT
 	createImage(width, height, 1, _msaaSamples, format, VK_IMAGE_TILING_OPTIMAL,
 		flagBits, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
@@ -134,23 +129,23 @@ void Image::createImage(uint32_t width, uint32_t height, uint32_t mipLevels, VkS
 	_imageInfo.samples = numSamples;
 	_imageInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
 
-	if (vkCreateImage(_context->device_, &_imageInfo, nullptr, &_image) != VK_SUCCESS) {
+	if (vkCreateImage(_context->_device, &_imageInfo, nullptr, &_image) != VK_SUCCESS) {
 		throw runtime_error("failed to create image!");
 	}
 
 	VkMemoryRequirements memRequirements;
-	vkGetImageMemoryRequirements(_context->device_, _image, &memRequirements);
+	vkGetImageMemoryRequirements(_context->_device, _image, &memRequirements);
 
 	VkMemoryAllocateInfo allocInfo = {};
 	allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
 	allocInfo.allocationSize = memRequirements.size;
 	allocInfo.memoryTypeIndex = _context->findMemoryType(memRequirements.memoryTypeBits, properties);
 
-	if (vkAllocateMemory(_context->device_, &allocInfo, nullptr, &_memory) != VK_SUCCESS) {
+	if (vkAllocateMemory(_context->_device, &allocInfo, nullptr, &_memory) != VK_SUCCESS) {
 		throw runtime_error("failed to allocate image memory!");
 	}
 
-	vkBindImageMemory(_context->device_, _image, _memory, 0);
+	vkBindImageMemory(_context->_device, _image, _memory, 0);
 }
 
 VkImageView Image::createImageView(const DeviceContextPtr& context, VkImage image, VkFormat format, VkImageAspectFlags aspectFlags, uint32_t mipLevels) {
@@ -166,7 +161,7 @@ VkImageView Image::createImageView(const DeviceContextPtr& context, VkImage imag
 	viewInfo.subresourceRange.layerCount = 1;
 
 	VkImageView view;
-	if (vkCreateImageView(context->device_, &viewInfo, nullptr, &view) != VK_SUCCESS) {
+	if (vkCreateImageView(context->_device, &viewInfo, nullptr, &view) != VK_SUCCESS) {
 		throw runtime_error("failed to create texture image view!");
 	}
 	return view;

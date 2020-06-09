@@ -59,15 +59,13 @@ namespace VK {
 
 		uint32_t getMemoryType(uint32_t typeBits, VkMemoryPropertyFlags properties, VkBool32* memTypeFound = nullptr);
 
-		VkDevice device_= VK_NULL_HANDLE;
-		VkPhysicalDevice physicalDevice_ = VK_NULL_HANDLE;
-		VkCommandPool commandPool_ = VK_NULL_HANDLE;
-		VkQueue graphicsQueue_ = VK_NULL_HANDLE;
+		VkDevice _device = VK_NULL_HANDLE;
+		VkPhysicalDevice _physicalDevice = VK_NULL_HANDLE;
+		VkCommandPool _commandPool = VK_NULL_HANDLE;
+		VkQueue _graphicsQueue = VK_NULL_HANDLE;
 		VkPhysicalDeviceMemoryProperties _memoryProperties = {};
-		std::set<Buffer*> buffers_;
-		std::set<Image*> images_;
-		std::set<TextureImage*> textureImages_;
 
+	private:
 		size_t _maxFramesInFlight;
 		std::vector<VkSemaphore> _imageAvailableSemaphores;
 		std::vector<VkSemaphore> _renderFinishedSemaphores;
@@ -77,7 +75,7 @@ namespace VK {
 	};
 
 	inline void DeviceContext::waitForFences() {
-		vkWaitForFences(device_, 1, &_inFlightFences[_currentFrame], VK_TRUE, std::numeric_limits<uint64_t>::max());
+		vkWaitForFences(_device, 1, &_inFlightFences[_currentFrame], VK_TRUE, std::numeric_limits<uint64_t>::max());
 	}
 
 	inline VkSemaphore DeviceContext::getImageAvailableSemaphore() const {

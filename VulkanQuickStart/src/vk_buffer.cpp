@@ -45,14 +45,9 @@ Buffer::~Buffer() {
 
 void Buffer::destroy() {
 	if (buffer_ != VK_NULL_HANDLE) {
-		vkDestroyBuffer(_context->device_, buffer_, nullptr);
-		vkFreeMemory(_context->device_, bufferMemory_, nullptr);
+		vkDestroyBuffer(_context->_device, buffer_, nullptr);
+		vkFreeMemory(_context->_device, bufferMemory_, nullptr);
 		buffer_ = VK_NULL_HANDLE;
-		_context->buffers_.erase(this);
-		buffer_ = VK_NULL_HANDLE;
-	}
-	if (buffer_ != VK_NULL_HANDLE) {
-		cout << "device leak\n";
 	}
 }
 
@@ -60,9 +55,9 @@ void Buffer::update(const void* value, VkDeviceSize size) {
 	if (size != _size)
 		throw "Invalid buffer size";
 	void* data;
-	vkMapMemory(_context->device_, bufferMemory_, 0, size, 0, &data);
+	vkMapMemory(_context->_device, bufferMemory_, 0, size, 0, &data);
 	memcpy(data, value, size);
-	vkUnmapMemory(_context->device_, bufferMemory_);
+	vkUnmapMemory(_context->_device, bufferMemory_);
 }
 
 void Buffer::create(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties) {
@@ -71,34 +66,32 @@ void Buffer::create(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropert
 	}
 	destroy();
 
-	_context->buffers_.insert(this);
-
 	VkBufferCreateInfo bufferInfo = {};
 	bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
 	bufferInfo.size = size;
 	bufferInfo.usage = usage;
 	bufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
 
-	if (vkCreateBuffer(_context->device_, &bufferInfo, nullptr, &buffer_) != VK_SUCCESS) {
+	if (vkCreateBuffer(_context->_device, &bufferInfo, nullptr, &buffer_) != VK_SUCCESS) {
 		throw runtime_error("failed to create buffer!");
 	}
 
 	VkMemoryRequirements memRequirements;
-	vkGetBufferMemoryRequirements(_context->device_, buffer_, &memRequirements);
+	vkGetBufferMemoryRequirements(_context->_device, buffer_, &memRequirements);
 
 	VkMemoryAllocateInfo allocInfo = {};
 	allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
 	allocInfo.allocationSize = memRequirements.size;
 	allocInfo.memoryTypeIndex = _context->findMemoryType(memRequirements.memoryTypeBits, properties);
 
-	if (vkAllocateMemory(_context->device_, &allocInfo, nullptr, &bufferMemory_) != VK_SUCCESS) {
+	if (vkAllocateMemory(_context->_device, &allocInfo, nullptr, &bufferMemory_) != VK_SUCCESS) {
 		throw runtime_error("failed to allocate buffer memory!");
 	}
 
 	if (bufferMemory_ == (VkDeviceMemory)0x12 || bufferMemory_ == (VkDeviceMemory)0x58) {
 		cout << "Leaked memory\n";
 	}
-	vkBindBufferMemory(_context->device_, buffer_, bufferMemory_, 0);
+	vkBindBufferMemory(_context->_device, buffer_, bufferMemory_, 0);
 	_size = size;
 }
 

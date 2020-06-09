@@ -74,7 +74,7 @@ size_t PipelineBase::numSceneNodes() const {
 }
 
 void PipelineBase::cleanupSwapChain() {
-	auto devCon = _app->getDeviceContext()->device_;
+	auto devCon = _app->getDeviceContext()->_device;
 	if (_descriptorSetLayout != VK_NULL_HANDLE)
 		vkDestroyDescriptorSetLayout(devCon, _descriptorSetLayout, nullptr);
 	if (_graphicsPipeline != VK_NULL_HANDLE)
@@ -172,7 +172,7 @@ void PipelineBase::build() {
 	pipelineInfo.subpass = 0;
 	pipelineInfo.basePipelineHandle = VK_NULL_HANDLE;
 
-	auto device = _app->getDeviceContext()->device_;
+	auto device = _app->getDeviceContext()->_device;
 
 	if (vkCreateGraphicsPipelines(device, VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &_graphicsPipeline) != VK_SUCCESS) {
 		throw std::runtime_error("failed to create graphics pipeline!");
@@ -284,7 +284,7 @@ inline void PipelineBase::createPipelineLayout() {
 	pipelineLayoutInfo.setLayoutCount = 1;
 	pipelineLayoutInfo.pSetLayouts = &_descriptorSetLayout;
 
-	if (vkCreatePipelineLayout(_app->getDeviceContext()->device_, &pipelineLayoutInfo, nullptr, &_pipelineLayout) != VK_SUCCESS) {
+	if (vkCreatePipelineLayout(_app->getDeviceContext()->_device, &pipelineLayoutInfo, nullptr, &_pipelineLayout) != VK_SUCCESS) {
 		throw std::runtime_error("failed to create pipeline layout!");
 	}
 }

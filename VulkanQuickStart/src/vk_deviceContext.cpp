@@ -47,17 +47,6 @@ DeviceContext::~DeviceContext() {
 	destroy();
 }
 
-namespace {
-	template<class T>
-	void clearSet(set<T*>& s) {
-		while (!s.empty()) {
-			T* iter = *s.begin();
-			iter->destroy();
-			s.erase(iter);
-		}
-	}
-}
-
 void DeviceContext::createSyncObjects() {
 	_imageAvailableSemaphores.resize(_maxFramesInFlight);
 	_renderFinishedSemaphores.resize(_maxFramesInFlight);
@@ -71,45 +60,40 @@ void DeviceContext::createSyncObjects() {
 	fenceInfo.flags = VK_FENCE_CREATE_SIGNALED_BIT;
 
 	for (size_t i = 0; i < _maxFramesInFlight; i++) {
-		if (vkCreateSemaphore(device_, &semaphoreInfo, nullptr, &_imageAvailableSemaphores[i]) != VK_SUCCESS ||
-			vkCreateSemaphore(device_, &semaphoreInfo, nullptr, &_renderFinishedSemaphores[i]) != VK_SUCCESS ||
-			vkCreateFence(device_, &fenceInfo, nullptr, &_inFlightFences[i]) != VK_SUCCESS) {
+		if (vkCreateSemaphore(_device, &semaphoreInfo, nullptr, &_imageAvailableSemaphores[i]) != VK_SUCCESS ||
+			vkCreateSemaphore(_device, &semaphoreInfo, nullptr, &_renderFinishedSemaphores[i]) != VK_SUCCESS ||
+			vkCreateFence(_device, &fenceInfo, nullptr, &_inFlightFences[i]) != VK_SUCCESS) {
 			throw std::runtime_error("failed to create synchronization objects for a frame!");
 		}
 	}
 }
 
 void DeviceContext::submitQueue(uint32_t size, const VkSubmitInfo* submitInfoArr) {
-	vkResetFences(device_, 1, &_inFlightFences[_currentFrame]);
+	vkResetFences(_device, 1, &_inFlightFences[_currentFrame]);
 
-	if (vkQueueSubmit(graphicsQueue_, size, submitInfoArr, _inFlightFences[_currentFrame]) != VK_SUCCESS) {
+	if (vkQueueSubmit(_graphicsQueue, size, submitInfoArr, _inFlightFences[_currentFrame]) != VK_SUCCESS) {
 		throw std::runtime_error("failed to submit draw command buffer!");
 	}
 }
 
+
 void DeviceContext::destroy() {
-	if (device_ != VK_NULL_HANDLE) {
+	if (_device != VK_NULL_HANDLE) {
 		for (int i = 0; i < _maxFramesInFlight; i++) {
-			vkDestroySemaphore(device_, _renderFinishedSemaphores[i], nullptr);
-			vkDestroySemaphore(device_, _imageAvailableSemaphores[i], nullptr);
-			vkDestroyFence(device_, _inFlightFences[i], nullptr);
+			vkDestroySemaphore(_device, _renderFinishedSemaphores[i], nullptr);
+			vkDestroySemaphore(_device, _imageAvailableSemaphores[i], nullptr);
+			vkDestroyFence(_device, _inFlightFences[i], nullptr);
 		}
 
-		clearSet(buffers_);
-		clearSet(images_);
-		clearSet(textureImages_);
-		vkDestroyCommandPool(device_, commandPool_, nullptr);
-		vkDestroyDevice(device_, nullptr);
-		device_ = VK_NULL_HANDLE;
-	}
-	if (device_ != VK_NULL_HANDLE) {
-		cout << "device leak\n";
+		vkDestroyCommandPool(_device, _commandPool, nullptr);
+		vkDestroyDevice(_device, nullptr);
+		_device = VK_NULL_HANDLE;
 	}
 }
 
 uint32_t DeviceContext::findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties) const {
 	VkPhysicalDeviceMemoryProperties memProperties;
-	vkGetPhysicalDeviceMemoryProperties(physicalDevice_, &memProperties);
+	vkGetPhysicalDeviceMemoryProperties(_physicalDevice, &memProperties);
 
 	for (uint32_t i = 0; i < memProperties.memoryTypeCount; i++) {
 		if ((typeFilter & (1 << i)) && (memProperties.memoryTypes[i].propertyFlags & properties) == properties) {
@@ -124,11 +108,11 @@ VkCommandBuffer DeviceContext::beginSingleTimeCommands() {
 	VkCommandBufferAllocateInfo allocInfo = {};
 	allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
 	allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
-	allocInfo.commandPool = commandPool_;
+	allocInfo.commandPool = _commandPool;
 	allocInfo.commandBufferCount = 1;
 
 	VkCommandBuffer commandBuffer;
-	vkAllocateCommandBuffers(device_, &allocInfo, &commandBuffer);
+	vkAllocateCommandBuffers(_device, &allocInfo, &commandBuffer);
 
 	VkCommandBufferBeginInfo beginInfo = {};
 	beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
@@ -147,10 +131,10 @@ void DeviceContext::endSingleTimeCommands(VkCommandBuffer commandBuffer) {
 	submitInfo.commandBufferCount = 1;
 	submitInfo.pCommandBuffers = &commandBuffer;
 
-	vkQueueSubmit(graphicsQueue_, 1, &submitInfo, VK_NULL_HANDLE);
-	vkQueueWaitIdle(graphicsQueue_);
+	vkQueueSubmit(_graphicsQueue, 1, &submitInfo, VK_NULL_HANDLE);
+	vkQueueWaitIdle(_graphicsQueue);
 
-	vkFreeCommandBuffers(device_, commandPool_, 1, &commandBuffer);
+	vkFreeCommandBuffers(_device, _commandPool, 1, &commandBuffer);
 }
 
 
