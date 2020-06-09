@@ -37,13 +37,9 @@ This file is part of the VulkanQuickStart Project.
 #include <set>
 #include <memory>
 
-namespace VK {
-	struct Buffer;
-	class Image;
-	class TextureImage;
+#include <vk_forwardDeclarations.h>
 
-	struct DeviceContext;
-	using DeviceContextPtr = std::shared_ptr<DeviceContext>;
+namespace VK {
 
 	struct DeviceContext {
 		~DeviceContext();

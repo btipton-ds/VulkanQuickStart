@@ -119,9 +119,17 @@ namespace VK {
 		uint32_t getSwapChainIndex() const;
 
 		void run();
-
 		void stop();
 
+		template<typename FUNC_TYPE>
+		inline void safeUpdate(bool needToRecreateSwapChain, FUNC_TYPE func) {
+			_isReady = false;
+			vkDeviceWaitIdle(_deviceContext->device_);
+			func();
+			if (needToRecreateSwapChain)
+				recreateSwapChain();
+			_isReady = true;
+		}
 	private:
 		struct SwapChainSupportDetails;
 		struct QueueFamilyIndices;
@@ -195,7 +203,7 @@ namespace VK {
 		bool checkValidationLayerSupport();
 
 		GLFWwindow* _window;
-		bool _isRunning = true;
+		bool _isRunning = true, _isReady = true;
 		UI::WindowPtr _uiWindow;
 		unsigned int _windowDpi = 72;
 		VkFormat _requestedFormat = VK_FORMAT_B8G8R8A8_UNORM;

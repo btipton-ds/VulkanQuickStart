@@ -235,7 +235,7 @@ void Model::createDescriptorSets() {
 
 		bufferInfo.buffer = _uniformBuffers[i];
 		bufferInfo.offset = 0;
-		bufferInfo.range = sizeof(UniformBufferObject);
+		bufferInfo.range = _uniformBuffers[i].getSize();
 
 		std::array<VkWriteDescriptorSet, 1> descriptorWrites = {};
 

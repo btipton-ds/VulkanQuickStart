@@ -42,7 +42,7 @@ namespace VK {
 	struct DeviceContext;
 	using DeviceContextPtr = std::shared_ptr<DeviceContext>;
 
-	struct Buffer;
+	class Buffer;
 	using BufferPtr = std::shared_ptr<Buffer>;
 
 	class Image;

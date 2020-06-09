@@ -262,7 +262,7 @@ void ModelObj::createDescriptorSets() {
 
 		bufferInfo.buffer = _uniformBuffers[i];
 		bufferInfo.offset = 0;
-		bufferInfo.range = sizeof(_uniformBuffers[i]);
+		bufferInfo.range = _uniformBuffers[i].getSize();
 
 		vector<VkDescriptorImageInfo> imageInfoList;
 		buildImageInfoList(imageInfoList);

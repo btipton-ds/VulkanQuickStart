@@ -56,7 +56,9 @@ void Buffer::destroy() {
 	}
 }
 
-void Buffer::update(const void* value, size_t size) {
+void Buffer::update(const void* value, VkDeviceSize size) {
+	if (size != _size)
+		throw "Invalid buffer size";
 	void* data;
 	vkMapMemory(_context->device_, bufferMemory_, 0, size, 0, &data);
 	memcpy(data, value, size);
@@ -97,6 +99,7 @@ void Buffer::create(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropert
 		cout << "Leaked memory\n";
 	}
 	vkBindBufferMemory(_context->device_, buffer_, bufferMemory_, 0);
+	_size = size;
 }
 
 void Buffer::create(const void* value, VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties) {
@@ -113,7 +116,7 @@ void Buffer::create(const void* value, VkDeviceSize size, VkBufferUsageFlags usa
 	copyBuffer(stagingBuffer, size);
 }
 
-void Buffer::copyBuffer(const Buffer& srcBuffer, size_t size) {
+void Buffer::copyBuffer(const Buffer& srcBuffer, VkDeviceSize size) {
 	VkCommandBuffer commandBuffer = _context->beginSingleTimeCommands();
 
 	VkBufferCopy copyRegion = {};

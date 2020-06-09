@@ -40,34 +40,33 @@ This file is part of the VulkanQuickStart Project.
 
 namespace VK {
 
-	struct Buffer {
+	class Buffer {
+	public:
 		Buffer(const DeviceContextPtr& context);
 		~Buffer();
 		void destroy();
 		void create(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties);
 		void create(const void* value, VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties);
 
+		void copyBuffer(const Buffer& srcBuffer, VkDeviceSize size);
+		void update(const void* value, VkDeviceSize size);
+
+		operator VkBuffer() const;
+		operator VkDeviceMemory() const;
+		VkDeviceSize getSize() const;
+
 		template<class T>
-		inline void create(const std::vector<T>& vec, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties) {
-			create(vec.data(), (VkDeviceSize)(sizeof(T) * vec.size()), usage, properties);
-		}
-
-		void copyBuffer(const Buffer& srcBuffer, size_t size);
-		void update(const void* value, size_t size);
+		void create(const std::vector<T>& vec, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties);
 
 		template<class T>
-		inline void update(const T& value) {
-			update(&value, sizeof(T));
-		}
+		void update(const T& value);
 
-		inline operator VkBuffer() const {
-			return buffer_;
-		}
+		template<class T>
+		void updateVec(const std::vector<T>& vec);
 
-		inline operator VkDeviceMemory() const {
-			return bufferMemory_;
-		}
+	private:
 
+		VkDeviceSize _size = 0;
 		DeviceContextPtr _context;
 		VkBuffer buffer_ = VK_NULL_HANDLE;
 		VkDeviceMemory bufferMemory_ = VK_NULL_HANDLE;
@@ -76,5 +75,32 @@ namespace VK {
 	inline Buffer::Buffer(const DeviceContextPtr& context)
 		: _context(context)
 	{}
+
+	template<class T>
+	inline void Buffer::create(const std::vector<T>& vec, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties) {
+		create(vec.data(), (VkDeviceSize)(sizeof(T) * vec.size()), usage, properties);
+	}
+
+	template<class T>
+	inline void Buffer::updateVec(const std::vector<T>& vec) {
+		update(vec.data(), (VkDeviceSize)(sizeof(T) * vec.size()));
+	}
+
+	template<class T>
+	inline void Buffer::update(const T& value) {
+		update(&value, sizeof(T));
+	}
+
+	inline Buffer::operator VkBuffer() const {
+		return buffer_;
+	}
+
+	inline Buffer::operator VkDeviceMemory() const {
+		return bufferMemory_;
+	}
+
+	inline VkDeviceSize Buffer::getSize() const {
+		return _size;
+	}
 
 }
