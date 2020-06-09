@@ -69,6 +69,8 @@ void DeviceContext::createSyncObjects() {
 }
 
 void DeviceContext::submitQueue(uint32_t size, const VkSubmitInfo* submitInfoArr) {
+	lock_guard lock(_graphicsQueueMutex);
+
 	vkResetFences(_device, 1, &_inFlightFences[_currentFrame]);
 
 	if (vkQueueSubmit(_graphicsQueue, size, submitInfoArr, _inFlightFences[_currentFrame]) != VK_SUCCESS) {
@@ -112,27 +114,35 @@ VkCommandBuffer DeviceContext::beginSingleTimeCommands() {
 	allocInfo.commandBufferCount = 1;
 
 	VkCommandBuffer commandBuffer;
-	vkAllocateCommandBuffers(_device, &allocInfo, &commandBuffer);
+	if (vkAllocateCommandBuffers(_device, &allocInfo, &commandBuffer) != VK_SUCCESS)
+		throw runtime_error("vkAllocateCommandBuffers error");
 
 	VkCommandBufferBeginInfo beginInfo = {};
 	beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
 	beginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
 
-	vkBeginCommandBuffer(commandBuffer, &beginInfo);
+	if (vkBeginCommandBuffer(commandBuffer, &beginInfo) != VK_SUCCESS)
+		throw runtime_error("vkBeginCommandBuffer error");
 
 	return commandBuffer;
 }
 
 void DeviceContext::endSingleTimeCommands(VkCommandBuffer commandBuffer) {
-	vkEndCommandBuffer(commandBuffer);
+	lock_guard lock(_graphicsQueueMutex);
+
+	if (vkEndCommandBuffer(commandBuffer) != VK_SUCCESS)
+		throw runtime_error("vkEndCommandBuffer error");
 
 	VkSubmitInfo submitInfo = {};
 	submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
 	submitInfo.commandBufferCount = 1;
 	submitInfo.pCommandBuffers = &commandBuffer;
 
-	vkQueueSubmit(_graphicsQueue, 1, &submitInfo, VK_NULL_HANDLE);
-	vkQueueWaitIdle(_graphicsQueue);
+	if (vkQueueSubmit(_graphicsQueue, 1, &submitInfo, VK_NULL_HANDLE) != VK_SUCCESS)
+		throw runtime_error("vkQueueSubmit error");
+
+	if (vkQueueWaitIdle(_graphicsQueue) != VK_SUCCESS)
+		throw runtime_error("vkQueueWaitIdle error");
 
 	vkFreeCommandBuffers(_device, _commandPool, 1, &commandBuffer);
 }

@@ -36,6 +36,7 @@ This file is part of the VulkanQuickStart Project.
 
 #include <set>
 #include <memory>
+#include <mutex>
 
 #include <vk_forwardDeclarations.h>
 
@@ -66,6 +67,7 @@ namespace VK {
 		VkPhysicalDeviceMemoryProperties _memoryProperties = {};
 
 	private:
+		std::mutex _graphicsQueueMutex;
 		size_t _maxFramesInFlight;
 		std::vector<VkSemaphore> _imageAvailableSemaphores;
 		std::vector<VkSemaphore> _renderFinishedSemaphores;

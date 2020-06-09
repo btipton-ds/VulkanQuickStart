@@ -53,7 +53,7 @@ This file is part of the VulkanQuickStart Project.
 using namespace VK;
 using namespace std;
 
-#define TEST_OBJ 1
+#define TEST_OBJ 0
 #define TEST_STL 1
 #define TEST_GUI 1
 
@@ -72,6 +72,11 @@ const std::string gliderFilename = "FFGLOBJ.obj";
 
 const std::string apricotPath = modelPath + "apricot/";
 const std::string apricotFilename = "Apricot_02_hi_poly.obj";
+
+ModelObjPtr plant;
+ModelObjPtr dna;
+ModelObjPtr apricot;
+
 #endif
 
 #if TEST_STL
@@ -89,9 +94,6 @@ VulkanAppPtr gApp;
 ModelPtr vaseShaded, vaseWf;
 ModelPtr partShaded, partWf;
 
-ModelObjPtr plant;
-ModelObjPtr dna;
-ModelObjPtr apricot;
 
 #if TEST_GUI
 void buildUi(UI::WindowPtr& gui) {
@@ -117,6 +119,7 @@ void buildUi(UI::WindowPtr& gui) {
 		}
 	});
 
+#if TEST_OBJ
 	row += h;
 	gui->addButton(bkgColor, "Show/Hide plant", UI::Rect(row, 0, row + h, w))->
 		setAction(UI::Button::ActionType::ACT_CLICK, [&](int btnNum, int modifiers) {
@@ -126,6 +129,7 @@ void buildUi(UI::WindowPtr& gui) {
 			}
 		}
 	});
+#endif
 
 	row += h;
 	gui->addButton(bkgColor, "Show/Hide part", UI::Rect(row, 0, row + h, w))->
@@ -170,6 +174,7 @@ void buildUi(UI::WindowPtr& gui) {
 #endif
 
 void addObj() {
+#if TEST_OBJ
 	glm::mat4 xform;
 
 	plant = ModelObj::create(pipeline3DWSampler, pottedPlantPath, pottedPlantFilename);
@@ -186,6 +191,7 @@ void addObj() {
 	xform = glm::translate(glm::mat4(1.0f), glm::vec3(10, 10, 0));
 	xform *= glm::rotate(glm::mat4(1.0f), glm::radians(90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
 	apricot->setModelTransform(xform);
+#endif
 }
 
 int readStl(const string& filename, ModelPtr& modelShaded, ModelPtr& modelWF) {
