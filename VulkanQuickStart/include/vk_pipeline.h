@@ -86,14 +86,15 @@ namespace VK {
 	inline void Pipeline<VERT_TYPE, UBO_TYPE>::cleanupSwapChain() {
 		PipelineBase::cleanupSwapChain();
 		for (auto& sceneNode : _sceneNodes) {
-			sceneNode->cleanupSwapChain();
+			if (sceneNode->isReady())
+				sceneNode->cleanupSwapChain();
 		}
 	}
 
 	template<class VERT_TYPE, class UBO_TYPE>
 	inline void Pipeline<VERT_TYPE, UBO_TYPE>::addCommands(VkCommandBuffer cmdBuff, size_t swapChainIdx) const {
 		for (const auto& sceneNode : _sceneNodes) {
-			if (sceneNode->isVisible())
+			if (sceneNode->isReady() && sceneNode->isVisible())
 				sceneNode->addCommands(cmdBuff, _pipelineLayout, swapChainIdx);
 		}
 	}
@@ -109,12 +110,14 @@ namespace VK {
 			sceneNode->createDescriptorPool();
 			sceneNode->createUniformBuffers();
 			sceneNode->createDescriptorSets();
+			sceneNode->setReady(true);
 		}
 	}
 
 	template<class VERT_TYPE, class UBO_TYPE>
 	inline void Pipeline<VERT_TYPE, UBO_TYPE>::addSceneNode(const SceneNodePtr& node) {
 		_sceneNodes.push_back(node);
+		_app->changed();
 	}
 
 	template<class VERT_TYPE, class UBO_TYPE>
@@ -125,7 +128,8 @@ namespace VK {
 	template<class VERT_TYPE, class UBO_TYPE>
 	inline void Pipeline<VERT_TYPE, UBO_TYPE>::updateUniformBuffers(size_t swapChainIndex) {
 		for (auto& sceneNode : _sceneNodes) {
-			sceneNode->updateUniformBuffer(swapChainIndex);
+			if (sceneNode->isReady())
+				sceneNode->updateUniformBuffer(swapChainIndex);
 		}
 	}
 

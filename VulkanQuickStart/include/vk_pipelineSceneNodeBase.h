@@ -55,6 +55,8 @@ namespace VK {
 		void toggleVisibility();
 		void setVisibility(bool visible);
 		bool isVisible() const;
+		bool isReady() const;
+		void setReady(bool ready);
 
 		virtual void addCommands(VkCommandBuffer cmdBuff, VkPipelineLayout pipelineLayout, size_t swapChainIndex) const = 0;
 		virtual void buildImageInfoList(std::vector<VkDescriptorImageInfo>& imageInfoList) const = 0;
@@ -69,6 +71,7 @@ namespace VK {
 		void updateUniformBufferTempl(size_t swapChainIndex, const BUF_TYPE& ubo);
 	protected:
 		PipelineBasePtr _ownerPipeline;
+		bool _ready = false;
 		bool _visible = true;
 
 		std::vector<Buffer> _uniformBuffers;
@@ -83,6 +86,14 @@ namespace VK {
 
 	inline bool PipelineSceneNodeBase::isVisible() const {
 		return _visible;
+	}
+
+	inline bool PipelineSceneNodeBase::isReady() const {
+		return _ready;
+	}
+
+	inline void PipelineSceneNodeBase::setReady(bool ready) {
+		_ready = ready;
 	}
 
 }

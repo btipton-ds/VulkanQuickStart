@@ -126,6 +126,23 @@ namespace VK {
 		struct SwapChainSupportDetails;
 		struct QueueFamilyIndices;
 
+		class PipelineRec {
+		public:
+			void add(const PipelineBasePtr& pl);
+
+			template<typename FUNC_TYPE>
+			inline void iterate(FUNC_TYPE func) {
+				std::lock_guard lock(_mutex);
+				for (auto& pl : _pipelines) {
+					func(pl);
+				}
+			}
+
+		private:
+			std::mutex _mutex;
+			std::vector<PipelineBasePtr> _pipelines;
+		};
+
 		static std::vector<char> readFile(const std::string& filename);
 		static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity, VkDebugUtilsMessageTypeFlagsEXT messageType, const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData, void* pUserData);
 		static void framebufferResizeCallback(GLFWwindow* window, int width, int height);
@@ -207,7 +224,7 @@ namespace VK {
 		ShaderPoolPtr _shaderPool;
 
 		UniformBufferObject3D _ubo;
-		std::vector<PipelineBasePtr> _pipelines;
+		PipelineRec _pipelines;
 
 		std::vector<VkCommandBuffer> _commandBuffers;
 
@@ -289,12 +306,6 @@ namespace VK {
 
 	inline uint32_t VulkanApp::getSwapChainIndex() const {
 		return _swapChainIndex;
-	}
-
-	inline PipelineBasePtr VulkanApp::addPipeline(const PipelineBasePtr& pipeline) {
-		_pipelines.push_back(pipeline);
-		changed();
-		return pipeline;
 	}
 
 	template<class PIPELINE_TYPE>

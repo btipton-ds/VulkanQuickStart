@@ -43,6 +43,7 @@ namespace VK {
 	using DeviceContextPtr = std::shared_ptr<DeviceContext>;
 
 	struct Buffer;
+	using BufferPtr = std::shared_ptr<Buffer>;
 
 	class Image;
 	using ImagePtr = std::shared_ptr<Image>;
@@ -69,8 +70,6 @@ namespace VK {
 	class PipelineSceneNodeBase;
 	using SceneNodeBasePtr = std::shared_ptr<PipelineSceneNodeBase>;
 
-	template<class PIPELINE_TYPE>
-	class PipelineSceneNode;
 
 	namespace UI {
 		class Window;

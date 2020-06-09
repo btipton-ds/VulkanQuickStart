@@ -86,8 +86,8 @@ Pipeline3DWSamplerPtr pipeline3DWSampler;
 
 VulkanAppPtr gApp;
 
-SceneNode3DPtr vaseShaded, vaseWf;
-SceneNode3DPtr partShaded, partWf;
+ModelPtr vaseShaded, vaseWf;
+ModelPtr partShaded, partWf;
 
 ModelObjPtr plant;
 ModelObjPtr dna;
@@ -188,7 +188,7 @@ void addObj() {
 	apricot->setModelTransform(xform);
 }
 
-int readStl(const string& filename, SceneNode3DPtr& modelShaded, SceneNode3DPtr& modelWF) {
+int readStl(const string& filename, ModelPtr& modelShaded, ModelPtr& modelWF) {
 	TriMesh::CMeshPtr meshPtr = std::make_shared<TriMesh::CMesh>();
 	CReadSTL readStl(meshPtr);
 	if (!readStl.read(modelPath, filename))

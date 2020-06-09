@@ -118,6 +118,12 @@ void VulkanApp::setUiWindow(const UI::WindowPtr& uiWindow) {
 	}
 }
 
+PipelineBasePtr VulkanApp::addPipeline(const PipelineBasePtr& pipeline) {
+	_pipelines.add(pipeline);
+	changed();
+	return pipeline;
+}
+
 void DestroyDebugUtilsMessengerEXT(VkInstance instance, VkDebugUtilsMessengerEXT debugMessenger, const VkAllocationCallbacks* pAllocator) {
 	auto func = (PFN_vkDestroyDebugUtilsMessengerEXT)vkGetInstanceProcAddr(instance, "vkDestroyDebugUtilsMessengerEXT");
 	if (func != nullptr) {
@@ -163,7 +169,6 @@ void VulkanApp::initWindow(int width, int height) {
 void VulkanApp::framebufferResizeCallback(GLFWwindow* window, int width, int height) {
 	auto app = reinterpret_cast<VulkanApp*>(glfwGetWindowUserPointer(window));
 	app->_framebufferResized = true;
-	cout << "Changed window size\n";
 }
 
 void VulkanApp::initVulkan() {
@@ -184,7 +189,6 @@ void VulkanApp::initVulkan() {
 }
 
 void VulkanApp::recreateSwapChain() {
-	cout << "Recreating swap chain.\n";
 
 	std::lock_guard<mutex> guard(_swapChainMutex);
 	int width = 0, height = 0;
@@ -221,8 +225,9 @@ void VulkanApp::cleanupSwapChain() {
 		vkDestroyFramebuffer(_deviceContext->device_, framebuffer, nullptr);
 	}
 
-	for (auto& pipeline : _pipelines)
-		pipeline->cleanupSwapChain();
+	_pipelines.iterate([](const PipelineBasePtr& pl) {
+		pl->cleanupSwapChain();
+	});
 
 	vkFreeCommandBuffers(_deviceContext->device_, _deviceContext->commandPool_, static_cast<uint32_t>(_commandBuffers.size()), _commandBuffers.data());
 
@@ -538,10 +543,10 @@ void VulkanApp::createRenderPass() {
 }
 
 void VulkanApp::createGraphicsPipeline() {
-	for (auto& pl : _pipelines) {
+	_pipelines.iterate([](const PipelineBasePtr& pl) {
 		if (pl->isVisible())
 			pl->build();
-	}
+	});
 }
 
 void VulkanApp::createFramebuffers() {
@@ -719,10 +724,10 @@ void VulkanApp::drawCmdBufferLoop(size_t swapChainIndex,
 	}
 	vkCmdBeginRenderPass(cmdBuff, &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
 
-	for (auto& pipeline : _pipelines) {
+	_pipelines.iterate([&](const PipelineBasePtr& pipeline) {
 		if (pipeline->isVisible())
 			pipeline->draw(cmdBuff, swapChainIndex);
-	}
+	});
 
 	vkCmdEndRenderPass(cmdBuff);
 
@@ -789,8 +794,8 @@ void VulkanApp::updateUniformBuffer(uint32_t swapChainImageIndex) {
 	reportFPS();
 
 	BoundingBox modelBounds;
-	for (auto& pipeline : _pipelines) {
 
+	_pipelines.iterate([&](const PipelineBasePtr& pipeline) {
 		auto ptr3D = dynamic_pointer_cast<Pipeline3D>(pipeline);
 		if (ptr3D)
 			modelBounds.merge(ptr3D->getBounds());
@@ -798,7 +803,7 @@ void VulkanApp::updateUniformBuffer(uint32_t swapChainImageIndex) {
 		auto ptr3DWTex = dynamic_pointer_cast<Pipeline3DWSampler>(pipeline);
 		if (ptr3DWTex)
 			modelBounds.merge(ptr3DWTex->getBounds());
-	}
+	});
 
 	_ubo = {};
 	_ubo.ambient = 0.10f;
@@ -832,19 +837,20 @@ void VulkanApp::updateUniformBuffer(uint32_t swapChainImageIndex) {
 	_ubo.proj = glm::ortho(-w, w, -h, h, -10.0f, 10.0f);
 	_ubo.proj[1][1] *= -1;
 
-	for (auto& pipeline : _pipelines) {
+	_pipelines.iterate([&](const PipelineBasePtr& pipeline) {
 		if (pipeline->isVisible() && pipeline->numSceneNodes() > 0) {
 			pipeline->updateUniformBuffers(swapChainImageIndex);
 		}
-	}
+	});
 }
 
 void VulkanApp::drawFrame() {
 	size_t numSceneNodes = 0;
-	for (const auto& pipeline : _pipelines) {
+	_pipelines.iterate([&](const PipelineBasePtr& pipeline) {
 		// TODO, add update buffers call here.
 		numSceneNodes += pipeline->numSceneNodes();
-	}
+	});
+
 	if (numSceneNodes <= 0)
 		return;
 
@@ -1135,4 +1141,9 @@ VKAPI_ATTR VkBool32 VKAPI_CALL VulkanApp::debugCallback(VkDebugUtilsMessageSever
 	std::cerr << "validation layer: " << pCallbackData->pMessage << std::endl;
 
 	return VK_FALSE;
+}
+
+void VulkanApp::PipelineRec::add(const PipelineBasePtr& pl) {
+	lock_guard lg(_mutex);
+	_pipelines.push_back(pl);
 }
