@@ -98,7 +98,7 @@ VkResult CreateDebugUtilsMessengerEXT(VkInstance instance, const VkDebugUtilsMes
 }
 
 VulkanApp::VulkanApp(int width, int height)
-	: _deviceContext(make_shared<DeviceContext>())
+	: _deviceContext(make_shared<DeviceContext>(MAX_FRAMES_IN_FLIGHT))
 	, _swapChain(_deviceContext)
 {
 	_shaderPool = make_shared<ShaderPool>(_deviceContext);
@@ -244,12 +244,6 @@ void VulkanApp::cleanup() {
 	cleanupSwapChain();
 
 	_shaderPool = nullptr;
-
-	for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
-		vkDestroySemaphore(_deviceContext->device_, renderFinishedSemaphores[i], nullptr);
-		vkDestroySemaphore(_deviceContext->device_, imageAvailableSemaphores[i], nullptr);
-		vkDestroyFence(_deviceContext->device_, inFlightFences[i], nullptr);
-	}
 
 	if (enableValidationLayers) {
 		DestroyDebugUtilsMessengerEXT(instance, debugMessenger, nullptr);
@@ -737,24 +731,7 @@ void VulkanApp::drawCmdBufferLoop(size_t swapChainIndex,
 }
 
 void VulkanApp::createSyncObjects() {
-	imageAvailableSemaphores.resize(MAX_FRAMES_IN_FLIGHT);
-	renderFinishedSemaphores.resize(MAX_FRAMES_IN_FLIGHT);
-	inFlightFences.resize(MAX_FRAMES_IN_FLIGHT);
-
-	VkSemaphoreCreateInfo semaphoreInfo = {};
-	semaphoreInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
-
-	VkFenceCreateInfo fenceInfo = {};
-	fenceInfo.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
-	fenceInfo.flags = VK_FENCE_CREATE_SIGNALED_BIT;
-
-	for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
-		if (vkCreateSemaphore(_deviceContext->device_, &semaphoreInfo, nullptr, &imageAvailableSemaphores[i]) != VK_SUCCESS ||
-			vkCreateSemaphore(_deviceContext->device_, &semaphoreInfo, nullptr, &renderFinishedSemaphores[i]) != VK_SUCCESS ||
-			vkCreateFence(_deviceContext->device_, &fenceInfo, nullptr, &inFlightFences[i]) != VK_SUCCESS) {
-			throw std::runtime_error("failed to create synchronization objects for a frame!");
-		}
-	}
+	_deviceContext->createSyncObjects();
 }
 
 void VulkanApp::reportFPS() {
@@ -857,10 +834,11 @@ void VulkanApp::drawFrame() {
 	if (numSceneNodes <= 0)
 		return;
 
-	vkWaitForFences(_deviceContext->device_, 1, &inFlightFences[currentFrame], VK_TRUE, std::numeric_limits<uint64_t>::max());
+	_deviceContext->waitForFences();
 
+	VkSemaphore semaphore = _deviceContext->getImageAvailableSemaphore();
 	VkResult result = vkAcquireNextImageKHR(_deviceContext->device_, _swapChain._vkSwapChain, std::numeric_limits<uint64_t>::max(),
-		imageAvailableSemaphores[currentFrame], VK_NULL_HANDLE, &_swapChainIndex);
+		semaphore, VK_NULL_HANDLE, &_swapChainIndex);
 
 	bool needToRecreate = false;
 
@@ -887,7 +865,7 @@ void VulkanApp::drawFrame() {
 	VkSubmitInfo submitInfo = {};
 	submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
 
-	VkSemaphore waitSemaphores[] = { imageAvailableSemaphores[currentFrame] };
+	VkSemaphore waitSemaphores[] = { semaphore };
 	VkPipelineStageFlags waitStages[] = { VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT };
 	submitInfo.waitSemaphoreCount = 1;
 	submitInfo.pWaitSemaphores = waitSemaphores;
@@ -896,15 +874,11 @@ void VulkanApp::drawFrame() {
 	submitInfo.commandBufferCount = 1;
 	submitInfo.pCommandBuffers = &_commandBuffers[_swapChainIndex];
 
-	VkSemaphore signalSemaphores[] = { renderFinishedSemaphores[currentFrame] };
+	VkSemaphore signalSemaphores[] = { _deviceContext->getRenderFinishedSemaphore() };
 	submitInfo.signalSemaphoreCount = 1;
 	submitInfo.pSignalSemaphores = signalSemaphores;
 
-	vkResetFences(_deviceContext->device_, 1, &inFlightFences[currentFrame]);
-
-	if (vkQueueSubmit(_deviceContext->graphicsQueue_, 1, &submitInfo, inFlightFences[currentFrame]) != VK_SUCCESS) {
-		throw std::runtime_error("failed to submit draw command buffer!");
-	}
+	_deviceContext->submitQueue(1, &submitInfo);
 
 	VkPresentInfoKHR presentInfo = {};
 	presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
@@ -928,7 +902,7 @@ void VulkanApp::drawFrame() {
 		throw std::runtime_error("failed to present swap chain image!");
 	}
 
-	currentFrame = (currentFrame + 1) % MAX_FRAMES_IN_FLIGHT;
+	_deviceContext->nextFrame();
 }
 
 VkShaderModule VulkanApp::createShaderModule(const std::vector<char>& code) {

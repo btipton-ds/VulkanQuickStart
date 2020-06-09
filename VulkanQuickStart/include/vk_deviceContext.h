@@ -42,8 +42,16 @@ This file is part of the VulkanQuickStart Project.
 namespace VK {
 
 	struct DeviceContext {
+		DeviceContext(size_t maxFramesInFlight);
 		~DeviceContext();
 		void destroy();
+
+		void createSyncObjects();
+		void waitForFences();
+		VkSemaphore getImageAvailableSemaphore() const;
+		VkSemaphore getRenderFinishedSemaphore() const;
+		void submitQueue(uint32_t size, const VkSubmitInfo* submitInfoArr);
+		void nextFrame();
 
 		uint32_t findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties) const;
 		VkCommandBuffer beginSingleTimeCommands();
@@ -59,7 +67,29 @@ namespace VK {
 		std::set<Buffer*> buffers_;
 		std::set<Image*> images_;
 		std::set<TextureImage*> textureImages_;
+
+		size_t _maxFramesInFlight;
+		std::vector<VkSemaphore> _imageAvailableSemaphores;
+		std::vector<VkSemaphore> _renderFinishedSemaphores;
+		std::vector<VkFence> _inFlightFences;
+		size_t _currentFrame = 0;
+
 	};
 
+	inline void DeviceContext::waitForFences() {
+		vkWaitForFences(device_, 1, &_inFlightFences[_currentFrame], VK_TRUE, std::numeric_limits<uint64_t>::max());
+	}
+
+	inline VkSemaphore DeviceContext::getImageAvailableSemaphore() const {
+		return _imageAvailableSemaphores[_currentFrame];
+	}
+
+	inline VkSemaphore DeviceContext::getRenderFinishedSemaphore() const {
+		return _renderFinishedSemaphores[_currentFrame];
+	}
+
+	inline void DeviceContext::nextFrame() {
+		_currentFrame = (_currentFrame + 1) % _maxFramesInFlight;
+	}
 
 }

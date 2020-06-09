@@ -39,6 +39,10 @@ This file is part of the VulkanQuickStart Project.
 using namespace std;
 using namespace VK;
 
+DeviceContext::DeviceContext(size_t maxFramesInFlight) 
+: _maxFramesInFlight(maxFramesInFlight)
+{}
+
 DeviceContext::~DeviceContext() {
 	destroy();
 }
@@ -53,8 +57,44 @@ namespace {
 		}
 	}
 }
+
+void DeviceContext::createSyncObjects() {
+	_imageAvailableSemaphores.resize(_maxFramesInFlight);
+	_renderFinishedSemaphores.resize(_maxFramesInFlight);
+	_inFlightFences.resize(_maxFramesInFlight);
+
+	VkSemaphoreCreateInfo semaphoreInfo = {};
+	semaphoreInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
+
+	VkFenceCreateInfo fenceInfo = {};
+	fenceInfo.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
+	fenceInfo.flags = VK_FENCE_CREATE_SIGNALED_BIT;
+
+	for (size_t i = 0; i < _maxFramesInFlight; i++) {
+		if (vkCreateSemaphore(device_, &semaphoreInfo, nullptr, &_imageAvailableSemaphores[i]) != VK_SUCCESS ||
+			vkCreateSemaphore(device_, &semaphoreInfo, nullptr, &_renderFinishedSemaphores[i]) != VK_SUCCESS ||
+			vkCreateFence(device_, &fenceInfo, nullptr, &_inFlightFences[i]) != VK_SUCCESS) {
+			throw std::runtime_error("failed to create synchronization objects for a frame!");
+		}
+	}
+}
+
+void DeviceContext::submitQueue(uint32_t size, const VkSubmitInfo* submitInfoArr) {
+	vkResetFences(device_, 1, &_inFlightFences[_currentFrame]);
+
+	if (vkQueueSubmit(graphicsQueue_, size, submitInfoArr, _inFlightFences[_currentFrame]) != VK_SUCCESS) {
+		throw std::runtime_error("failed to submit draw command buffer!");
+	}
+}
+
 void DeviceContext::destroy() {
 	if (device_ != VK_NULL_HANDLE) {
+		for (int i = 0; i < _maxFramesInFlight; i++) {
+			vkDestroySemaphore(device_, _renderFinishedSemaphores[i], nullptr);
+			vkDestroySemaphore(device_, _imageAvailableSemaphores[i], nullptr);
+			vkDestroyFence(device_, _inFlightFences[i], nullptr);
+		}
+
 		clearSet(buffers_);
 		clearSet(images_);
 		clearSet(textureImages_);
