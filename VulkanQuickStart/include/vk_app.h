@@ -59,8 +59,18 @@ namespace VK {
 	class VulkanApp : public std::enable_shared_from_this<VulkanApp> {
 	public:
 		using UniformBufferObject = Pipeline3D::UniformBufferObject;
-
 		using BoundingBox = CBoundingBox3D<float>;
+
+		class Updater {
+			// TODO
+			// Very ugly workaround. After days of trying to get another thread to update the pipelines, I was not successful.
+			// So, I'm using an old 'pass the batton' approach. The other thread set's a flag, the app calls a mediator which checks the flag,
+			// if something needs to be done, it is done as a call from within mainloop.
+		public:
+			virtual void updateVkApp() = 0;
+		};
+
+		using UpdaterPtr = std::shared_ptr<Updater>;
 
 		VulkanApp(int width, int height);
 		~VulkanApp();
@@ -102,15 +112,8 @@ namespace VK {
 		void run();
 		void stop();
 
-		template<typename FUNC_TYPE>
-		inline void safeUpdate(bool needToRecreateSwapChain, FUNC_TYPE func) {
-			_isReady = false;
-			vkDeviceWaitIdle(_deviceContext->_device);
-			func();
-			if (needToRecreateSwapChain)
-				recreateSwapChain();
-			_isReady = true;
-		}
+		void setUpdater(const UpdaterPtr& updater);
+
 	private:
 		struct SwapChainSupportDetails;
 		struct QueueFamilyIndices;
@@ -167,11 +170,12 @@ namespace VK {
 		bool checkValidationLayerSupport();
 
 		GLFWwindow* _window;
-		bool _isRunning = true, _isReady = true;
+		bool _isRunning = true;
 		UI::WindowPtr _uiWindow;
 		unsigned int _windowDpi = 72;
 		VkFormat _requestedFormat = VK_FORMAT_B8G8R8A8_UNORM;
 		VkColorSpaceKHR _requestedColorSpace = VK_COLOR_SPACE_SRGB_NONLINEAR_KHR;
+		UpdaterPtr _updater;
 		
 		glm::mat4 _modelToWorld;
 		double _modelScale = 1.0;
@@ -272,6 +276,10 @@ namespace VK {
 
 	inline uint32_t VulkanApp::getSwapChainIndex() const {
 		return _swapChainIndex;
+	}
+
+	inline void VulkanApp::setUpdater(const UpdaterPtr& updater) {
+		_updater = updater;
 	}
 
 	template<class PIPELINE_TYPE>

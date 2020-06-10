@@ -94,6 +94,10 @@ void PipelineBase::draw(VkCommandBuffer cmdBuff, size_t swapChainIndex) {
 	}
 }
 
+void PipelineBase::changed() {
+	_app->changed();
+}
+
 void PipelineBase::build() {
 	createDescriptorSetLayout();
 	buildSceneNodes();

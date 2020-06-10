@@ -67,6 +67,7 @@ namespace VK {
 		void setViewportRect(const VkRect2D& rect);
 		void setScissorRect(const VkRect2D& rect);
 		void build();
+		void changed();
 
 		const VulkanAppPtr& getApp() const;
 

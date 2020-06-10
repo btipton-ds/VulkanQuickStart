@@ -36,7 +36,6 @@ This file is part of the VulkanQuickStart Project.
 
 #include <set>
 #include <memory>
-#include <mutex>
 
 #include <vk_forwardDeclarations.h>
 

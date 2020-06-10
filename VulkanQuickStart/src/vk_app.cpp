@@ -213,6 +213,8 @@ void VulkanApp::mainLoop() {
 	while (!glfwWindowShouldClose(_window) && _isRunning) {
 		glfwPollEvents();
 		drawFrame();
+		if (_updater)
+			_updater->updateVkApp();
 	}
 
 	vkDeviceWaitIdle(_deviceContext->_device);
@@ -820,9 +822,6 @@ void VulkanApp::updateUniformBuffer(uint32_t swapChainImageIndex) {
 }
 
 void VulkanApp::drawFrame() {
-	if (!_isReady)
-		return;
-
 	size_t numSceneNodes = 0;
 	_pipelines.iterate([&](const PipelineBasePtr& pipeline) {
 		// TODO, add update buffers call here.

@@ -117,7 +117,7 @@ namespace VK {
 	template<class VERT_TYPE, class UBO_TYPE>
 	inline void Pipeline<VERT_TYPE, UBO_TYPE>::addSceneNode(const SceneNodePtr& node) {
 		_sceneNodes.push_back(node);
-		_app->changed();
+		changed();
 	}
 
 	template<class VERT_TYPE, class UBO_TYPE>
