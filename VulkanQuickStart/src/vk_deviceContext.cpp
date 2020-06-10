@@ -69,8 +69,6 @@ void DeviceContext::createSyncObjects() {
 }
 
 void DeviceContext::submitQueue(uint32_t size, const VkSubmitInfo* submitInfoArr) {
-	lock_guard lock(_graphicsQueueMutex);
-
 	vkResetFences(_device, 1, &_inFlightFences[_currentFrame]);
 
 	if (vkQueueSubmit(_graphicsQueue, size, submitInfoArr, _inFlightFences[_currentFrame]) != VK_SUCCESS) {
@@ -128,8 +126,6 @@ VkCommandBuffer DeviceContext::beginSingleTimeCommands() {
 }
 
 void DeviceContext::endSingleTimeCommands(VkCommandBuffer commandBuffer) {
-	lock_guard lock(_graphicsQueueMutex);
-
 	if (vkEndCommandBuffer(commandBuffer) != VK_SUCCESS)
 		throw runtime_error("vkEndCommandBuffer error");
 

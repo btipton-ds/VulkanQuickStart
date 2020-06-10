@@ -189,8 +189,6 @@ void VulkanApp::initVulkan() {
 }
 
 void VulkanApp::recreateSwapChain() {
-
-	std::lock_guard<mutex> guard(_swapChainMutex);
 	int width = 0, height = 0;
 	while (width == 0 || height == 0) {
 		glfwGetFramebufferSize(_window, &width, &height);
@@ -1118,9 +1116,4 @@ VKAPI_ATTR VkBool32 VKAPI_CALL VulkanApp::debugCallback(VkDebugUtilsMessageSever
 	std::cerr << "validation layer: " << pCallbackData->pMessage << std::endl;
 
 	return VK_FALSE;
-}
-
-void VulkanApp::PipelineRec::add(const PipelineBasePtr& pl) {
-	lock_guard lg(_mutex);
-	_pipelines.push_back(pl);
 }

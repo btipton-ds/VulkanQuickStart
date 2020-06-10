@@ -53,14 +53,7 @@ This file is part of the VulkanQuickStart Project.
 
 #include <tm_boundingBox.h>
 
-namespace TriMesh {
-	class CMesh;
-	using CMeshPtr = std::shared_ptr<CMesh>;
-}
-
 namespace VK {
-	class Model;
-	using ModelPtr = std::shared_ptr<Model>;
 
 	class Model : public PipelineSceneNode3D {
 	public:

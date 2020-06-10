@@ -35,7 +35,6 @@ This file is part of the VulkanQuickStart Project.
 #include <vector>
 #include <memory>
 #include <map>
-#include <mutex>
 
 #define GLFW_INCLUDE_VULKAN
 #include <GLFW/glfw3.h>
@@ -52,28 +51,10 @@ This file is part of the VulkanQuickStart Project.
 #include <vk_pipelineSceneNode3DWSampler.h>
 #include <vk_pipeline3D.h>
 #include <vk_shaderPool.h>
-
-namespace TriMesh {
-	class CMesh;
-	using CMeshPtr = std::shared_ptr<CMesh>;
-}
+#include <vk_pipelineList.h>
+#include <vk_swapChain.h>
 
 namespace VK {
-	struct SwapChain {
-		inline SwapChain(const DeviceContextPtr& context)
-		: _colorImage(context)
-		, _depthImage(context)
-		{}
-
-		VkSwapchainKHR _vkSwapChain;
-		VkFormat _imageFormat;
-		VkExtent2D _extent;
-		std::vector<ImagePtr> _images;
-		std::vector<VkImage> _vkImages;
-		std::vector<VkImageView> _vkImageViews;
-		std::vector<VkFramebuffer> _vkFrameBuffers;
-		Image _colorImage, _depthImage;
-	};
 
 	class VulkanApp : public std::enable_shared_from_this<VulkanApp> {
 	public:
@@ -133,23 +114,6 @@ namespace VK {
 	private:
 		struct SwapChainSupportDetails;
 		struct QueueFamilyIndices;
-
-		class PipelineRec {
-		public:
-			void add(const PipelineBasePtr& pl);
-
-			template<typename FUNC_TYPE>
-			inline void iterate(FUNC_TYPE func) {
-				std::lock_guard lock(_mutex);
-				for (auto& pl : _pipelines) {
-					func(pl);
-				}
-			}
-
-		private:
-			std::mutex _mutex;
-			std::vector<PipelineBasePtr> _pipelines;
-		};
 
 		static std::vector<char> readFile(const std::string& filename);
 		static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity, VkDebugUtilsMessageTypeFlagsEXT messageType, const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData, void* pUserData);
@@ -212,7 +176,6 @@ namespace VK {
 		glm::mat4 _modelToWorld;
 		double _modelScale = 1.0;
 		VkSurfaceKHR surface;
-		std::mutex _swapChainMutex;
 		size_t _changeNumber = 0, _lastChangeNumber = 0, _uiWindowChangeNumber = 0;
 		uint32_t _swapChainIndex;
 
@@ -232,7 +195,7 @@ namespace VK {
 		ShaderPoolPtr _shaderPool;
 
 		UniformBufferObject3D _ubo;
-		PipelineRec _pipelines;
+		PipelineList _pipelines;
 
 		std::vector<VkCommandBuffer> _commandBuffers;
 

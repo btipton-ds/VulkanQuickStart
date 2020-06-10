@@ -31,59 +31,36 @@ This file is part of the VulkanQuickStart Project.
 
 #include <vk_defines.h>
 
-#include <memory>
+#include <mutex>
 #include <vector>
 
-/*
-	This file is not strictly required, but it reduces the work if the forward declrations change. You only have to change each one once.
-*/
-
-namespace TriMesh {
-	class CMesh;
-	using CMeshPtr = std::shared_ptr<CMesh>;
-}
+#include <vk_forwardDeclarations.h>
 
 namespace VK {
-	struct DeviceContext;
-	using DeviceContextPtr = std::shared_ptr<DeviceContext>;
 
-	class Buffer;
-	using BufferPtr = std::shared_ptr<Buffer>;
+	class PipelineList {
+	public:
+		void add(const PipelineBasePtr& pl);
 
-	class Image;
-	using ImagePtr = std::shared_ptr<Image>;
+		template<typename FUNC_TYPE>
+		void iterate(FUNC_TYPE func);
 
-	class TextureImage;
-	using TextureImagePtr = std::shared_ptr<TextureImage>;
+	private:
+		std::mutex _mutex;
+		std::vector<PipelineBasePtr> _pipelines;
+	};
 
-	class VulkanApp;
-	using VulkanAppPtr = std::shared_ptr<class VulkanApp>;
+	inline void PipelineList::add(const PipelineBasePtr& pl) {
+		std::lock_guard lg(_mutex);
+		_pipelines.push_back(pl);
+	}
 
-	class ShaderPool;
-	using ShaderPoolPtr = std::shared_ptr<ShaderPool>;
-
-	class PipelineBase;
-	using PipelineBasePtr = std::shared_ptr<PipelineBase>;
-	template<class VERT_TYPE, class UBO_TYPE>
-	class Pipeline;
-	template<class PIPELINE_TYPE>
-	using PipelinePtr = std::shared_ptr<PIPELINE_TYPE>;
-
-	class PipelineUi;
-	using PipelineUiPtr = std::shared_ptr<PipelineUi>;
-
-	class PipelineSceneNodeBase;
-	using SceneNodeBasePtr = std::shared_ptr<PipelineSceneNodeBase>;
-
-	class Model;
-	using ModelPtr = std::shared_ptr<Model>;
-
-	namespace UI {
-		class Window;
-		using WindowPtr = std::shared_ptr<Window>;
-
-		class Button;
-		using ButtonPtr = std::shared_ptr<Button>;
+	template<typename FUNC_TYPE>
+	inline void PipelineList::iterate(FUNC_TYPE func) {
+		std::lock_guard lg(_mutex);
+		for (auto& pl : _pipelines) {
+			func(pl);
+		}
 	}
 
 }

@@ -31,59 +31,29 @@ This file is part of the VulkanQuickStart Project.
 
 #include <vk_defines.h>
 
-#include <memory>
+#include <mutex>
 #include <vector>
 
-/*
-	This file is not strictly required, but it reduces the work if the forward declrations change. You only have to change each one once.
-*/
-
-namespace TriMesh {
-	class CMesh;
-	using CMeshPtr = std::shared_ptr<CMesh>;
-}
+#include <vk_forwardDeclarations.h>
 
 namespace VK {
-	struct DeviceContext;
-	using DeviceContextPtr = std::shared_ptr<DeviceContext>;
 
-	class Buffer;
-	using BufferPtr = std::shared_ptr<Buffer>;
+	struct SwapChain {
+		SwapChain(const DeviceContextPtr& context);
 
-	class Image;
-	using ImagePtr = std::shared_ptr<Image>;
+		VkSwapchainKHR _vkSwapChain;
+		VkFormat _imageFormat;
+		VkExtent2D _extent;
+		std::vector<ImagePtr> _images;
+		std::vector<VkImage> _vkImages;
+		std::vector<VkImageView> _vkImageViews;
+		std::vector<VkFramebuffer> _vkFrameBuffers;
+		Image _colorImage, _depthImage;
+	};
 
-	class TextureImage;
-	using TextureImagePtr = std::shared_ptr<TextureImage>;
-
-	class VulkanApp;
-	using VulkanAppPtr = std::shared_ptr<class VulkanApp>;
-
-	class ShaderPool;
-	using ShaderPoolPtr = std::shared_ptr<ShaderPool>;
-
-	class PipelineBase;
-	using PipelineBasePtr = std::shared_ptr<PipelineBase>;
-	template<class VERT_TYPE, class UBO_TYPE>
-	class Pipeline;
-	template<class PIPELINE_TYPE>
-	using PipelinePtr = std::shared_ptr<PIPELINE_TYPE>;
-
-	class PipelineUi;
-	using PipelineUiPtr = std::shared_ptr<PipelineUi>;
-
-	class PipelineSceneNodeBase;
-	using SceneNodeBasePtr = std::shared_ptr<PipelineSceneNodeBase>;
-
-	class Model;
-	using ModelPtr = std::shared_ptr<Model>;
-
-	namespace UI {
-		class Window;
-		using WindowPtr = std::shared_ptr<Window>;
-
-		class Button;
-		using ButtonPtr = std::shared_ptr<Button>;
-	}
+	inline SwapChain::SwapChain(const DeviceContextPtr& context)
+		: _colorImage(context)
+		, _depthImage(context)
+	{}
 
 }
