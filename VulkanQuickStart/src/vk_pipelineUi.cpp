@@ -41,6 +41,9 @@ using namespace VK;
 PipelineUi::PipelineUi(const VulkanAppPtr& app)
 	: Pipeline(app, "UiPipeline")
 {
+	setPaintLayer(100);
+	setDepthTestEnabled(false);
+
 	_ubo._color = glm::vec4(1, 0, 0, 1);
 	auto& shaders = app->getShaderPool();
 	if (!shaders.getShader(getShaderId()))

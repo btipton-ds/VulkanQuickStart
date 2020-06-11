@@ -50,9 +50,14 @@ namespace VK {
 		std::vector<PipelineBasePtr> _pipelines;
 	};
 
+	inline bool PipelineComparePaintLayer(const PipelineBasePtr& pl1, const PipelineBasePtr& pl2) {
+		return pl1->getPaintLayer() < pl2->getPaintLayer();
+	}
+
 	inline void PipelineList::add(const PipelineBasePtr& pl) {
 		std::lock_guard lg(_mutex);
 		_pipelines.push_back(pl);
+		std::sort(_pipelines.begin(), _pipelines.end(), PipelineComparePaintLayer);
 	}
 
 	template<typename FUNC_TYPE>

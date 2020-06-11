@@ -82,6 +82,9 @@ namespace VK {
 
 		VkDescriptorSetLayout getDescriptorSetLayout() const;
 
+		int getPaintLayer() const;
+		void setPaintLayer(int layer);
+
 	protected:
 		virtual void createDescriptorSetLayout() = 0;
 		virtual void buildSceneNodes() = 0;
@@ -120,6 +123,7 @@ namespace VK {
 
 	private:
 		bool _visible = true;
+		int _paintLayer = 0;
 	};
 
 	inline const std::string& PipelineBase::getShaderId() const {
@@ -166,5 +170,12 @@ namespace VK {
 		return _visible;
 	}
 
+	inline int PipelineBase::getPaintLayer() const {
+		return _paintLayer;
+	}
+
+	inline void PipelineBase::setPaintLayer(int layer) {
+		_paintLayer = layer;
+	}
 
 }
