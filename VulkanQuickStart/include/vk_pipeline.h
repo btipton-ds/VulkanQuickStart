@@ -48,6 +48,7 @@ namespace VK {
 
 		void cleanupSwapChain() override;
 		void addSceneNode(const SceneNodePtr& node);
+		void removeSceneNode(const SceneNodePtr& node);
 		size_t numSceneNodes() const override;
 
 		void addCommands(VkCommandBuffer cmdBuff, size_t swapChainIdx) const override;
@@ -118,6 +119,15 @@ namespace VK {
 	inline void Pipeline<VERT_TYPE, UBO_TYPE>::addSceneNode(const SceneNodePtr& node) {
 		_sceneNodes.push_back(node);
 		changed();
+	}
+
+	template<class VERT_TYPE, class UBO_TYPE>
+	inline void Pipeline<VERT_TYPE, UBO_TYPE>::removeSceneNode(const SceneNodePtr& node) {
+		auto iter = std::find(_sceneNodes.begin(), _sceneNodes.end(), node);
+		if (iter != _sceneNodes.end()) {
+			_sceneNodes.erase(iter);
+			changed();
+		}
 	}
 
 	template<class VERT_TYPE, class UBO_TYPE>
