@@ -60,8 +60,8 @@ namespace VK {
 		using BoundingBox = CBoundingBox3D<float>;
 		using VertexType = Pipeline3D::VertexType;
 
-		static inline ModelPtr create(const PipelineBasePtr& ownerPipeline, const TriMesh::CMeshPtr& meshPtr) {
-			return std::shared_ptr<Model>(new Model(ownerPipeline, meshPtr));
+		static inline ModelPtr create(const PipelineBasePtr& ownerPipeline, const TriMesh::CMeshPtr& meshPtr, const glm::vec3& color = glm::vec3(1, 1, 1)) {
+			return std::shared_ptr<Model>(new Model(ownerPipeline, meshPtr, color));
 		}
 
 		void addCommands(VkCommandBuffer cmdBuff, VkPipelineLayout pipelineLayout, size_t swapChainIndex) const override;
@@ -94,9 +94,9 @@ namespace VK {
 
 	protected:
 		Model(const PipelineBasePtr& ownerPipeline);
-		Model(const PipelineBasePtr& ownerPipeline, const TriMesh::CMeshPtr& meshPtr);
+		Model(const PipelineBasePtr& ownerPipeline, const TriMesh::CMeshPtr& meshPtr, const glm::vec3& color);
 
-		void loadModel(const TriMesh::CMeshPtr& meshPtr);
+		void loadModel(const TriMesh::CMeshPtr& meshPtr, const glm::vec3& color);
 
 		void createVertexBuffer();
 		void createIndexBuffer();

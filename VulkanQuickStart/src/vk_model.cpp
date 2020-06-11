@@ -70,12 +70,12 @@ namespace std {
 	}
 }
 
-Model::Model(const PipelineBasePtr& _ownerPipeline, const TriMesh::CMeshPtr& meshPtr)
+Model::Model(const PipelineBasePtr& _ownerPipeline, const TriMesh::CMeshPtr& meshPtr, const glm::vec3& color)
 	: PipelineSceneNode3D(_ownerPipeline)
 	, _vertexBuffer(_ownerPipeline->getApp()->getDeviceContext())
 	, _indexBuffer(_ownerPipeline->getApp()->getDeviceContext())
 {
-	loadModel(meshPtr);
+	loadModel(meshPtr, color);
 	createVertexBuffer();
 	createIndexBuffer();
 }
@@ -112,7 +112,7 @@ namespace {
 	}
 }
 
-void Model::loadModel(const TriMesh::CMeshPtr& meshPtr) {
+void Model::loadModel(const TriMesh::CMeshPtr& meshPtr, const glm::vec3& color) {
 	const float matchAngle = 30.0; // Degrees. Set angle > 90 for flat shading.
 	const float matchCos = cosf(static_cast<float> (matchAngle * EIGEN_PI / 180.0));
 	_bounds.clear();
@@ -140,7 +140,7 @@ void Model::loadModel(const TriMesh::CMeshPtr& meshPtr) {
 			VertexType vertex;
 			vertex.pos = conv(verts[j]._pt);
 			vertex.norm = conv(n.normalized());
-			vertex.color = glm::vec3(1.0f, 1.0f, 1.0f);
+			vertex.color = color;
 
 			_bounds.merge(conv(vertex.pos));
 
