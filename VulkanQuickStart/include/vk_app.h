@@ -75,6 +75,8 @@ namespace VK {
 		VulkanApp(int width, int height);
 		~VulkanApp();
 
+		void init();
+
 		VulkanAppPtr getAppPtr();
 
 		void setUiWindow(const UI::WindowPtr& uiWindow );
@@ -116,6 +118,9 @@ namespace VK {
 
 		void setUpdater(const UpdaterPtr& updater);
 		size_t getNumGraphicsPipelines() const;
+		void setOffscreenExtent(const VkExtent2D& extent);
+		bool isOffscreenEnabled() const;
+		const ImagePtr& getOffscreenImage() const;
 
 	private:
 		// Framebuffer for offscreen rendering
@@ -125,13 +130,13 @@ namespace VK {
 			VkImageView view;
 		};
 		struct OffscreenPass {
-			int32_t width, height;
+			VkExtent2D _extent = { 0, 0 };
 			VkFramebuffer frameBuffer;
-			FrameBufferAttachment color, depth;
+			ImagePtr color, depth;
 			VkRenderPass renderPass;
 			VkSampler sampler;
 			VkDescriptorImageInfo descriptor;
-		} offscreenPass;
+		};
 
 		struct SwapChainSupportDetails;
 		struct QueueFamilyIndices;
@@ -213,7 +218,7 @@ namespace VK {
 		VkQueue presentQueue;
 		SwapChain _swapChain;
 
-		VkExtent2D _offscreenExtent = {1024, 1024};
+		OffscreenPass _offscreenPass;
 		VkRenderPass renderPass;
 		size_t _pipelineVertIdx = stm1, 
 			_pipelineSamplerIdx = stm1,
@@ -322,6 +327,20 @@ namespace VK {
 
 	inline size_t VulkanApp::getRuntimeMillis() const {
 		return _runtimeMillis;
+	}
+
+	inline void VulkanApp::setOffscreenExtent(const VkExtent2D& extent) {
+		_offscreenPass._extent = extent;
+	}
+
+	inline bool VulkanApp::isOffscreenEnabled() const {
+		return (_offscreenPass._extent.width > 0 && _offscreenPass._extent.height > 0);
+	}
+
+	inline const ImagePtr& VulkanApp::getOffscreenImage() const {
+		if (isOffscreenEnabled())
+			return _offscreenPass.color;
+		return nullptr;
 	}
 
 }

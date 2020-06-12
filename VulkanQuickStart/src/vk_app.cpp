@@ -107,12 +107,14 @@ VulkanApp::VulkanApp(int width, int height)
 
 	initWindow(width, height);
 	initVulkan();
-
-	prepareOffscreen();
 }
 
 VulkanApp::~VulkanApp() {
 	cleanup();
+}
+
+void VulkanApp::init() {
+	prepareOffscreen();
 }
 
 void VulkanApp::setUiWindow(const UI::WindowPtr& uiWindow) {
@@ -274,62 +276,34 @@ void VulkanApp::cleanupSwapChain() {
 throw runtime_error("Error");
 
 size_t VulkanApp::getNumGraphicsPipelines() const {
-	// TODO, add intelligence based on draw 
-	return 2;
+	if (isOffscreenEnabled())
+		return 2;
+	else
+		return 1;
 }
 
 VkRenderPass VulkanApp::getRenderPass(size_t passNum) const {
 	if (passNum == 0)
 		return renderPass;
 	else
-		return offscreenPass.renderPass;
+		return _offscreenPass.renderPass;
 }
 
 // Setup the offscreen framebuffer for rendering the mirrored scene
 // The color attachment of this framebuffer will then be used to sample from in the fragment shader of the final pass
 void VulkanApp::prepareOffscreen() {
+	if (!isOffscreenEnabled())
+		return;
+
 	auto device = _deviceContext->_device;
-	offscreenPass.width = _offscreenExtent.width;
-	offscreenPass.height = _offscreenExtent.height;
 
 	// Find a suitable depth format
 	VkFormat fbColorFormat = VK_FORMAT_R8G8B8A8_UNORM;
+	fbColorFormat = VK_FORMAT_B8G8R8A8_UNORM;
 
-	// Color attachment
-	VkImageCreateInfo image = {};
-	image.imageType = VK_IMAGE_TYPE_2D;
-	image.format = fbColorFormat;
-	image.extent.width = offscreenPass.width;
-	image.extent.height = offscreenPass.height;
-	image.extent.depth = 1;
-	image.mipLevels = 1;
-	image.arrayLayers = 1;
-	image.samples = VK_SAMPLE_COUNT_1_BIT;
-	image.tiling = VK_IMAGE_TILING_OPTIMAL;
-	// We will sample directly from the color attachment
-	image.usage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT;
-
-	VkMemoryAllocateInfo memAlloc = {};
-	VkMemoryRequirements memReqs;
-
-	VK_CHECK_RESULT(vkCreateImage(device, &image, nullptr, &offscreenPass.color.image));
-	vkGetImageMemoryRequirements(device, offscreenPass.color.image, &memReqs);
-	memAlloc.allocationSize = memReqs.size;
-	memAlloc.memoryTypeIndex = _deviceContext->getMemoryType(memReqs.memoryTypeBits, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
-	VK_CHECK_RESULT(vkAllocateMemory(device, &memAlloc, nullptr, &offscreenPass.color.mem));
-	VK_CHECK_RESULT(vkBindImageMemory(device, offscreenPass.color.image, offscreenPass.color.mem, 0));
-
-	VkImageViewCreateInfo colorImageView = {};
-	colorImageView.viewType = VK_IMAGE_VIEW_TYPE_2D;
-	colorImageView.format = fbColorFormat;
-	colorImageView.subresourceRange = {};
-	colorImageView.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-	colorImageView.subresourceRange.baseMipLevel = 0;
-	colorImageView.subresourceRange.levelCount = 1;
-	colorImageView.subresourceRange.baseArrayLayer = 0;
-	colorImageView.subresourceRange.layerCount = 1;
-	colorImageView.image = offscreenPass.color.image;
-	VK_CHECK_RESULT(vkCreateImageView(device, &colorImageView, nullptr, &offscreenPass.color.view));
+	_offscreenPass.color = make_shared<Image>(_deviceContext);
+	uint32_t colorUsageBits = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT;
+	_offscreenPass.color->create(fbColorFormat, colorUsageBits, _offscreenPass._extent.width, _offscreenPass._extent.height, VK_SAMPLE_COUNT_1_BIT);
 
 	// Create sampler to sample from the attachment in the fragment shader
 	VkSamplerCreateInfo samplerInfo = {};
@@ -344,35 +318,15 @@ void VulkanApp::prepareOffscreen() {
 	samplerInfo.minLod = 0.0f;
 	samplerInfo.maxLod = 1.0f;
 	samplerInfo.borderColor = VK_BORDER_COLOR_FLOAT_OPAQUE_WHITE;
-	VK_CHECK_RESULT(vkCreateSampler(device, &samplerInfo, nullptr, &offscreenPass.sampler));
+	VK_CHECK_RESULT(vkCreateSampler(device, &samplerInfo, nullptr, &_offscreenPass.sampler));
 
 	// Depth stencil attachment
 	VkFormat fbDepthFormat = findDepthFormat();
 
-	image.format = fbDepthFormat;
-	image.usage = VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT;
+	_offscreenPass.depth = make_shared<Image>(_deviceContext);
+	_offscreenPass.depth->create(fbDepthFormat, VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT, _offscreenPass._extent.width, _offscreenPass._extent.height, VK_SAMPLE_COUNT_1_BIT);
 
-	VK_CHECK_RESULT(vkCreateImage(device, &image, nullptr, &offscreenPass.depth.image));
-	vkGetImageMemoryRequirements(device, offscreenPass.depth.image, &memReqs);
-	memAlloc.allocationSize = memReqs.size;
-	memAlloc.memoryTypeIndex = _deviceContext->getMemoryType(memReqs.memoryTypeBits, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
-	VK_CHECK_RESULT(vkAllocateMemory(device, &memAlloc, nullptr, &offscreenPass.depth.mem));
-	VK_CHECK_RESULT(vkBindImageMemory(device, offscreenPass.depth.image, offscreenPass.depth.mem, 0));
-
-	VkImageViewCreateInfo depthStencilView = {};
-	depthStencilView.viewType = VK_IMAGE_VIEW_TYPE_2D;
-	depthStencilView.format = fbDepthFormat;
-	depthStencilView.flags = 0;
-	depthStencilView.subresourceRange = {};
-	depthStencilView.subresourceRange.aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT;
-	depthStencilView.subresourceRange.baseMipLevel = 0;
-	depthStencilView.subresourceRange.levelCount = 1;
-	depthStencilView.subresourceRange.baseArrayLayer = 0;
-	depthStencilView.subresourceRange.layerCount = 1;
-	depthStencilView.image = offscreenPass.depth.image;
-	VK_CHECK_RESULT(vkCreateImageView(device, &depthStencilView, nullptr, &offscreenPass.depth.view));
-
-	// Create a separate render pass for the offscreen rendering as it may differ from the one used for scene rendering
+// Create a separate render pass for the offscreen rendering as it may differ from the one used for scene rendering
 
 	std::array<VkAttachmentDescription, 2> attchmentDescriptions = {};
 	// Color attachment
@@ -432,44 +386,36 @@ void VulkanApp::prepareOffscreen() {
 	renderPassInfo.dependencyCount = static_cast<uint32_t>(dependencies.size());
 	renderPassInfo.pDependencies = dependencies.data();
 
-	VK_CHECK_RESULT(vkCreateRenderPass(device, &renderPassInfo, nullptr, &offscreenPass.renderPass));
+	VK_CHECK_RESULT(vkCreateRenderPass(device, &renderPassInfo, nullptr, &_offscreenPass.renderPass));
 
 	VkImageView attachments[2];
-	attachments[0] = offscreenPass.color.view;
-	attachments[1] = offscreenPass.depth.view;
+	attachments[0] = _offscreenPass.color->getImageView();
+	attachments[1] = _offscreenPass.depth->getImageView();
 
 	VkFramebufferCreateInfo fbufCreateInfo = {};
-	fbufCreateInfo.renderPass = offscreenPass.renderPass;
+	fbufCreateInfo.renderPass = _offscreenPass.renderPass;
 	fbufCreateInfo.attachmentCount = 2;
 	fbufCreateInfo.pAttachments = attachments;
-	fbufCreateInfo.width = offscreenPass.width;
-	fbufCreateInfo.height = offscreenPass.height;
+	fbufCreateInfo.width = _offscreenPass._extent.width;
+	fbufCreateInfo.height = _offscreenPass._extent.height;
 	fbufCreateInfo.layers = 1;
 
-	VK_CHECK_RESULT(vkCreateFramebuffer(device, &fbufCreateInfo, nullptr, &offscreenPass.frameBuffer));
+	VK_CHECK_RESULT(vkCreateFramebuffer(device, &fbufCreateInfo, nullptr, &_offscreenPass.frameBuffer));
 
 	// Fill a descriptor for later use in a descriptor set 
-	offscreenPass.descriptor.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-	offscreenPass.descriptor.imageView = offscreenPass.color.view;
-	offscreenPass.descriptor.sampler = offscreenPass.sampler;
+	_offscreenPass.descriptor.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+	_offscreenPass.descriptor.imageView = _offscreenPass.color->getImageView();
+	_offscreenPass.descriptor.sampler = _offscreenPass.sampler;
 }
 
 void VulkanApp::cleanup() {
 	{
 		auto device = _deviceContext->_device;
 		// Color attachment
-		vkDestroyImageView(device, offscreenPass.color.view, nullptr);
-		vkDestroyImage(device, offscreenPass.color.image, nullptr);
-		vkFreeMemory(device, offscreenPass.color.mem, nullptr);
 
-		// Depth attachment
-		vkDestroyImageView(device, offscreenPass.depth.view, nullptr);
-		vkDestroyImage(device, offscreenPass.depth.image, nullptr);
-		vkFreeMemory(device, offscreenPass.depth.mem, nullptr);
-
-		vkDestroyRenderPass(device, offscreenPass.renderPass, nullptr);
-		vkDestroySampler(device, offscreenPass.sampler, nullptr);
-		vkDestroyFramebuffer(device, offscreenPass.frameBuffer, nullptr);
+		vkDestroyRenderPass(device, _offscreenPass.renderPass, nullptr);
+		vkDestroySampler(device, _offscreenPass.sampler, nullptr);
+		vkDestroyFramebuffer(device, _offscreenPass.frameBuffer, nullptr);
 	}
 
 	cleanupSwapChain();
@@ -945,23 +891,14 @@ void VulkanApp::createCommandBuffers() {
 
 		drawCmdBufferLoop(cmdBuff, swapChainIndex, 0, beginInfo, renderPassInfo);
 
-		renderPassInfo.renderPass = offscreenPass.renderPass;
-		renderPassInfo.framebuffer = offscreenPass.frameBuffer;
-		renderPassInfo.renderArea.extent.width = offscreenPass.width;
-		renderPassInfo.renderArea.extent.height = offscreenPass.height;
+		if (isOffscreenEnabled()) {
+			renderPassInfo.renderPass = _offscreenPass.renderPass;
+			renderPassInfo.framebuffer = _offscreenPass.frameBuffer;
+			renderPassInfo.renderArea.extent = _offscreenPass._extent;
 
-		drawCmdBufferLoop(cmdBuff, swapChainIndex, 1, beginInfo, renderPassInfo);
-#if 0
-		vkCmdBeginRenderPass(cmdBuff, &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
-		
-		PipelineBasePtr uiPipeline = _uiWindow ? _uiWindow->getPipeline() : nullptr;
-		_pipelines.iterate([&](const PipelineBasePtr& pipeline) {
-			if (pipeline->isVisible() && pipeline != uiPipeline)
-				pipeline->draw(cmdBuff, swapChainIndex, 1);
-		});
+			drawCmdBufferLoop(cmdBuff, swapChainIndex, 1, beginInfo, renderPassInfo);
+		}
 
-		vkCmdEndRenderPass(cmdBuff);
-#endif
 		if (vkEndCommandBuffer(cmdBuff) != VK_SUCCESS) {
 			throw std::runtime_error("failed to record command buffer!");
 		}

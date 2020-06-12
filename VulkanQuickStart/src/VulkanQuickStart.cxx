@@ -156,15 +156,19 @@ void buildUi(UI::WindowPtr& gui) {
 	row += h;
 	gui->addButton(bkgColor, "Screenshot", UI::Rect(row, 0, row + h, w))->
 		setAction(UI::Button::ActionType::ACT_CLICK, [&](int btnNum, int modifiers) {
+		string path = "/Users/Bob/Documents/Projects/ElectroFish/HexMeshTests/";
 		if (btnNum == 0) {
-			const auto& swapChain = gApp->getSwapChain();
-			const auto& images = swapChain._images;
-			const auto& image = images[gApp->getSwapChainIndex()];
-
-			string path = "/Users/Bob/Documents/Projects/ElectroFish/HexMeshTests/";
-			image->saveImage(path + "screenshot.bmp");
+			ImagePtr image;
+			if (gApp->isOffscreenEnabled()) {
+				image = gApp->getOffscreenImage();
+			} else {
+				const auto& swapChain = gApp->getSwapChain();
+				const auto& images = swapChain._images;
+				image = images[gApp->getSwapChainIndex()];
+			}
 			image->saveImage(path + "screenshot.jpg");
-			image->saveImage(path + "screenshot.png");		
+			image->saveImage(path + "screenshot.bmp");
+			image->saveImage(path + "screenshot.png");
 		}
 	});
 
@@ -268,6 +272,8 @@ int main(int numArgs, char** args) {
 	gApp = make_shared<VulkanApp>(1618, 1000);
 
 	gApp->setAntiAliasSamples(VK_SAMPLE_COUNT_4_BIT);
+	VkExtent2D offscreenExtent = { 2048, 2048 };
+	gApp->setOffscreenExtent(offscreenExtent);
 
 #if TEST_GUI
 	UI::WindowPtr gui = make_shared<UI::Window>(gApp);
@@ -278,6 +284,8 @@ int main(int numArgs, char** args) {
 #endif
 
 	glfwSetWindowTitle(gApp->getWindow(), "Vulkan Quick Start");
+
+	gApp->init();
 
 	pipeline3DWSampler = gApp->addPipelineWithSource<Pipeline3DWSampler>("obj_shader", "shaders/shader_depth_vert.spv", "shaders/shader_depth_frag.spv");
 

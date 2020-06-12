@@ -93,12 +93,12 @@ void Image::destroy() {
 	}
 }
 
-void Image::create(VkFormat format, VkImageUsageFlags flagBits, uint32_t width, uint32_t height, VkSampleCountFlagBits _msaaSamples) {
+void Image::create(VkFormat format, VkImageUsageFlags flagBits, uint32_t width, uint32_t height, VkSampleCountFlagBits samples) {
 	destroy();
 
 	// VK_IMAGE_USAGE_TRANSIENT_ATTACHMENT_BIT | VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT
-	createImage(width, height, 1, _msaaSamples, format, VK_IMAGE_TILING_OPTIMAL,
-		flagBits, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+	createImage(width, height, 1, samples, format, VK_IMAGE_TILING_OPTIMAL,
+		flagBits, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT );
 	VkImageAspectFlags aspectFlags = (flagBits & VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT) ?
 		VK_IMAGE_ASPECT_DEPTH_BIT :
 		VK_IMAGE_ASPECT_COLOR_BIT;
@@ -135,6 +135,19 @@ void Image::createImage(uint32_t width, uint32_t height, uint32_t mipLevels, VkS
 
 	VkMemoryRequirements memRequirements;
 	vkGetImageMemoryRequirements(_context->_device, _image, &memRequirements);
+	cout << "Image memory requirements:\n";
+	if (memRequirements.memoryTypeBits & VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT)
+		cout << "  VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT\n";
+	if (memRequirements.memoryTypeBits & VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT)
+		cout << "  VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT\n";
+	if (memRequirements.memoryTypeBits & VK_MEMORY_PROPERTY_HOST_COHERENT_BIT)
+		cout << "  VK_MEMORY_PROPERTY_HOST_COHERENT_BIT\n";
+	if (memRequirements.memoryTypeBits & VK_MEMORY_PROPERTY_HOST_CACHED_BIT)
+		cout << "  VK_MEMORY_PROPERTY_HOST_CACHED_BIT\n";
+	if (memRequirements.memoryTypeBits & VK_MEMORY_PROPERTY_LAZILY_ALLOCATED_BIT)
+		cout << "  VK_MEMORY_PROPERTY_LAZILY_ALLOCATED_BIT\n";
+	if (memRequirements.memoryTypeBits & VK_MEMORY_PROPERTY_PROTECTED_BIT)
+		cout << "  VK_MEMORY_PROPERTY_PROTECTED_BIT\n";
 
 	VkMemoryAllocateInfo allocInfo = {};
 	allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
