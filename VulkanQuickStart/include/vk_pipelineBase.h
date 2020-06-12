@@ -62,7 +62,7 @@ namespace VK {
 		void setDepthTestEnabled(bool depthTestEnabled);
 
 		virtual void cleanupSwapChain();
-		void draw(VkCommandBuffer cmdBuff, size_t swapChainIndex);
+		void draw(VkCommandBuffer cmdBuff, size_t swapChainIndex, size_t pipelineNum);
 
 		void setViewportRect(const VkRect2D& rect);
 		void setScissorRect(const VkRect2D& rect);
@@ -73,6 +73,7 @@ namespace VK {
 
 		bool isVisible() const;
 		void toggleVisiblity();
+		void setVisibility(bool visible);
 
 		virtual size_t numSceneNodes() const;
 		virtual void updateUniformBuffers(size_t swapChainIndex) = 0;
@@ -119,7 +120,7 @@ namespace VK {
 
 	protected:
 		VkPipelineLayout _pipelineLayout = VK_NULL_HANDLE;
-		VkPipeline _graphicsPipeline = VK_NULL_HANDLE;
+		std::vector<VkPipeline> _graphicsPipelines;
 
 	private:
 		bool _visible = true;

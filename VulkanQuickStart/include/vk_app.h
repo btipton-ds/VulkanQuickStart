@@ -92,9 +92,10 @@ namespace VK {
 		const SwapChain& getSwapChain() const;
 		SwapChain& getSwapChain();
 
-		VkRenderPass getRenderPass() const;
+		VkRenderPass getRenderPass(size_t passNum) const;
+		void setTargetFrameDurationMillis(double duration);
 		void setAntiAliasSamples(VkSampleCountFlagBits samples);
-		VkSampleCountFlagBits getAntiAliasSamples() const;
+		VkSampleCountFlagBits getAntiAliasSamples(size_t  pipelineNum) const;
 		GLFWwindow* getWindow();
 		const UI::WindowPtr& getUiWindow() const;
 		unsigned int getWindowDpi() const;
@@ -114,14 +115,32 @@ namespace VK {
 		void stop();
 
 		void setUpdater(const UpdaterPtr& updater);
+		size_t getNumGraphicsPipelines() const;
 
 	private:
+		// Framebuffer for offscreen rendering
+		struct FrameBufferAttachment {
+			VkImage image;
+			VkDeviceMemory mem;
+			VkImageView view;
+		};
+		struct OffscreenPass {
+			int32_t width, height;
+			VkFramebuffer frameBuffer;
+			FrameBufferAttachment color, depth;
+			VkRenderPass renderPass;
+			VkSampler sampler;
+			VkDescriptorImageInfo descriptor;
+		} offscreenPass;
+
 		struct SwapChainSupportDetails;
 		struct QueueFamilyIndices;
 
 		static std::vector<char> readFile(const std::string& filename);
 		static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity, VkDebugUtilsMessageTypeFlagsEXT messageType, const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData, void* pUserData);
 		static void framebufferResizeCallback(GLFWwindow* window, int width, int height);
+
+		void prepareOffscreen();
 
 		void initWindow(int width, int height);
 		void initVulkan();
@@ -153,7 +172,7 @@ namespace VK {
 		void createBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer& buffer, VkDeviceMemory& bufferMemory);
 		uint32_t findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties);
 		void createCommandBuffers();
-		void drawCmdBufferLoop(size_t swapChainIndex,
+		void drawCmdBufferLoop(VkCommandBuffer cmdBuff, size_t swapChainIndex, size_t pipelineNum,
 			VkCommandBufferBeginInfo& beginInfo, VkRenderPassBeginInfo& renderPassInfo);
 		void createSyncObjects();
 		void updateUniformBuffer(uint32_t swapChainImageIndex);
@@ -194,6 +213,7 @@ namespace VK {
 		VkQueue presentQueue;
 		SwapChain _swapChain;
 
+		VkExtent2D _offscreenExtent = {1024, 1024};
 		VkRenderPass renderPass;
 		size_t _pipelineVertIdx = stm1, 
 			_pipelineSamplerIdx = stm1,
@@ -201,6 +221,7 @@ namespace VK {
 		ShaderPoolPtr _shaderPool;
 
 		UniformBufferObject3D _ubo;
+		double _targetFrameDurationMillis = -1;
 		PipelineList _pipelines;
 
 		std::vector<VkCommandBuffer> _commandBuffers;
@@ -228,16 +249,19 @@ namespace VK {
 		return _swapChain;
 	}
 
-	inline VkRenderPass VulkanApp::getRenderPass() const {
-		return renderPass;
+	inline void VulkanApp::setTargetFrameDurationMillis(double duration) {
+		_targetFrameDurationMillis = duration;
 	}
 
 	inline void VulkanApp::setAntiAliasSamples(VkSampleCountFlagBits samples) {
 		_msaaSamples = samples;
 	}
 
-	inline VkSampleCountFlagBits VulkanApp::getAntiAliasSamples() const {
-		return _msaaSamples;
+	inline VkSampleCountFlagBits VulkanApp::getAntiAliasSamples(size_t  pipelineNum) const {
+		if (pipelineNum == 0)
+			return _msaaSamples;
+		else
+			return VK_SAMPLE_COUNT_1_BIT; // Offscren render
 	}
 
 	inline GLFWwindow* VulkanApp::getWindow() {

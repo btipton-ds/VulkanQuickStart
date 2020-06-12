@@ -69,6 +69,10 @@ void PipelineBase::toggleVisiblity() {
 	_app->changed();
 }
 
+void PipelineBase::setVisibility(bool visible) {
+	_visible = visible;
+}
+
 size_t PipelineBase::numSceneNodes() const {
 	return 0;
 }
@@ -77,19 +81,21 @@ void PipelineBase::cleanupSwapChain() {
 	auto devCon = _app->getDeviceContext()->_device;
 	if (_descriptorSetLayout != VK_NULL_HANDLE)
 		vkDestroyDescriptorSetLayout(devCon, _descriptorSetLayout, nullptr);
-	if (_graphicsPipeline != VK_NULL_HANDLE)
-		vkDestroyPipeline(devCon, _graphicsPipeline, nullptr);
+	for (auto gpl : _graphicsPipelines) {
+		if (gpl != VK_NULL_HANDLE)
+			vkDestroyPipeline(devCon, gpl, nullptr);
+	}
 	if (_pipelineLayout != VK_NULL_HANDLE)
 		vkDestroyPipelineLayout(devCon, _pipelineLayout, nullptr);
 
 	_descriptorSetLayout = VK_NULL_HANDLE;
-	_graphicsPipeline = VK_NULL_HANDLE;
+	_graphicsPipelines.clear();
 	_pipelineLayout = VK_NULL_HANDLE;
 }
 
-void PipelineBase::draw(VkCommandBuffer cmdBuff, size_t swapChainIndex) {
-	if (_graphicsPipeline) {
-		vkCmdBindPipeline(cmdBuff, VK_PIPELINE_BIND_POINT_GRAPHICS, _graphicsPipeline);
+void PipelineBase::draw(VkCommandBuffer cmdBuff, size_t swapChainIndex, size_t pipelineNum) {
+	if (!_graphicsPipelines.empty()) {
+		vkCmdBindPipeline(cmdBuff, VK_PIPELINE_BIND_POINT_GRAPHICS, _graphicsPipelines[pipelineNum]);
 		addCommands(cmdBuff, swapChainIndex);
 	}
 }
@@ -160,6 +166,9 @@ void PipelineBase::build() {
 
 	createPipelineLayout();
 
+	size_t numPipelines = _app->getNumGraphicsPipelines();
+	_graphicsPipelines.resize(numPipelines);
+
 	VkGraphicsPipelineCreateInfo pipelineInfo = {};
 	pipelineInfo.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
 	pipelineInfo.stageCount = (uint32_t)shaderStages.size();
@@ -172,14 +181,17 @@ void PipelineBase::build() {
 	pipelineInfo.pDepthStencilState = &depthStencil;
 	pipelineInfo.pColorBlendState = &colorBlending;
 	pipelineInfo.layout = _pipelineLayout;
-	pipelineInfo.renderPass = _app->getRenderPass();
 	pipelineInfo.subpass = 0;
 	pipelineInfo.basePipelineHandle = VK_NULL_HANDLE;
 
 	auto device = _app->getDeviceContext()->_device;
 
-	if (vkCreateGraphicsPipelines(device, VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &_graphicsPipeline) != VK_SUCCESS) {
-		throw std::runtime_error("failed to create graphics pipeline!");
+	for (size_t i = 0; i < numPipelines; i++) {
+		multisampling.rasterizationSamples = _app->getAntiAliasSamples(i);
+		pipelineInfo.renderPass = _app->getRenderPass(i);
+		if (vkCreateGraphicsPipelines(device, VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &_graphicsPipelines[i]) != VK_SUCCESS) {
+			throw std::runtime_error("failed to create graphics pipeline!");
+		}
 	}
 }
 
@@ -249,7 +261,7 @@ inline void PipelineBase::setMultisampling(VkPipelineMultisampleStateCreateInfo&
 	multisampling = {};
 	multisampling.sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO;
 	multisampling.sampleShadingEnable = VK_FALSE;
-	multisampling.rasterizationSamples = _app->getAntiAliasSamples();
+	multisampling.rasterizationSamples = VK_SAMPLE_COUNT_1_BIT;
 }
 
 inline void PipelineBase::setDepthStencil(VkPipelineDepthStencilStateCreateInfo& depthStencil) {

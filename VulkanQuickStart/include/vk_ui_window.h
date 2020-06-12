@@ -57,6 +57,7 @@ namespace VK {
 			size_t getChangeNumber() const;
 
 			int getPixelDPI() const;
+			const PipelineUiPtr& getPipeline() const;
 
 		private:
 
@@ -99,6 +100,10 @@ namespace VK {
 
 		inline size_t Window::getChangeNumber() const {
 			return _changeNumber;
+		}
+
+		inline const PipelineUiPtr& Window::getPipeline() const {
+			return _pipeline;
 		}
 
 	}

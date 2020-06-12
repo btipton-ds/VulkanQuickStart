@@ -107,6 +107,8 @@ VulkanApp::VulkanApp(int width, int height)
 
 	initWindow(width, height);
 	initVulkan();
+
+	prepareOffscreen();
 }
 
 VulkanApp::~VulkanApp() {
@@ -211,26 +213,38 @@ void VulkanApp::recreateSwapChain() {
 }
 
 void VulkanApp::mainLoop() {
-	while (!glfwWindowShouldClose(_window) && _isRunning) {
-		static chrono::steady_clock::time_point t0 = std::chrono::steady_clock::now();
-		chrono::steady_clock::time_point start = std::chrono::steady_clock::now();
+	static chrono::steady_clock::time_point t0 = std::chrono::steady_clock::now();
+	if (_targetFrameDurationMillis > 0) {
+		while (!glfwWindowShouldClose(_window) && _isRunning) {
+			chrono::steady_clock::time_point start = std::chrono::steady_clock::now();
+			_runtimeMillis = chrono::duration_cast<std::chrono::milliseconds>(start - t0).count();
 
-		_runtimeMillis = chrono::duration_cast<std::chrono::milliseconds>(start - t0).count();
-
-		glfwPollEvents();
-		drawFrame();
-		if (_updater)
-			_updater->updateVkApp();
-		chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
+			glfwPollEvents();
+			drawFrame();
+			if (_updater)
+				_updater->updateVkApp();
+			chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
 
 
-		int64_t timeMs = chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
-		int64_t target = 1000 / 70;
+			int64_t timeMs = chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
+			int64_t target = (int64_t)_targetFrameDurationMillis;
 
-		if (target > timeMs) {
-			std::this_thread::sleep_for(chrono::milliseconds(target - timeMs));
+			if (target > timeMs) {
+				std::this_thread::sleep_for(chrono::milliseconds(target - timeMs));
+			}
+
 		}
+	}
+	else {
+		while (!glfwWindowShouldClose(_window) && _isRunning) {
+			chrono::steady_clock::time_point start = std::chrono::steady_clock::now();
+			_runtimeMillis = chrono::duration_cast<std::chrono::milliseconds>(start - t0).count();
 
+			glfwPollEvents();
+			drawFrame();
+			if (_updater)
+				_updater->updateVkApp();
+		}
 	}
 
 	vkDeviceWaitIdle(_deviceContext->_device);
@@ -256,7 +270,208 @@ void VulkanApp::cleanupSwapChain() {
 	vkDestroySwapchainKHR(_deviceContext->_device, _swapChain._vkSwapChain, nullptr);
 }
 
+#define VK_CHECK_RESULT(err) if (err != VK_SUCCESS) \
+throw runtime_error("Error");
+
+size_t VulkanApp::getNumGraphicsPipelines() const {
+	// TODO, add intelligence based on draw 
+	return 2;
+}
+
+VkRenderPass VulkanApp::getRenderPass(size_t passNum) const {
+	if (passNum == 0)
+		return renderPass;
+	else
+		return offscreenPass.renderPass;
+}
+
+// Setup the offscreen framebuffer for rendering the mirrored scene
+// The color attachment of this framebuffer will then be used to sample from in the fragment shader of the final pass
+void VulkanApp::prepareOffscreen() {
+	auto device = _deviceContext->_device;
+	offscreenPass.width = _offscreenExtent.width;
+	offscreenPass.height = _offscreenExtent.height;
+
+	// Find a suitable depth format
+	VkFormat fbColorFormat = VK_FORMAT_R8G8B8A8_UNORM;
+
+	// Color attachment
+	VkImageCreateInfo image = {};
+	image.imageType = VK_IMAGE_TYPE_2D;
+	image.format = fbColorFormat;
+	image.extent.width = offscreenPass.width;
+	image.extent.height = offscreenPass.height;
+	image.extent.depth = 1;
+	image.mipLevels = 1;
+	image.arrayLayers = 1;
+	image.samples = VK_SAMPLE_COUNT_1_BIT;
+	image.tiling = VK_IMAGE_TILING_OPTIMAL;
+	// We will sample directly from the color attachment
+	image.usage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT;
+
+	VkMemoryAllocateInfo memAlloc = {};
+	VkMemoryRequirements memReqs;
+
+	VK_CHECK_RESULT(vkCreateImage(device, &image, nullptr, &offscreenPass.color.image));
+	vkGetImageMemoryRequirements(device, offscreenPass.color.image, &memReqs);
+	memAlloc.allocationSize = memReqs.size;
+	memAlloc.memoryTypeIndex = _deviceContext->getMemoryType(memReqs.memoryTypeBits, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+	VK_CHECK_RESULT(vkAllocateMemory(device, &memAlloc, nullptr, &offscreenPass.color.mem));
+	VK_CHECK_RESULT(vkBindImageMemory(device, offscreenPass.color.image, offscreenPass.color.mem, 0));
+
+	VkImageViewCreateInfo colorImageView = {};
+	colorImageView.viewType = VK_IMAGE_VIEW_TYPE_2D;
+	colorImageView.format = fbColorFormat;
+	colorImageView.subresourceRange = {};
+	colorImageView.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+	colorImageView.subresourceRange.baseMipLevel = 0;
+	colorImageView.subresourceRange.levelCount = 1;
+	colorImageView.subresourceRange.baseArrayLayer = 0;
+	colorImageView.subresourceRange.layerCount = 1;
+	colorImageView.image = offscreenPass.color.image;
+	VK_CHECK_RESULT(vkCreateImageView(device, &colorImageView, nullptr, &offscreenPass.color.view));
+
+	// Create sampler to sample from the attachment in the fragment shader
+	VkSamplerCreateInfo samplerInfo = {};
+	samplerInfo.magFilter = VK_FILTER_LINEAR;
+	samplerInfo.minFilter = VK_FILTER_LINEAR;
+	samplerInfo.mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR;
+	samplerInfo.addressModeU = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE;
+	samplerInfo.addressModeV = samplerInfo.addressModeU;
+	samplerInfo.addressModeW = samplerInfo.addressModeU;
+	samplerInfo.mipLodBias = 0.0f;
+	samplerInfo.maxAnisotropy = 1.0f;
+	samplerInfo.minLod = 0.0f;
+	samplerInfo.maxLod = 1.0f;
+	samplerInfo.borderColor = VK_BORDER_COLOR_FLOAT_OPAQUE_WHITE;
+	VK_CHECK_RESULT(vkCreateSampler(device, &samplerInfo, nullptr, &offscreenPass.sampler));
+
+	// Depth stencil attachment
+	VkFormat fbDepthFormat = findDepthFormat();
+
+	image.format = fbDepthFormat;
+	image.usage = VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT;
+
+	VK_CHECK_RESULT(vkCreateImage(device, &image, nullptr, &offscreenPass.depth.image));
+	vkGetImageMemoryRequirements(device, offscreenPass.depth.image, &memReqs);
+	memAlloc.allocationSize = memReqs.size;
+	memAlloc.memoryTypeIndex = _deviceContext->getMemoryType(memReqs.memoryTypeBits, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+	VK_CHECK_RESULT(vkAllocateMemory(device, &memAlloc, nullptr, &offscreenPass.depth.mem));
+	VK_CHECK_RESULT(vkBindImageMemory(device, offscreenPass.depth.image, offscreenPass.depth.mem, 0));
+
+	VkImageViewCreateInfo depthStencilView = {};
+	depthStencilView.viewType = VK_IMAGE_VIEW_TYPE_2D;
+	depthStencilView.format = fbDepthFormat;
+	depthStencilView.flags = 0;
+	depthStencilView.subresourceRange = {};
+	depthStencilView.subresourceRange.aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT;
+	depthStencilView.subresourceRange.baseMipLevel = 0;
+	depthStencilView.subresourceRange.levelCount = 1;
+	depthStencilView.subresourceRange.baseArrayLayer = 0;
+	depthStencilView.subresourceRange.layerCount = 1;
+	depthStencilView.image = offscreenPass.depth.image;
+	VK_CHECK_RESULT(vkCreateImageView(device, &depthStencilView, nullptr, &offscreenPass.depth.view));
+
+	// Create a separate render pass for the offscreen rendering as it may differ from the one used for scene rendering
+
+	std::array<VkAttachmentDescription, 2> attchmentDescriptions = {};
+	// Color attachment
+	attchmentDescriptions[0].format = fbColorFormat;
+	attchmentDescriptions[0].samples = VK_SAMPLE_COUNT_1_BIT;
+	attchmentDescriptions[0].loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+	attchmentDescriptions[0].storeOp = VK_ATTACHMENT_STORE_OP_STORE;
+	attchmentDescriptions[0].stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+	attchmentDescriptions[0].stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+	attchmentDescriptions[0].initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+	attchmentDescriptions[0].finalLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+	// Depth attachment
+	attchmentDescriptions[1].format = fbDepthFormat;
+	attchmentDescriptions[1].samples = VK_SAMPLE_COUNT_1_BIT;
+	attchmentDescriptions[1].loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+	attchmentDescriptions[1].storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+	attchmentDescriptions[1].stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+	attchmentDescriptions[1].stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+	attchmentDescriptions[1].initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+	attchmentDescriptions[1].finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+
+	VkAttachmentReference colorReference = { 0, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL };
+	VkAttachmentReference depthReference = { 1, VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL };
+
+	VkSubpassDescription subpassDescription = {};
+	subpassDescription.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
+	subpassDescription.colorAttachmentCount = 1;
+	subpassDescription.pColorAttachments = &colorReference;
+	subpassDescription.pDepthStencilAttachment = &depthReference;
+
+	// Use subpass dependencies for layout transitions
+	std::array<VkSubpassDependency, 2> dependencies;
+
+	dependencies[0].srcSubpass = VK_SUBPASS_EXTERNAL;
+	dependencies[0].dstSubpass = 0;
+	dependencies[0].srcStageMask = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
+	dependencies[0].dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+	dependencies[0].srcAccessMask = VK_ACCESS_SHADER_READ_BIT;
+	dependencies[0].dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+	dependencies[0].dependencyFlags = VK_DEPENDENCY_BY_REGION_BIT;
+
+	dependencies[1].srcSubpass = 0;
+	dependencies[1].dstSubpass = VK_SUBPASS_EXTERNAL;
+	dependencies[1].srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+	dependencies[1].dstStageMask = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
+	dependencies[1].srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+	dependencies[1].dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
+	dependencies[1].dependencyFlags = VK_DEPENDENCY_BY_REGION_BIT;
+
+	// Create the actual renderpass
+	VkRenderPassCreateInfo renderPassInfo = {};
+	renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
+	renderPassInfo.attachmentCount = static_cast<uint32_t>(attchmentDescriptions.size());
+	renderPassInfo.pAttachments = attchmentDescriptions.data();
+	renderPassInfo.subpassCount = 1;
+	renderPassInfo.pSubpasses = &subpassDescription;
+	renderPassInfo.dependencyCount = static_cast<uint32_t>(dependencies.size());
+	renderPassInfo.pDependencies = dependencies.data();
+
+	VK_CHECK_RESULT(vkCreateRenderPass(device, &renderPassInfo, nullptr, &offscreenPass.renderPass));
+
+	VkImageView attachments[2];
+	attachments[0] = offscreenPass.color.view;
+	attachments[1] = offscreenPass.depth.view;
+
+	VkFramebufferCreateInfo fbufCreateInfo = {};
+	fbufCreateInfo.renderPass = offscreenPass.renderPass;
+	fbufCreateInfo.attachmentCount = 2;
+	fbufCreateInfo.pAttachments = attachments;
+	fbufCreateInfo.width = offscreenPass.width;
+	fbufCreateInfo.height = offscreenPass.height;
+	fbufCreateInfo.layers = 1;
+
+	VK_CHECK_RESULT(vkCreateFramebuffer(device, &fbufCreateInfo, nullptr, &offscreenPass.frameBuffer));
+
+	// Fill a descriptor for later use in a descriptor set 
+	offscreenPass.descriptor.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+	offscreenPass.descriptor.imageView = offscreenPass.color.view;
+	offscreenPass.descriptor.sampler = offscreenPass.sampler;
+}
+
 void VulkanApp::cleanup() {
+	{
+		auto device = _deviceContext->_device;
+		// Color attachment
+		vkDestroyImageView(device, offscreenPass.color.view, nullptr);
+		vkDestroyImage(device, offscreenPass.color.image, nullptr);
+		vkFreeMemory(device, offscreenPass.color.mem, nullptr);
+
+		// Depth attachment
+		vkDestroyImageView(device, offscreenPass.depth.view, nullptr);
+		vkDestroyImage(device, offscreenPass.depth.image, nullptr);
+		vkFreeMemory(device, offscreenPass.depth.mem, nullptr);
+
+		vkDestroyRenderPass(device, offscreenPass.renderPass, nullptr);
+		vkDestroySampler(device, offscreenPass.sampler, nullptr);
+		vkDestroyFramebuffer(device, offscreenPass.frameBuffer, nullptr);
+	}
+
 	cleanupSwapChain();
 
 	_shaderPool = nullptr;
@@ -707,43 +922,66 @@ void VulkanApp::createCommandBuffers() {
 	beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
 	beginInfo.flags = VK_COMMAND_BUFFER_USAGE_SIMULTANEOUS_USE_BIT;
 
-	VkRenderPassBeginInfo renderPassInfo = {};
-	renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
-	renderPassInfo.renderPass = renderPass;
-	renderPassInfo.renderArea.offset = { 0, 0 };
-	renderPassInfo.renderArea.extent = _swapChain._extent;
+	for (size_t swapChainIndex = 0; swapChainIndex < _commandBuffers.size(); swapChainIndex++) {
+		VkCommandBuffer& cmdBuff = _commandBuffers[swapChainIndex];
 
-	std::array<VkClearValue, 2> clearValues = {};
-	clearValues[0].color = { 0.0f, 0.0f, 0.0f, 1.0f };
-	clearValues[1].depthStencil = { 1.0f, 0 };
-	renderPassInfo.clearValueCount = static_cast<uint32_t>(clearValues.size());
-	renderPassInfo.pClearValues = clearValues.data();
+		if (vkBeginCommandBuffer(cmdBuff, &beginInfo) != VK_SUCCESS) {
+			throw std::runtime_error("failed to begin recording command buffer!");
+		}
 
-	for (size_t i = 0; i < _commandBuffers.size(); i++) {
-		renderPassInfo.framebuffer = _swapChain._vkFrameBuffers[i];
-		drawCmdBufferLoop(i, beginInfo, renderPassInfo);
+		VkRenderPassBeginInfo renderPassInfo = {};
+		renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
+
+		std::array<VkClearValue, 2> clearValues = {};
+		clearValues[0].color = { 0.0f, 0.0f, 0.0f, 1.0f };
+		clearValues[1].depthStencil = { 1.0f, 0 };
+		renderPassInfo.clearValueCount = static_cast<uint32_t>(clearValues.size());
+		renderPassInfo.pClearValues = clearValues.data();
+
+		renderPassInfo.renderPass = renderPass;
+		renderPassInfo.framebuffer = _swapChain._vkFrameBuffers[swapChainIndex];
+		renderPassInfo.renderArea.offset = { 0, 0 };
+		renderPassInfo.renderArea.extent = _swapChain._extent;
+
+		drawCmdBufferLoop(cmdBuff, swapChainIndex, 0, beginInfo, renderPassInfo);
+
+		renderPassInfo.renderPass = offscreenPass.renderPass;
+		renderPassInfo.framebuffer = offscreenPass.frameBuffer;
+		renderPassInfo.renderArea.extent.width = offscreenPass.width;
+		renderPassInfo.renderArea.extent.height = offscreenPass.height;
+
+		drawCmdBufferLoop(cmdBuff, swapChainIndex, 1, beginInfo, renderPassInfo);
+#if 0
+		vkCmdBeginRenderPass(cmdBuff, &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
+		
+		PipelineBasePtr uiPipeline = _uiWindow ? _uiWindow->getPipeline() : nullptr;
+		_pipelines.iterate([&](const PipelineBasePtr& pipeline) {
+			if (pipeline->isVisible() && pipeline != uiPipeline)
+				pipeline->draw(cmdBuff, swapChainIndex, 1);
+		});
+
+		vkCmdEndRenderPass(cmdBuff);
+#endif
+		if (vkEndCommandBuffer(cmdBuff) != VK_SUCCESS) {
+			throw std::runtime_error("failed to record command buffer!");
+		}
 	}
+
 }
 
-void VulkanApp::drawCmdBufferLoop(size_t swapChainIndex,
+void VulkanApp::drawCmdBufferLoop(VkCommandBuffer cmdBuff, size_t swapChainIndex, size_t pipelineNum,
 	VkCommandBufferBeginInfo& beginInfo, VkRenderPassBeginInfo& renderPassInfo) {
-	auto& cmdBuff = _commandBuffers[swapChainIndex];
-
-	if (vkBeginCommandBuffer(cmdBuff, &beginInfo) != VK_SUCCESS) {
-		throw std::runtime_error("failed to begin recording command buffer!");
-	}
 	vkCmdBeginRenderPass(cmdBuff, &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
 
+	PipelineBasePtr uiPipeline = (pipelineNum != 0 && _uiWindow) ? _uiWindow->getPipeline() : nullptr;
 	_pipelines.iterate([&](const PipelineBasePtr& pipeline) {
-		if (pipeline->isVisible())
-			pipeline->draw(cmdBuff, swapChainIndex);
+		if (pipeline->isVisible() && pipeline != uiPipeline)
+			pipeline->draw(cmdBuff, swapChainIndex, pipelineNum);
 	});
 
 	vkCmdEndRenderPass(cmdBuff);
 
-	if (vkEndCommandBuffer(cmdBuff) != VK_SUCCESS) {
-		throw std::runtime_error("failed to record command buffer!");
-	}
+
 }
 
 void VulkanApp::createSyncObjects() {
