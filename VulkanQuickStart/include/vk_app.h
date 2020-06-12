@@ -202,9 +202,6 @@ namespace VK {
 
 		OffscreenPassPtr _offscreenPass;
 		VkRenderPass renderPass;
-		size_t _pipelineVertIdx = stm1, 
-			_pipelineSamplerIdx = stm1,
-			_pipelineUiIdx = stm1;
 		ShaderPoolPtr _shaderPool;
 
 		UniformBufferObject3D _ubo;
