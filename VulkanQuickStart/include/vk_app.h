@@ -80,6 +80,7 @@ namespace VK {
 		void setUiWindow(const UI::WindowPtr& uiWindow );
 
 		void changed();
+		size_t getRuntimeMillis() const;
 
 		PipelineBasePtr addPipeline(const PipelineBasePtr& pipeline);
 
@@ -171,6 +172,7 @@ namespace VK {
 
 		GLFWwindow* _window;
 		bool _isRunning = true;
+		size_t _runtimeMillis = 0;
 		UI::WindowPtr _uiWindow;
 		unsigned int _windowDpi = 72;
 		VkFormat _requestedFormat = VK_FORMAT_B8G8R8A8_UNORM;
@@ -292,6 +294,10 @@ namespace VK {
 
 	inline void VulkanApp::stop() {
 		_isRunning = false;
+	}
+
+	inline size_t VulkanApp::getRuntimeMillis() const {
+		return _runtimeMillis;
 	}
 
 }

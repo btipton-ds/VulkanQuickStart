@@ -31,6 +31,8 @@ This file is part of the VulkanQuickStart Project.
 
 #include <vk_defines.h>
 
+#include <functional>
+
 #define GLM_FORCE_RADIANS
 #define GLM_FORCE_DEPTH_ZERO_TO_ONE
 #include <glm/glm.hpp>
@@ -44,6 +46,7 @@ namespace VK {
 	public:
 		using BoundingBox = Pipeline3DWSampler::BoundingBox;
 		using UniformBufferObject = Pipeline3DWSampler::UniformBufferObject;
+		using XformFuncType = std::function<glm::mat4(const glm::mat4& src)>;
 
 		PipelineSceneNode3DWSampler(const PipelineBasePtr& ownerPipeline);
 		virtual ~PipelineSceneNode3DWSampler();
@@ -55,8 +58,12 @@ namespace VK {
 		const glm::mat4& getModelTransform() const;
 		glm::mat4& getModelTransform();
 
+		template<typename FUNC_TYPE>
+		void setModelTransformFunc(FUNC_TYPE func);
+
 	private:
 		glm::mat4 _modelXForm;
+		XformFuncType _modelXFormFunc;
 	};
 
 	using PipelineSceneNode3DWSamplerPtr = std::shared_ptr<PipelineSceneNode3DWSampler>;
@@ -75,4 +82,8 @@ namespace VK {
 		return _modelXForm;
 	}
 
+	template<typename FUNC_TYPE>
+	inline void PipelineSceneNode3DWSampler::setModelTransformFunc(FUNC_TYPE func) {
+		_modelXFormFunc = func;
+	}
 }

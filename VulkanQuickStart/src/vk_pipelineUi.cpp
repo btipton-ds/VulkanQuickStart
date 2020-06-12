@@ -52,8 +52,10 @@ PipelineUi::PipelineUi(const VulkanAppPtr& app)
 
 void PipelineUi::addCommands(VkCommandBuffer cmdBuff, size_t swapChainIdx) const {
 	for (const auto& sceneNode : _sceneNodes) {
-		SceneNodeUiPtr ptr = dynamic_pointer_cast<PipelineSceneNodeUi>(sceneNode);
-		ptr->addCommandsIdx(cmdBuff, _pipelineLayout, swapChainIdx);
+		if (sceneNode->isVisible()) {
+			SceneNodeUiPtr ptr = dynamic_pointer_cast<PipelineSceneNodeUi>(sceneNode);
+			ptr->addCommandsIdx(cmdBuff, _pipelineLayout, swapChainIdx);
+		}
 	}
 }
 

@@ -72,6 +72,9 @@ namespace VK {
 	class PipelineUi;
 	using PipelineUiPtr = std::shared_ptr<PipelineUi>;
 
+	class SceneNodeXForm;
+	using SceneNodeXFormPtr = std::shared_ptr<SceneNodeXForm>;
+
 	class PipelineSceneNodeBase;
 	using SceneNodeBasePtr = std::shared_ptr<PipelineSceneNodeBase>;
 

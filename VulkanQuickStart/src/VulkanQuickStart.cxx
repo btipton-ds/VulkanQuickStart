@@ -181,11 +181,31 @@ void addObj() {
 	pipeline3DWSampler->addSceneNode(plant);
 	xform = glm::rotate(glm::mat4(1.0f), glm::radians(90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
 	plant->setModelTransform(xform);
+	plant->setModelTransformFunc([&](const glm::mat4& src)->glm::mat4 {
+		double revs = gApp->getRuntimeMillis() / 1000.0 * (15.0 / 60.0);
+		while (revs > 1)
+			revs -= 1;
+
+		glm::mat4 xform(src);
+		xform *= glm::rotate(glm::mat4(1.0f), (float)(2 * EIGEN_PI * revs), glm::vec3(0.0f, 1.0f, 0.0f));
+
+		return xform;
+	});
 
 	dna = ModelObj::create(pipeline3DWSampler, dnaPath, dnaFilename);
 	pipeline3DWSampler->addSceneNode(dna);
 	xform = glm::translate(glm::mat4(1.0f), glm::vec3(0, 10, 0));
 	dna->setModelTransform(xform);
+	dna->setModelTransformFunc([&](const glm::mat4& src)->glm::mat4 {
+		double revs = gApp->getRuntimeMillis() / 1000.0 * (15.0 / 120.0);
+		while (revs > 1)
+			revs -= 1;
+
+		glm::mat4 xform(src);
+		xform *= glm::rotate(glm::mat4(1.0f), (float)(2 * EIGEN_PI * revs), glm::vec3(0.0f, 0.0f, 1.0f));
+
+		return xform;
+	});
 
 	apricot = ModelObj::create(pipeline3DWSampler, apricotPath, apricotFilename);
 	xform = glm::translate(glm::mat4(1.0f), glm::vec3(10, 10, 0));
@@ -226,6 +246,20 @@ int addStl() {
 	xform *= glm::scale(glm::mat4(1.0f), glm::vec3(.25f, .25f, .25f));
 	vaseShaded->setModelTransform(xform);
 	vaseWf->setModelTransform(xform);
+
+	auto xformFunc = [&](const glm::mat4& src)->glm::mat4 {
+		double revs = gApp->getRuntimeMillis() / 1000.0 * (15.0 / 30.0);
+		while (revs > 1)
+			revs -= 1;
+
+		glm::mat4 xform(src);
+		xform *= glm::rotate(glm::mat4(1.0f), (float)(2 * EIGEN_PI * revs), glm::vec3(0.0f, 0.0f, 1.0f));
+		return xform;
+	};
+
+	vaseShaded->setModelTransformFunc(xformFunc);
+	vaseWf->setModelTransformFunc(xformFunc);
+
 #endif
 	return 0;
 }

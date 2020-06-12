@@ -56,6 +56,7 @@ This file is part of the VulkanQuickStart Project.
 #include <fstream>
 #include <stdexcept>
 #include <algorithm>
+#include <thread>
 #include <chrono>
 #include <vector>
 #include <cstring>
@@ -211,10 +212,25 @@ void VulkanApp::recreateSwapChain() {
 
 void VulkanApp::mainLoop() {
 	while (!glfwWindowShouldClose(_window) && _isRunning) {
+		static chrono::steady_clock::time_point t0 = std::chrono::steady_clock::now();
+		chrono::steady_clock::time_point start = std::chrono::steady_clock::now();
+
+		_runtimeMillis = chrono::duration_cast<std::chrono::milliseconds>(start - t0).count();
+
 		glfwPollEvents();
 		drawFrame();
 		if (_updater)
 			_updater->updateVkApp();
+		chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
+
+
+		int64_t timeMs = chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
+		int64_t target = 1000 / 70;
+
+		if (target > timeMs) {
+			std::this_thread::sleep_for(chrono::milliseconds(target - timeMs));
+		}
+
 	}
 
 	vkDeviceWaitIdle(_deviceContext->_device);
@@ -741,18 +757,12 @@ void VulkanApp::reportFPS() {
 	float time = std::chrono::duration<float, std::chrono::seconds::period>(currentTime - startTime).count();
 
 	static size_t count = 0;
-	static float avgFPS = 0;
-	static float lastTime = 0;
 	static float lastReportTime = 0;
-	float deltaTime = time - lastTime;
-	lastTime = time;
-	avgFPS += 1 / deltaTime;
 	count++;
 	if (time - lastReportTime > 2.5f) {
+		float deltaT = time - lastReportTime;
 		lastReportTime = time;
-		avgFPS /= count;
-		std::cout << "FPS: " << avgFPS << "\n";
-		avgFPS = 0;
+		std::cout << "FPS: " << (count / deltaT) << ", time/frame: " << (1000.0f * deltaT / (float)count) << " ms\n";
 		count = 0;
 	}
 }

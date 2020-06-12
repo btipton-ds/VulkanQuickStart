@@ -46,10 +46,12 @@ PipelineSceneNode3D::PipelineSceneNode3D(const PipelineBasePtr& ownerPipeline)
 PipelineSceneNode3D::~PipelineSceneNode3D() {
 }
 
-
 void PipelineSceneNode3D::updateUniformBuffer(size_t swapChainIndex) {
 	auto pipeline3D = dynamic_pointer_cast<Pipeline3D>(_ownerPipeline);
 	auto ubo = pipeline3D->getUniformBuffer();
-	ubo.modelView *= _modelXForm;
+	if (_modelXFormFunc)
+		ubo.modelView *= _modelXFormFunc(_modelXForm);
+	else
+		ubo.modelView *= _modelXForm;
 	updateUniformBufferTempl(swapChainIndex, ubo);
 }
