@@ -285,8 +285,6 @@ int main(int numArgs, char** args) {
 
 	glfwSetWindowTitle(gApp->getWindow(), "Vulkan Quick Start");
 
-	gApp->init();
-
 	pipeline3DWSampler = gApp->addPipelineWithSource<Pipeline3DWSampler>("obj_shader", "shaders/shader_depth_vert.spv", "shaders/shader_depth_frag.spv");
 
 	pipeline3DShaded = gApp->addPipelineWithSource<Pipeline3D>("stl_shaded", "shaders/shader_vert.spv", "shaders/shader_frag.spv");

@@ -1,3 +1,5 @@
+#pragma once
+
 /*
 
 This file is part of the VulkanQuickStart Project.
@@ -27,50 +29,52 @@ This file is part of the VulkanQuickStart Project.
 
 */
 
-#pragma once
+#include <vk_defines.h>
 
-#include <tm_defines.h>
+#include <vk_forwardDeclarations.h>
 
-#ifdef _HAS_ITERATOR_DEBUGGING
-#undef _HAS_ITERATOR_DEBUGGING
-#endif
+#include <vulkan/vulkan_core.h>
 
-#define _HAS_ITERATOR_DEBUGGING 0
-#define USE_EIGEN_VECTOR3 0
+namespace VK {
 
-#ifdef _GCC
-#define GCC_CLASS class
-#else
-#define GCC_CLASS
-#endif // _GCC
+	class OffscreenPass {
+	public:
+		OffscreenPass(const DeviceContextPtr& deviceContext, VkFormat colorFormat, VkFormat depthFormat);
+		~OffscreenPass();
 
-#include <vector> // Need to include to expose size_t
-#include <stdexcept>
+		void init(const VkExtent2D& extent);
+		void cleanup();
 
-constexpr size_t K_BYTE = 1024;
-constexpr size_t M_BYTE = 1024 * K_BYTE;
+		const ImagePtr& getColorImage() const;
+		VkRenderPass getRenderPass() const;
+		VkFramebuffer getFrameBuffer() const;
+		const VkExtent2D& getExtent() const;
 
-/* 
-	DEV_MAX_BUF_SIZE is a development safety barrier. 
-	
-	On windows systems, if you pass an un initialized value for size when allocating a buffer (and it's huge 64 bit)
-	the OS will try to allocate it and over load your swap file. 
-	This causes your system to lockup.
-	This causes you to force powerdown your box before it fills the universe.
-	This causes Windows to very carefully down size your swap file on restart.
-	Which causes the operating system to suck up all disk resources for nearly one hour.
+	private:
+		VkExtent2D _extent = { 0, 0 };
+		VkFramebuffer _frameBuffer = VK_NULL_HANDLE;
+		ImagePtr _color = VK_NULL_HANDLE, _depth = VK_NULL_HANDLE;
+		VkRenderPass _renderPass = VK_NULL_HANDLE;
+		VkSampler _sampler = VK_NULL_HANDLE;
+		VkDescriptorImageInfo _descriptor{};
+		DeviceContextPtr _deviceContext;
+		VkFormat _colorFormat, _depthFormat;
+	};
 
-	As you may guess, this happened and I lost a good chunk of an afternoon.
+	inline const ImagePtr& OffscreenPass::getColorImage() const {
+		return _color;
+	}
 
-*/
-constexpr size_t DEV_MAX_BUF_SIZE = 512 * M_BYTE;
+	inline VkRenderPass OffscreenPass::getRenderPass() const {
+		return _renderPass;
+	}
 
-#ifndef stm1
-#define stm1 0xffffffffffffffff
-#endif
+	inline VkFramebuffer OffscreenPass::getFrameBuffer() const {
+		return _frameBuffer;
+	}
 
-template<typename T>
-inline void VK_CHECK_RESULT(T err) {
-	if (err != VK_SUCCESS) 
-		throw std::runtime_error("Error");
+	inline const VkExtent2D& OffscreenPass::getExtent() const {
+		return _extent;
+	}
+
 }

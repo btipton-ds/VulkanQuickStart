@@ -53,6 +53,7 @@ This file is part of the VulkanQuickStart Project.
 #include <vk_shaderPool.h>
 #include <vk_pipelineList.h>
 #include <vk_swapChain.h>
+#include <vk_offscreenPass.h>
 
 namespace VK {
 
@@ -74,8 +75,6 @@ namespace VK {
 
 		VulkanApp(int width, int height);
 		~VulkanApp();
-
-		void init();
 
 		VulkanAppPtr getAppPtr();
 
@@ -120,32 +119,15 @@ namespace VK {
 		size_t getNumGraphicsPipelines() const;
 		void setOffscreenExtent(const VkExtent2D& extent);
 		bool isOffscreenEnabled() const;
-		const ImagePtr& getOffscreenImage() const;
+		ImagePtr getOffscreenImage() const;
 
 	private:
-		// Framebuffer for offscreen rendering
-		struct FrameBufferAttachment {
-			VkImage image;
-			VkDeviceMemory mem;
-			VkImageView view;
-		};
-		struct OffscreenPass {
-			VkExtent2D _extent = { 0, 0 };
-			VkFramebuffer frameBuffer;
-			ImagePtr color, depth;
-			VkRenderPass renderPass;
-			VkSampler sampler;
-			VkDescriptorImageInfo descriptor;
-		};
-
 		struct SwapChainSupportDetails;
 		struct QueueFamilyIndices;
 
 		static std::vector<char> readFile(const std::string& filename);
 		static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity, VkDebugUtilsMessageTypeFlagsEXT messageType, const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData, void* pUserData);
 		static void framebufferResizeCallback(GLFWwindow* window, int width, int height);
-
-		void prepareOffscreen();
 
 		void initWindow(int width, int height);
 		void initVulkan();
@@ -218,7 +200,7 @@ namespace VK {
 		VkQueue presentQueue;
 		SwapChain _swapChain;
 
-		OffscreenPass _offscreenPass;
+		OffscreenPassPtr _offscreenPass;
 		VkRenderPass renderPass;
 		size_t _pipelineVertIdx = stm1, 
 			_pipelineSamplerIdx = stm1,
@@ -329,17 +311,13 @@ namespace VK {
 		return _runtimeMillis;
 	}
 
-	inline void VulkanApp::setOffscreenExtent(const VkExtent2D& extent) {
-		_offscreenPass._extent = extent;
-	}
-
 	inline bool VulkanApp::isOffscreenEnabled() const {
-		return (_offscreenPass._extent.width > 0 && _offscreenPass._extent.height > 0);
+		return _offscreenPass != nullptr;
 	}
 
-	inline const ImagePtr& VulkanApp::getOffscreenImage() const {
+	inline ImagePtr VulkanApp::getOffscreenImage() const {
 		if (isOffscreenEnabled())
-			return _offscreenPass.color;
+			return _offscreenPass->getColorImage();
 		return nullptr;
 	}
 
