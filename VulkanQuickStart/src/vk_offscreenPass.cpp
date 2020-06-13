@@ -43,10 +43,10 @@ using namespace VK;
 
 OffscreenPass::OffscreenPass(const VulkanAppPtr& app, VkFormat colorFormat, VkFormat depthFormat)
 	: _deviceContext(app->getDeviceContext())
-	, _pipelines(app)
 	, _colorFormat(colorFormat)
 	, _depthFormat(depthFormat)
 {
+	_pipelines = make_shared<PipelineGroupType>(app);
 }
 
 OffscreenPass::~OffscreenPass() {
@@ -55,7 +55,7 @@ OffscreenPass::~OffscreenPass() {
 
 void OffscreenPass::init(const VkExtent2D& extent) {
 
-	_extent = extent;
+	_rect = { {0, 0}, extent };
 	auto device = _deviceContext->_device;
 
 	// Find a suitable _depth format
@@ -63,7 +63,7 @@ void OffscreenPass::init(const VkExtent2D& extent) {
 
 	_color = make_shared<Image>(_deviceContext);
 	uint32_t colorUsageBits = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT;
-	_color->create(fbColorFormat, colorUsageBits, _extent.width, _extent.height, VK_SAMPLE_COUNT_1_BIT);
+	_color->create(fbColorFormat, colorUsageBits, _rect.extent.width, _rect.extent.height, VK_SAMPLE_COUNT_1_BIT);
 
 	// Create _sampler to sample from the attachment in the fragment shader
 	VkSamplerCreateInfo samplerInfo = {};
@@ -84,7 +84,7 @@ void OffscreenPass::init(const VkExtent2D& extent) {
 	VkFormat fbDepthFormat = _depthFormat;
 
 	_depth = make_shared<Image>(_deviceContext);
-	_depth->create(fbDepthFormat, VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT, _extent.width, _extent.height, VK_SAMPLE_COUNT_1_BIT);
+	_depth->create(fbDepthFormat, VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT, _rect.extent.width, _rect.extent.height, VK_SAMPLE_COUNT_1_BIT);
 
 	// Create a separate render pass for the offscreen rendering as it may differ from the one used for scene rendering
 
@@ -148,7 +148,7 @@ void OffscreenPass::init(const VkExtent2D& extent) {
 
 	VkRenderPass renderPass;
 	VK_CHECK_RESULT(vkCreateRenderPass(device, &renderPassInfo, nullptr, &renderPass));
-	_pipelines.setRenderPass(renderPass);
+	_pipelines->setRenderPass(renderPass);
 
 	VkImageView attachments[2];
 	attachments[0] = _color->getImageView();
@@ -158,8 +158,8 @@ void OffscreenPass::init(const VkExtent2D& extent) {
 	fbufCreateInfo.renderPass = renderPass;
 	fbufCreateInfo.attachmentCount = 2;
 	fbufCreateInfo.pAttachments = attachments;
-	fbufCreateInfo.width = _extent.width;
-	fbufCreateInfo.height = _extent.height;
+	fbufCreateInfo.width = _rect.extent.width;
+	fbufCreateInfo.height = _rect.extent.height;
 	fbufCreateInfo.layers = 1;
 
 	VK_CHECK_RESULT(vkCreateFramebuffer(device, &fbufCreateInfo, nullptr, &_frameBuffer));
@@ -185,7 +185,7 @@ void OffscreenPass::cleanup() {
 void OffscreenPass::setUbo(const UboType& ubo) {
 	_ubo = ubo;
 
-	_pipelines.iterate([&](const PipelineBasePtr& pipeline) {
+	_pipelines->iterate([&](const PipelineBasePtr& pipeline) {
 		if (pipeline->isVisible() && pipeline->numSceneNodes() > 0) {
 			pipeline->updateUniformBuffers(0 /*swapChainImageIndex*/); // These pipelines don't have a swap chain
 		}

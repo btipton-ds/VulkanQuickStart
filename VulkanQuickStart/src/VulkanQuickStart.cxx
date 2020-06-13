@@ -84,15 +84,14 @@ const std::string stlFilenameCourse = "test_part_course.stl";
 const std::string stlFilenameFine = "test_part_fine.stl";
 #endif
 
-Pipeline3DPtr pipeline3DShaded;
-Pipeline3DPtr pipeline3DWireframe;
+vector<Pipeline3DPtr> pipeline3DShaded;
+vector<Pipeline3DPtr> pipeline3DWireframe;
 
-Pipeline3DWSamplerPtr pipeline3DWSampler;
+vector<Pipeline3DWSamplerPtr> pipeline3DWSampler;
 
 VulkanAppPtr gApp;
 
-ModelPtr vaseShaded, vaseWf;
-ModelPtr partShaded, partWf;
+ModelPtr vase, part;
 
 
 #if TEST_GUI
@@ -114,8 +113,12 @@ void buildUi(UI::WindowPtr& gui) {
 	gui->addButton(bkgColor, "Toggle Wireframe", UI::Rect(row, 0, row + h, w))->
 		setAction(UI::Button::ActionType::ACT_CLICK, [&](int btnNum, int modifiers) {
 		if (btnNum == 0) {
-			pipeline3DShaded->toggleVisiblity();
-			pipeline3DWireframe->toggleVisiblity();
+			for (auto plPtr : pipeline3DShaded) {
+				plPtr->toggleVisiblity();
+			}
+			for (auto plPtr : pipeline3DWireframe) {
+				plPtr->toggleVisiblity();
+			}
 		}
 	});
 
@@ -135,10 +138,8 @@ void buildUi(UI::WindowPtr& gui) {
 	gui->addButton(bkgColor, "Show/Hide part", UI::Rect(row, 0, row + h, w))->
 		setAction(UI::Button::ActionType::ACT_CLICK, [&](int btnNum, int modifiers) {
 		if (btnNum == 0) {
-			if (partWf)
-				partWf->toggleVisibility();
-			if (partShaded)
-				partShaded->toggleVisibility();
+			if (part)
+				part->toggleVisibility();
 		}
 	});
 
@@ -146,10 +147,8 @@ void buildUi(UI::WindowPtr& gui) {
 	gui->addButton(bkgColor, "Show/Hide vase", UI::Rect(row, 0, row + h, w))->
 		setAction(UI::Button::ActionType::ACT_CLICK, [&](int btnNum, int modifiers) {
 		if (btnNum == 0) {
-			if (vaseShaded) 
-				vaseShaded->toggleVisibility();
-			if (vaseWf)
-				vaseWf->toggleVisibility();
+			if (vase) 
+				vase->toggleVisibility();
 		}
 	});
 
@@ -182,7 +181,9 @@ void addObj() {
 	glm::mat4 xform;
 
 	plant = ModelObj::create(gApp, pottedPlantPath, pottedPlantFilename);
-	pipeline3DWSampler->addSceneNode(plant);
+	for (auto plPtr : pipeline3DWSampler) {
+		plPtr->addSceneNode(plant);
+	}
 	xform = glm::rotate(glm::mat4(1.0f), glm::radians(90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
 	plant->setModelTransform(xform);
 	plant->setModelTransformFunc([&](const glm::mat4& src)->glm::mat4 {
@@ -197,7 +198,9 @@ void addObj() {
 	});
 
 	dna = ModelObj::create(gApp, dnaPath, dnaFilename);
-	pipeline3DWSampler->addSceneNode(dna);
+	for (auto plPtr : pipeline3DWSampler) {
+		plPtr->addSceneNode(dna);
+	}
 	xform = glm::translate(glm::mat4(1.0f), glm::vec3(0, 10, 0));
 	dna->setModelTransform(xform);
 	dna->setModelTransformFunc([&](const glm::mat4& src)->glm::mat4 {
@@ -218,18 +221,18 @@ void addObj() {
 #endif
 }
 
-int readStl(const string& filename, ModelPtr& modelShaded, ModelPtr& modelWF) {
+int readStl(const string& filename, ModelPtr& model) {
 	TriMesh::CMeshPtr meshPtr = std::make_shared<TriMesh::CMesh>();
 	CReadSTL readStl(meshPtr);
 	if (!readStl.read(modelPath, filename))
 		return 1;
 
 
-	modelShaded = Model::create(gApp, meshPtr);
-	pipeline3DShaded->addSceneNode(modelShaded);
-
-	modelWF = Model::create(gApp, meshPtr);
-	pipeline3DWireframe->addSceneNode(modelWF);
+	model = Model::create(gApp, meshPtr);
+	for (auto plPtr : pipeline3DShaded)
+		plPtr->addSceneNode(model);
+	for (auto plPtr : pipeline3DWireframe)
+		plPtr->addSceneNode(model);
 
 	return 0;
 }
@@ -240,16 +243,14 @@ int addStl() {
 
 	bool fine = false;
 	std::string filename = fine ? stlFilenameFine : stlFilenameCourse;
-	readStl(filename, partShaded, partWf);
+	readStl(filename, part);
 	xform = glm::scale(glm::mat4(1.0f), glm::vec3(.05f, .05f, .05f));
-	partShaded->setModelTransform(xform);
-	partWf->setModelTransform(xform);
+	part->setModelTransform(xform);
 
-	readStl("Vase.stl", vaseShaded, vaseWf);
+	readStl("Vase.stl", vase);
 	xform = glm::translate(glm::mat4(1.0f), glm::vec3(-5, -5, 0));
 	xform *= glm::scale(glm::mat4(1.0f), glm::vec3(.25f, .25f, .25f));
-	vaseShaded->setModelTransform(xform);
-	vaseWf->setModelTransform(xform);
+	vase->setModelTransform(xform);
 
 	auto xformFunc = [&](const glm::mat4& src)->glm::mat4 {
 		double revs = gApp->getRuntimeMillis() / 1000.0 * (15.0 / 30.0);
@@ -261,8 +262,7 @@ int addStl() {
 		return xform;
 	};
 
-	vaseShaded->setModelTransformFunc(xformFunc);
-	vaseWf->setModelTransformFunc(xformFunc);
+	vase->setModelTransformFunc(xformFunc);
 
 #endif
 	return 0;
@@ -277,7 +277,7 @@ int main(int numArgs, char** args) {
 
 	gApp->setAntiAliasSamples(VK_SAMPLE_COUNT_4_BIT);
 	VkExtent2D offscreenExtent = { 2048, 2048 };
-	gApp->setOffscreenExtent(offscreenExtent);
+//	gApp->setOffscreenExtent(offscreenExtent);
 
 #if TEST_GUI
 	UI::WindowPtr gui = make_shared<UI::Window>(gApp);
@@ -293,8 +293,10 @@ int main(int numArgs, char** args) {
 
 	pipeline3DShaded = gApp->addPipelineWithSource<Pipeline3D>("stl_shaded", "shaders/shader_vert.spv", "shaders/shader_frag.spv");
 	pipeline3DWireframe = gApp->addPipelineWithSource<Pipeline3D>("stl_wireframe", "shaders/shader_vert.spv", "shaders/shader_wireframe_frag.spv");
-	pipeline3DWireframe->setPolygonMode(VK_POLYGON_MODE_LINE);
-	pipeline3DWireframe->toggleVisiblity();
+	for (auto plPtr : pipeline3DWireframe) {
+		plPtr->setPolygonMode(VK_POLYGON_MODE_LINE);
+		plPtr->toggleVisiblity();
+	}
 
 	addObj();
 	addStl();

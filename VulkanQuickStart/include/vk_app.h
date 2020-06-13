@@ -92,7 +92,7 @@ namespace VK {
 		size_t getRuntimeMillis() const;
 
 		template<class PIPELINE_TYPE>
-		VK::PipelinePtr<PIPELINE_TYPE> addPipelineWithSource(const std::string& shaderId, const std::string& vertShaderFilename, const std::string& fragShaderFilename);
+		std::vector<VK::PipelinePtr<PIPELINE_TYPE>> addPipelineWithSource(const std::string& shaderId, const std::string& vertShaderFilename, const std::string& fragShaderFilename);
 
 		const DeviceContextPtr& getDeviceContext() const;
 
@@ -164,8 +164,8 @@ namespace VK {
 		void createBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer& buffer, VkDeviceMemory& bufferMemory);
 		uint32_t findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties);
 		void createCommandBuffers();
-		void drawCmdBufferLoop(VkCommandBuffer cmdBuff, size_t swapChainIndex, size_t pipelineNum,
-			VkCommandBufferBeginInfo& beginInfo, VkRenderPassBeginInfo& renderPassInfo);
+		void drawCmdBufferLoopScreen(VkCommandBuffer cmdBuff, size_t swapChainIndex, VkCommandBufferBeginInfo& beginInfo, VkRenderPassBeginInfo& renderPassInfo);
+		void drawCmdBufferLoopOffscreen(VkCommandBuffer cmdBuff, size_t swapChainIndex, VkCommandBufferBeginInfo& beginInfo, VkRenderPassBeginInfo& renderPassInfo);
 		void createSyncObjects();
 		void updateUniformBuffer(uint32_t swapChainImageIndex);
 		void updateUBO(const VkExtent2D& extent, const BoundingBox& modelBounds, UboType& ubo) const;
@@ -278,11 +278,26 @@ namespace VK {
 	}
 
 	template<class PIPELINE_TYPE>
-	inline VK::PipelinePtr<PIPELINE_TYPE> VulkanApp::addPipelineWithSource(const std::string& shaderId, const std::string& vertShaderFilename, const std::string& fragShaderFilename) {
-		auto pipeline = createPipelineWithSource<PIPELINE_TYPE>(_pipelines, shaderId, _frameRect, vertShaderFilename, fragShaderFilename);
-		_pipelines->add(pipeline);
+	inline std::vector<VK::PipelinePtr<PIPELINE_TYPE>> VulkanApp::addPipelineWithSource(const std::string& shaderId, const std::string& vertShaderFilename, const std::string& fragShaderFilename) {
+		std::vector<VK::PipelinePtr<PIPELINE_TYPE>> result;
+
+		PipelineGroupTypePtr pls;
+		
+		pls = _pipelines;
+		VK::PipelinePtr<PIPELINE_TYPE> pipeline;
+		pipeline = createPipelineWithSource<PIPELINE_TYPE>(pls, shaderId, _frameRect, vertShaderFilename, fragShaderFilename);
+		pls->add(pipeline);
+		result.push_back(pipeline);
+
+		if (_offscreenPass) {
+			pls = _offscreenPass->getPipelines();
+			pipeline = createPipelineWithSource<PIPELINE_TYPE>(pls, shaderId, _offscreenPass->getRect(), vertShaderFilename, fragShaderFilename);
+			pls->add(pipeline);
+			result.push_back(pipeline);
+		}
+
 		changed();
-		return pipeline;
+		return result;
 	}
 
 	inline void VulkanApp::stop() {

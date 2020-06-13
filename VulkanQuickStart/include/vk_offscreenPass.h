@@ -43,6 +43,8 @@ namespace VK {
 	public:
 		using UboType = UniformBufferObject3D;
 		using PipelineGroupType = PipelineUboGroup<UboType>;
+		using PipelineGroupTypePtr = PipelineUboGroupPtr<UboType>;
+		using PipelinePtr = PipelineGroupType::PipelinePtr;
 
 		OffscreenPass(const VulkanAppPtr& app, VkFormat colorFormat, VkFormat depthFormat);
 		~OffscreenPass();
@@ -53,16 +55,15 @@ namespace VK {
 		const ImagePtr& getColorImage() const;
 		VkRenderPass getRenderPass() const;
 		VkFramebuffer getFrameBuffer() const;
-		const VkExtent2D& getExtent() const;
+		const VkRect2D& getRect() const;
 
-		const PipelineGroupType& getPipelines() const;
-		PipelineGroupType& getPipelines();
+		const PipelineGroupTypePtr& getPipelines() const;
 
 		void setUbo(const UboType& ubo);
 		void setAntiAliasSamples(VkSampleCountFlagBits samples);
 
 	private:
-		VkExtent2D _extent = { 0, 0 };
+		VkRect2D _rect = { { 0, 0 }, {0, 0 } };
 		VkFramebuffer _frameBuffer = VK_NULL_HANDLE;
 		ImagePtr _color = VK_NULL_HANDLE, _depth = VK_NULL_HANDLE;
 		VkSampler _sampler = VK_NULL_HANDLE;
@@ -71,7 +72,7 @@ namespace VK {
 		VkFormat _colorFormat, _depthFormat;
 
 		UboType _ubo;
-		PipelineGroupType _pipelines;
+		PipelineGroupTypePtr _pipelines;
 	};
 
 	inline const ImagePtr& OffscreenPass::getColorImage() const {
@@ -79,26 +80,22 @@ namespace VK {
 	}
 
 	inline VkRenderPass OffscreenPass::getRenderPass() const {
-		return _pipelines.getRenderPass();
+		return _pipelines->getRenderPass();
 	}
 
 	inline VkFramebuffer OffscreenPass::getFrameBuffer() const {
 		return _frameBuffer;
 	}
 
-	inline const VkExtent2D& OffscreenPass::getExtent() const {
-		return _extent;
+	inline const VkRect2D& OffscreenPass::getRect() const {
+		return _rect;
 	}
 
-	inline const typename OffscreenPass::PipelineGroupType& OffscreenPass::getPipelines() const {
-		return _pipelines;
-	}
-
-	inline typename OffscreenPass::PipelineGroupType& OffscreenPass::getPipelines() {
+	inline const typename OffscreenPass::PipelineGroupTypePtr& OffscreenPass::getPipelines() const {
 		return _pipelines;
 	}
 
 	inline void OffscreenPass::setAntiAliasSamples(VkSampleCountFlagBits samples) {
-		_pipelines.setAntiAliasSamples(samples);
+		_pipelines->setAntiAliasSamples(samples);
 	}
 }
