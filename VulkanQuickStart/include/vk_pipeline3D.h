@@ -43,7 +43,7 @@ namespace VK {
 		using BoundingBox = CBoundingBox3D<float>;
 		using PipelinePtr = std::shared_ptr<Pipeline3D>;
 
-		Pipeline3D(const VulkanAppPtr& app, const std::string& shaderId, const VkRect2D& rect);
+		Pipeline3D(const PipelineUboGroupBasePtr& plGroup, const std::string& shaderId, const VkRect2D& rect);
 
 		BoundingBox getBounds() const;
 

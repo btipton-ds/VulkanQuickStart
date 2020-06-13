@@ -105,7 +105,8 @@ VulkanApp::VulkanApp(const VkRect2D& rect)
 	, _frameRect(rect)
 {
 	_modelToWorld = glm::identity<glm::mat4>();
-	_pipelines = make_shared<PipelineGroupType>();
+	_pipelines = make_shared<PipelineGroupType>(getAppPtr());
+	_pipelines->setAntiAliasSamples(_msaaSamples);
 
 	initWindow();
 	initVulkan();
@@ -256,11 +257,9 @@ void VulkanApp::cleanupSwapChain() {
 	});
 
 	if (_uiWindow)
-		_uiWindow->getPipeline()->cleanupSwapChain();
+		_uiWindow->getPipelines()->cleanupSwapChain();
 
 	vkFreeCommandBuffers(_deviceContext->_device, _deviceContext->_commandPool, static_cast<uint32_t>(_commandBuffers.size()), _commandBuffers.data());
-
-	vkDestroyRenderPass(_deviceContext->_device, renderPass, nullptr);
 
 	for (auto imageView : _swapChain._vkImageViews) {
 		vkDestroyImageView(_deviceContext->_device, imageView, nullptr);
@@ -277,8 +276,10 @@ size_t VulkanApp::getNumGraphicsPipelines() const {
 }
 
 void VulkanApp::setOffscreenExtent(const VkExtent2D& extent) {
-	if (!_offscreenPass)
-		_offscreenPass = make_shared<OffscreenPass>(_deviceContext, VK_FORMAT_R8G8B8A8_UNORM, findDepthFormat());
+	if (!_offscreenPass) {
+		_offscreenPass = make_shared<OffscreenPass>(getAppPtr(), VK_FORMAT_R8G8B8A8_UNORM, findDepthFormat());
+		_offscreenPass->setAntiAliasSamples(_maxMsaaSamples);
+	}
 
 	_offscreenPass->init(extent);
 }
@@ -286,7 +287,7 @@ void VulkanApp::setOffscreenExtent(const VkExtent2D& extent) {
 
 VkRenderPass VulkanApp::getRenderPass(size_t passNum) const {
 	if (passNum == 0)
-		return renderPass;
+		return _pipelines->getRenderPass();
 	else
 		return _offscreenPass->getRenderPass();
 }
@@ -390,7 +391,7 @@ void VulkanApp::pickPhysicalDevice() {
 	for (const auto& device : devices) {
 		if (isDeviceSuitable(device)) {
 			_deviceContext->_physicalDevice = device;
-			_msaaSamples = getMaxUsableSampleCount();
+			_msaaSamples = _maxMsaaSamples = getMaxUsableSampleCount();
 			break;
 		}
 	}
@@ -583,9 +584,11 @@ void VulkanApp::createRenderPass() {
 	renderPassInfo.dependencyCount = 1;
 	renderPassInfo.pDependencies = &dependency;
 
+	VkRenderPass renderPass;
 	if (vkCreateRenderPass(_deviceContext->_device, &renderPassInfo, nullptr, &renderPass) != VK_SUCCESS) {
 		throw std::runtime_error("failed to create render pass!");
 	}
+	_pipelines->setRenderPass(renderPass);
 }
 
 void VulkanApp::createGraphicsPipeline() {
@@ -594,7 +597,10 @@ void VulkanApp::createGraphicsPipeline() {
 			pl->build();
 	});
 	if (_uiWindow)
-		_uiWindow->getPipeline()->build();
+		_uiWindow->getPipelines()->iterate([](const UI::Window::PipelinePtr& pl) {
+		if (pl->isVisible())
+			pl->build();
+	});
 }
 
 void VulkanApp::createFramebuffers() {
@@ -609,7 +615,7 @@ void VulkanApp::createFramebuffers() {
 
 		VkFramebufferCreateInfo framebufferInfo = {};
 		framebufferInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
-		framebufferInfo.renderPass = renderPass;
+		framebufferInfo.renderPass = _pipelines->getRenderPass();
 		framebufferInfo.attachmentCount = static_cast<uint32_t>(attachments.size());
 		framebufferInfo.pAttachments = attachments.data();
 		framebufferInfo.width = _swapChain._extent.width;
@@ -761,7 +767,7 @@ void VulkanApp::createCommandBuffers() {
 		renderPassInfo.clearValueCount = static_cast<uint32_t>(clearValues.size());
 		renderPassInfo.pClearValues = clearValues.data();
 
-		renderPassInfo.renderPass = renderPass;
+		renderPassInfo.renderPass = _pipelines->getRenderPass();
 		renderPassInfo.framebuffer = _swapChain._vkFrameBuffers[swapChainIndex];
 		renderPassInfo.renderArea.offset = { 0, 0 };
 		renderPassInfo.renderArea.extent = _swapChain._extent;
@@ -789,11 +795,14 @@ void VulkanApp::drawCmdBufferLoop(VkCommandBuffer cmdBuff, size_t swapChainIndex
 
 	_pipelines->iterate([&](const PipelinePtr& pipeline) {
 		if (pipeline->isVisible())
-			pipeline->draw(cmdBuff, swapChainIndex, pipelineNum);
+			pipeline->draw(cmdBuff, swapChainIndex);
 	});
 
 	if (_uiWindow)
-		_uiWindow->getPipeline()->draw(cmdBuff, swapChainIndex, pipelineNum);
+		_uiWindow->getPipelines()->iterate([&](const UI::Window::PipelinePtr& pipeline) {
+		if (pipeline->isVisible())
+			pipeline->draw(cmdBuff, swapChainIndex);
+	});
 
 	vkCmdEndRenderPass(cmdBuff);
 }
@@ -869,9 +878,6 @@ void VulkanApp::updateUniformBuffer(uint32_t swapChainImageIndex) {
 
 	BoundingBox modelBounds;
 
-	if (_uiWindow)
-		_uiWindow->getPipeline()->updateUniformBuffers(swapChainImageIndex);
-
 	_pipelines->iterate([&](const PipelinePtr& pipeline) {
 		auto ptr3D = dynamic_pointer_cast<Pipeline3D>(pipeline);
 		if (ptr3D)
@@ -885,6 +891,13 @@ void VulkanApp::updateUniformBuffer(uint32_t swapChainImageIndex) {
 	OffscreenPass::UboType ubo;
 	updateUBO(_swapChain._extent, modelBounds, ubo);
 	_pipelines->setUbo(ubo, swapChainImageIndex);
+
+#if 0
+	if (_uiWindow)
+		_uiWindow->getPipelines()->iterate([&](const PipelinePtr& pipeline) {
+		pipeline->updateUniformBuffers(swapChainImageIndex);
+	});
+#endif
 
 	if (_offscreenPass) {
 		updateUBO(_swapChain._extent, modelBounds, ubo);

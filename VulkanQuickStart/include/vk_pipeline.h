@@ -41,8 +41,8 @@ namespace VK {
 	public:
 		using UboType = UBO_TYPE;
 
-		PipelineUbo(const VulkanAppPtr& app, const std::string& shaderId, const VkRect2D& rect)
-			: PipelineBase(app, shaderId, rect) 
+		PipelineUbo(const PipelineUboGroupBasePtr& plGroup, const std::string& shaderId, const VkRect2D& rect)
+			: PipelineBase(plGroup, shaderId, rect) 
 		{}
 
 		inline void setUniformBufferPtr(const UboType* uboPtr) {
@@ -65,7 +65,7 @@ namespace VK {
 		using SceneNodePtr = std::shared_ptr<PipelineSceneNode>;
 		using SceneNodeList = std::vector<SceneNodePtr>;
 
-		Pipeline(const VulkanAppPtr& app, const std::string& shaderId, const VkRect2D& rect);
+		Pipeline(const PipelineUboGroupBasePtr& plGroup, const std::string& shaderId, const VkRect2D& rect);
 
 		void cleanupSwapChain() override;
 		void addSceneNode(const SceneNodePtr& node);
@@ -85,23 +85,23 @@ namespace VK {
 	};
 
 	template<class PIPELINE_TYPE>
-	inline typename PIPELINE_TYPE::PipelinePtr createPipeline(const VulkanAppPtr& app, const std::string& shaderId, const VkRect2D& rect) {
-		PIPELINE_TYPE* ptr = new PIPELINE_TYPE(app, shaderId, rect);
+	inline typename PIPELINE_TYPE::PipelinePtr createPipeline(const PipelineUboGroupBasePtr& plGroup, const std::string& shaderId, const VkRect2D& rect) {
+		PIPELINE_TYPE* ptr = new PIPELINE_TYPE(plGroup, shaderId, rect);
 		return PipelinePtr<PIPELINE_TYPE>(ptr);
 	}
 
 	template<class PIPELINE_TYPE>
-	inline typename PIPELINE_TYPE::PipelinePtr createPipelineWithSource(const VulkanAppPtr& app, const std::string& shaderId, const VkRect2D& rect, const std::string& vertShaderFilename, const std::string& fragShaderFilename) {
-		auto pipeline = createPipeline<PIPELINE_TYPE>(app, shaderId, rect);
-		auto& shaders = app->getDeviceContext()->getShaderPool();
+	inline typename PIPELINE_TYPE::PipelinePtr createPipelineWithSource(const PipelineUboGroupBasePtr& plGroup, const std::string& shaderId, const VkRect2D& rect, const std::string& vertShaderFilename, const std::string& fragShaderFilename) {
+		auto pipeline = createPipeline<PIPELINE_TYPE>(plGroup, shaderId, rect);
+		auto& shaders = plGroup->getApp()->getDeviceContext()->getShaderPool();
 		if (!shaders.getShader(shaderId))
 			shaders.addShader(shaderId, { vertShaderFilename , fragShaderFilename });
 		return pipeline;
 	}
 
 	template<class VERT_TYPE, class UBO_TYPE>
-	inline Pipeline<VERT_TYPE, UBO_TYPE>::Pipeline(const VulkanAppPtr& app, const std::string& shaderId, const VkRect2D& rect)
-	: PipelineUbo(app, shaderId, rect)
+	inline Pipeline<VERT_TYPE, UBO_TYPE>::Pipeline(const PipelineUboGroupBasePtr& plGroup, const std::string& shaderId, const VkRect2D& rect)
+	: PipelineUbo(plGroup, shaderId, rect)
 	{ 
 		_vertBindDesc = VERT_TYPE::getBindingDescription();
 		_vertAttribDesc = VERT_TYPE::getAttributeDescriptions();

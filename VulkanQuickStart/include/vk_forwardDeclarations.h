@@ -75,6 +75,9 @@ namespace VK {
 	class PipelineUi;
 	using PipelineUiPtr = std::shared_ptr<PipelineUi>;
 
+	class PipelineUboGroupBase;
+	using PipelineUboGroupBasePtr = std::shared_ptr<PipelineUboGroupBase>;
+
 	template<class UBO_TYPE>
 	class PipelineUboGroup;
 	template<class UBO_TYPE>

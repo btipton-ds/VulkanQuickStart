@@ -62,7 +62,7 @@ namespace VK {
 		using PipelinePtr = std::shared_ptr<PipelineUi>;
 		using VertexType = VertexUi;
 
-		PipelineUi(const VulkanAppPtr& app, const UboType* ubo);
+		PipelineUi(const PipelineUboGroupBasePtr& plGroup);
 
 		void updateUniformBuffers(size_t swapChainIndex) override;
 

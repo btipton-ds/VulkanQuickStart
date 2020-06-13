@@ -36,12 +36,14 @@ This file is part of the VulkanQuickStart Project.
 #include <vk_deviceContext.h>
 #include <vk_image.h>
 #include <vk_pipelineBase.h>
+#include <vk_app.h>
 
 using namespace std;
 using namespace VK;
 
-OffscreenPass::OffscreenPass(const DeviceContextPtr& deviceContext, VkFormat colorFormat, VkFormat depthFormat)
-	: _deviceContext(deviceContext)
+OffscreenPass::OffscreenPass(const VulkanAppPtr& app, VkFormat colorFormat, VkFormat depthFormat)
+	: _deviceContext(app->getDeviceContext())
+	, _pipelines(app)
 	, _colorFormat(colorFormat)
 	, _depthFormat(depthFormat)
 {
@@ -144,14 +146,16 @@ void OffscreenPass::init(const VkExtent2D& extent) {
 	renderPassInfo.dependencyCount = static_cast<uint32_t>(dependencies.size());
 	renderPassInfo.pDependencies = dependencies.data();
 
-	VK_CHECK_RESULT(vkCreateRenderPass(device, &renderPassInfo, nullptr, &_renderPass));
+	VkRenderPass renderPass;
+	VK_CHECK_RESULT(vkCreateRenderPass(device, &renderPassInfo, nullptr, &renderPass));
+	_pipelines.setRenderPass(renderPass);
 
 	VkImageView attachments[2];
 	attachments[0] = _color->getImageView();
 	attachments[1] = _depth->getImageView();
 
 	VkFramebufferCreateInfo fbufCreateInfo = {};
-	fbufCreateInfo.renderPass = _renderPass;
+	fbufCreateInfo.renderPass = renderPass;
 	fbufCreateInfo.attachmentCount = 2;
 	fbufCreateInfo.pAttachments = attachments;
 	fbufCreateInfo.width = _extent.width;
@@ -169,14 +173,11 @@ void OffscreenPass::init(const VkExtent2D& extent) {
 void OffscreenPass::cleanup() {
 	auto device = _deviceContext->_device;
 
-	if (_renderPass)
-		vkDestroyRenderPass(device, _renderPass, nullptr);
 	if (_sampler)
 		vkDestroySampler(device, _sampler, nullptr);
 	if (_frameBuffer)
 		vkDestroyFramebuffer(device, _frameBuffer, nullptr);
 
-	_renderPass = VK_NULL_HANDLE;
 	_sampler = VK_NULL_HANDLE;
 	_frameBuffer = VK_NULL_HANDLE;
 }

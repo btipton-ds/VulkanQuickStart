@@ -58,8 +58,9 @@ namespace VK {
 
 	class VulkanApp : public std::enable_shared_from_this<VulkanApp> {
 	public:
-		using UboType = UniformBufferObject3D;
 		using BoundingBox = CBoundingBox3D<float>;
+
+		using UboType = UniformBufferObject3D;
 		using PipelineGroupType = PipelineUboGroup<UboType>;
 		using PipelineGroupTypePtr = PipelineUboGroupPtr<UboType>;
 		using PipelinePtr = PipelineGroupType::PipelinePtr;
@@ -96,7 +97,6 @@ namespace VK {
 		VkRenderPass getRenderPass(size_t passNum) const;
 		void setTargetFrameDurationMillis(double duration);
 		void setAntiAliasSamples(VkSampleCountFlagBits samples);
-		VkSampleCountFlagBits getAntiAliasSamples(size_t  pipelineNum) const;
 		GLFWwindow* getWindow();
 		const UI::WindowPtr& getUiWindow() const;
 		unsigned int getWindowDpi() const;
@@ -197,15 +197,14 @@ namespace VK {
 		VkDebugUtilsMessengerEXT debugMessenger;
 
 		DeviceContextPtr _deviceContext;
+		VkSampleCountFlagBits _maxMsaaSamples = VK_SAMPLE_COUNT_1_BIT;
 		VkSampleCountFlagBits _msaaSamples = VK_SAMPLE_COUNT_1_BIT;
 
 		VkQueue presentQueue;
 		SwapChain _swapChain;
 
-		OffscreenPassPtr _offscreenPass;
-		VkRenderPass renderPass;
-
 		double _targetFrameDurationMillis = -1;
+		OffscreenPassPtr _offscreenPass;
 		PipelineGroupTypePtr _pipelines;
 
 		std::vector<VkCommandBuffer> _commandBuffers;
@@ -238,14 +237,8 @@ namespace VK {
 	}
 
 	inline void VulkanApp::setAntiAliasSamples(VkSampleCountFlagBits samples) {
-		_msaaSamples = samples;
-	}
-
-	inline VkSampleCountFlagBits VulkanApp::getAntiAliasSamples(size_t  pipelineNum) const {
-		if (pipelineNum == 0)
-			return _msaaSamples;
-		else
-			return VK_SAMPLE_COUNT_1_BIT; // Offscren render
+		if (samples < _maxMsaaSamples)
+			_msaaSamples = samples;
 	}
 
 	inline GLFWwindow* VulkanApp::getWindow() {
@@ -286,7 +279,7 @@ namespace VK {
 
 	template<class PIPELINE_TYPE>
 	inline VK::PipelinePtr<PIPELINE_TYPE> VulkanApp::addPipelineWithSource(const std::string& shaderId, const std::string& vertShaderFilename, const std::string& fragShaderFilename) {
-		auto pipeline = createPipelineWithSource<PIPELINE_TYPE>(getAppPtr(), shaderId, _frameRect, vertShaderFilename, fragShaderFilename);
+		auto pipeline = createPipelineWithSource<PIPELINE_TYPE>(_pipelines, shaderId, _frameRect, vertShaderFilename, fragShaderFilename);
 		_pipelines->add(pipeline);
 		changed();
 		return pipeline;

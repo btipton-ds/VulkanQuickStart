@@ -45,9 +45,9 @@ This file is part of the VulkanQuickStart Project.
 using namespace VK;
 using namespace std;
 
-PipelineBase::PipelineBase(const VulkanAppPtr& app, const std::string& shaderId, const VkRect2D& rect)
-	: _app(app)
-	, _dc(app->getDeviceContext())
+PipelineBase::PipelineBase(const PipelineUboGroupBasePtr& plGroup, const std::string& shaderId, const VkRect2D& rect)
+	: _plGroup(plGroup)
+	, _dc(plGroup->getApp()->getDeviceContext())
 	, _shaderId(shaderId)
 {
 	_viewportRect.offset = rect.offset;
@@ -58,6 +58,11 @@ PipelineBase::PipelineBase(const VulkanAppPtr& app, const std::string& shaderId,
 PipelineBase::~PipelineBase() {
 	cleanupSwapChain();
 }
+
+const VulkanAppPtr& PipelineBase::getApp() const {
+	return _plGroup->getApp();
+}
+
 
 void PipelineBase::toggleVisiblity() {
 	_visible = !_visible;
@@ -76,27 +81,23 @@ void PipelineBase::cleanupSwapChain() {
 	VkDevice vkDevice = _dc->_device;
 	if (_descriptorSetLayout != VK_NULL_HANDLE)
 		vkDestroyDescriptorSetLayout(vkDevice, _descriptorSetLayout, nullptr);
-	for (auto gpl : _graphicsPipelines) {
-		if (gpl != VK_NULL_HANDLE)
-			vkDestroyPipeline(vkDevice, gpl, nullptr);
-	}
+	if (_graphicsPipeline != VK_NULL_HANDLE)
+		vkDestroyPipeline(vkDevice, _graphicsPipeline, nullptr);
 	if (_pipelineLayout != VK_NULL_HANDLE)
 		vkDestroyPipelineLayout(vkDevice, _pipelineLayout, nullptr);
 
 	_descriptorSetLayout = VK_NULL_HANDLE;
-	_graphicsPipelines.clear();
+	_graphicsPipeline = VK_NULL_HANDLE;
 	_pipelineLayout = VK_NULL_HANDLE;
 }
 
-void PipelineBase::draw(VkCommandBuffer cmdBuff, size_t swapChainIndex, size_t pipelineNum) {
-	if (!_graphicsPipelines.empty()) {
-		vkCmdBindPipeline(cmdBuff, VK_PIPELINE_BIND_POINT_GRAPHICS, _graphicsPipelines[pipelineNum]);
-		addCommands(cmdBuff, swapChainIndex);
-	}
+void PipelineBase::draw(VkCommandBuffer cmdBuff, size_t swapChainIndex) {
+	vkCmdBindPipeline(cmdBuff, VK_PIPELINE_BIND_POINT_GRAPHICS, _graphicsPipeline);
+	addCommands(cmdBuff, swapChainIndex);
 }
 
 void PipelineBase::changed() {
-	_app->changed();
+	getApp()->changed();
 }
 
 void PipelineBase::build() {
@@ -161,9 +162,6 @@ void PipelineBase::build() {
 
 	createPipelineLayout();
 
-	size_t numPipelines = _app->getNumGraphicsPipelines();
-	_graphicsPipelines.resize(numPipelines);
-
 	VkGraphicsPipelineCreateInfo pipelineInfo = {};
 	pipelineInfo.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
 	pipelineInfo.stageCount = (uint32_t)shaderStages.size();
@@ -181,12 +179,10 @@ void PipelineBase::build() {
 
 	VkDevice device = _dc->_device;
 
-	for (size_t i = 0; i < numPipelines; i++) {
-		multisampling.rasterizationSamples = _app->getAntiAliasSamples(i);
-		pipelineInfo.renderPass = _app->getRenderPass(i);
-		if (vkCreateGraphicsPipelines(device, VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &_graphicsPipelines[i]) != VK_SUCCESS) {
-			throw std::runtime_error("failed to create graphics pipeline!");
-		}
+	multisampling.rasterizationSamples = _plGroup->getAntiAliasSamples();
+	pipelineInfo.renderPass = _plGroup->getRenderPass();
+	if (vkCreateGraphicsPipelines(device, VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &_graphicsPipeline) != VK_SUCCESS) {
+		throw std::runtime_error("failed to create graphics pipeline!");
 	}
 }
 

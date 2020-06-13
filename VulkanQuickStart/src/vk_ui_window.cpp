@@ -40,6 +40,7 @@ This file is part of the VulkanQuickStart Project.
 #include <vk_pipelineSceneNodeUi.h>
 #include <vk_ui_button.h>
 #include <vk_ui_window.h>
+#include <vk_pipelineUboGroup.h>
 #include <vk_app.h>
 
 namespace VK::UI {
@@ -66,7 +67,7 @@ namespace VK::UI {
 
 	ivec2 Window::toUi(const dvec2& pt) const {
 		vec2 p(static_cast<float> (pt.x), static_cast<float> (pt.y));
-		const auto& ubo = _pipeline->getUniformBuffer();
+		const auto& ubo = _pipelines->getUbo();
 		/*
 	vec2 p = inPosition;
 	p = p * ubo.scale;
@@ -80,11 +81,12 @@ namespace VK::UI {
 	}
 
 	ButtonPtr Window::addButton(const glm::vec4& bkgColor, const std::string& label, const Rect& frame) {
-		ButtonPtr btnPtr = make_shared<Button>(_pipeline, bkgColor, label, frame);
+		auto pipeline = dynamic_pointer_cast<PipelineUi>(_pipelines->getPipeline(0));
+		ButtonPtr btnPtr = make_shared<Button>(pipeline, bkgColor, label, frame);
 		btnPtr->createBuffers();
 		_buttons.push_back(btnPtr);
 
-		_pipeline->addSceneNode(btnPtr);
+		pipeline->addSceneNode(btnPtr);
 		return btnPtr;
 	}
 
@@ -252,7 +254,9 @@ namespace VK::UI {
 	void Window::init() {
 		auto win = _app->getWindow();
 
-		_pipeline = make_shared<PipelineUi>(_app, &_ubo);
+		auto x = new PipelineUboGroup<UboType>(_app);
+		auto y = shared_ptr<PipelineUboGroup<UboType>>(x);
+		_pipelines->add(make_shared<PipelineUi>(_pipelines));
 
 		updateUbo();
 
@@ -273,9 +277,12 @@ namespace VK::UI {
 		float widthPts = widthIn * 72;
 		float heightPts = heightIn * 72;
 
-		_ubo._scale = glm::vec2(1.0f / widthPts, 1.0f / heightPts);
-		_ubo._offset = glm::vec2(-1.0f, -1.0f);
-		_ubo._color = glm::vec4(1, 0, 0, 1);
+		auto ubo = _pipelines->getUbo();
+		ubo._scale = glm::vec2(1.0f / widthPts, 1.0f / heightPts);
+		ubo._offset = glm::vec2(-1.0f, -1.0f);
+		ubo._color = glm::vec4(1, 0, 0, 1);
+		_pipelines->setUbo(ubo, 0);
+
 	}
 
 }

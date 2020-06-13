@@ -49,7 +49,7 @@ namespace VK {
 
 	class PipelineBase {
 	public:
-		PipelineBase(const VulkanAppPtr& app, const std::string& shaderId, const VkRect2D& rect);
+		PipelineBase(const PipelineUboGroupBasePtr& plGroup, const std::string& shaderId, const VkRect2D& rect);
 		virtual ~PipelineBase();
 
 		const std::string& getShaderId() const;
@@ -60,7 +60,7 @@ namespace VK {
 		void setDepthTestEnabled(bool depthTestEnabled);
 
 		virtual void cleanupSwapChain();
-		void draw(VkCommandBuffer cmdBuff, size_t swapChainIndex, size_t pipelineNum);
+		void draw(VkCommandBuffer cmdBuff, size_t swapChainIndex);
 
 		void setViewportRect(const VkRect2D& rect);
 		void setScissorRect(const VkRect2D& rect);
@@ -88,7 +88,7 @@ namespace VK {
 		virtual void createDescriptorSetLayout() = 0;
 		virtual void buildSceneNodes() = 0;
 
-		VulkanAppPtr _app;
+		PipelineUboGroupBasePtr _plGroup;
 		DeviceContextPtr _dc;
 
 		VkVertexInputBindingDescription _vertBindDesc;
@@ -119,7 +119,7 @@ namespace VK {
 
 	protected:
 		VkPipelineLayout _pipelineLayout = VK_NULL_HANDLE;
-		std::vector<VkPipeline> _graphicsPipelines;
+		VkPipeline _graphicsPipeline;
 
 	private:
 		bool _visible = true;
@@ -128,10 +128,6 @@ namespace VK {
 
 	inline const std::string& PipelineBase::getShaderId() const {
 		return _shaderId;
-	}
-
-	inline const VulkanAppPtr& PipelineBase::getApp() const {
-		return _app;
 	}
 
 	inline VkDescriptorSetLayout PipelineBase::getDescriptorSetLayout() const {

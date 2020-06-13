@@ -44,7 +44,7 @@ namespace VK {
 		using UboType = UniformBufferObject3D;
 		using PipelineGroupType = PipelineUboGroup<UboType>;
 
-		OffscreenPass(const DeviceContextPtr& deviceContext, VkFormat colorFormat, VkFormat depthFormat);
+		OffscreenPass(const VulkanAppPtr& app, VkFormat colorFormat, VkFormat depthFormat);
 		~OffscreenPass();
 
 		void init(const VkExtent2D& extent);
@@ -59,12 +59,12 @@ namespace VK {
 		PipelineGroupType& getPipelines();
 
 		void setUbo(const UboType& ubo);
+		void setAntiAliasSamples(VkSampleCountFlagBits samples);
 
 	private:
 		VkExtent2D _extent = { 0, 0 };
 		VkFramebuffer _frameBuffer = VK_NULL_HANDLE;
 		ImagePtr _color = VK_NULL_HANDLE, _depth = VK_NULL_HANDLE;
-		VkRenderPass _renderPass = VK_NULL_HANDLE;
 		VkSampler _sampler = VK_NULL_HANDLE;
 		VkDescriptorImageInfo _descriptor{};
 		DeviceContextPtr _deviceContext;
@@ -79,7 +79,7 @@ namespace VK {
 	}
 
 	inline VkRenderPass OffscreenPass::getRenderPass() const {
-		return _renderPass;
+		return _pipelines.getRenderPass();
 	}
 
 	inline VkFramebuffer OffscreenPass::getFrameBuffer() const {
@@ -98,4 +98,7 @@ namespace VK {
 		return _pipelines;
 	}
 
+	inline void OffscreenPass::setAntiAliasSamples(VkSampleCountFlagBits samples) {
+		_pipelines.setAntiAliasSamples(samples);
+	}
 }

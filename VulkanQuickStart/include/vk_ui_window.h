@@ -40,6 +40,7 @@ This file is part of the VulkanQuickStart Project.
 
 #include <vk_forwardDeclarations.h>
 #include <vk_ui_button.h>
+#include <vk_pipelineUboGroup.h>
 
 struct GLFWwindow;
 
@@ -49,6 +50,11 @@ namespace VK {
 
 		class Window {
 		public:
+			using UboType = UniformBufferObjectUi;
+			using PipelineGroupType = PipelineUboGroup<UboType>;
+			using PipelineGroupTypePtr = PipelineUboGroupPtr<UboType>;
+			using PipelinePtr = PipelineGroupType::PipelinePtr;
+
 			Window(const VulkanAppPtr& app);
 
 			void setDefaultButtonSize(float width, float height);
@@ -57,7 +63,7 @@ namespace VK {
 			size_t getChangeNumber() const;
 
 			int getPixelDPI() const;
-			const PipelineUiPtr& getPipeline() const;
+			const PipelineGroupTypePtr& getPipelines() const;
 
 		private:
 
@@ -88,8 +94,7 @@ namespace VK {
 
 			void updateUbo();
 
-			UniformBufferObjectUi _ubo;
-			PipelineUiPtr _pipeline;
+			PipelineGroupTypePtr _pipelines;
 			size_t _changeNumber = 0;
 			glm::dvec2 _mouseStartPos[4];
 			glm::mat4 _initialMatrix3D;
@@ -105,10 +110,9 @@ namespace VK {
 			return _changeNumber;
 		}
 
-		inline const PipelineUiPtr& Window::getPipeline() const {
-			return _pipeline;
+		inline const typename Window::PipelineGroupTypePtr& Window::getPipelines() const {
+			return _pipelines;
 		}
-
 	}
 }
 

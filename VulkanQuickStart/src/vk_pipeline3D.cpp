@@ -52,8 +52,8 @@ This file is part of the VulkanQuickStart Project.
 using namespace VK;
 using namespace std;
 
-Pipeline3D::Pipeline3D(const VulkanAppPtr& app, const std::string& shaderId, const VkRect2D& rect)
-	: Pipeline(app, shaderId, rect)
+Pipeline3D::Pipeline3D(const PipelineUboGroupBasePtr& plGroup, const std::string& shaderId, const VkRect2D& rect)
+	: Pipeline(plGroup, shaderId, rect)
 {}
 
 namespace {
@@ -106,7 +106,7 @@ void Pipeline3D::createDescriptorSetLayout() {
 	layoutInfo.bindingCount = static_cast<uint32_t>(bindings.size());
 	layoutInfo.pBindings = bindings.data();
 
-	if (vkCreateDescriptorSetLayout(_app->getDeviceContext()->_device, &layoutInfo, nullptr, &_descriptorSetLayout) != VK_SUCCESS) {
+	if (vkCreateDescriptorSetLayout(_dc->_device, &layoutInfo, nullptr, &_descriptorSetLayout) != VK_SUCCESS) {
 		throw std::runtime_error("failed to create descriptor set layout!");
 	}
 }

@@ -39,12 +39,12 @@ This file is part of the VulkanQuickStart Project.
 
 #include <vulkan/vulkan_core.h>
 
-#include <vk_pipeline.h>
+#include <vk_pipelineUboGroupBase.h>
 
 namespace VK {
 
 	template<class UBO_TYPE>
-	class PipelineUboGroup {
+	class PipelineUboGroup : public PipelineUboGroupBase {
 		/*
 		This class contains a list of pipelines which share a common uniform buffer object and related descriptors.
 		*/
@@ -52,6 +52,8 @@ namespace VK {
 		using UboType = UBO_TYPE;
 		using Pipeline = VK::PipelineUbo<UBO_TYPE>;
 		using PipelinePtr = std::shared_ptr<Pipeline>;
+
+		PipelineUboGroup(const VulkanAppPtr& app);
 
 		void add(const PipelinePtr& pl);
 		void resized(const VkRect2D& rect);
@@ -62,13 +64,20 @@ namespace VK {
 		template<typename FUNC_TYPE>
 		void iterate(FUNC_TYPE func);
 
+		void cleanupSwapChain();
+		const PipelinePtr& getPipeline(size_t idx) const;
+
 	private:
 		static bool PipelineComparePaintLayer(const PipelinePtr& pl1, const PipelinePtr& pl2);
 
-		std::mutex _mutex;
 		std::vector<PipelinePtr> _pipelines;
 		UboType _ubo;
 	};
+
+	template<class UBO_TYPE>
+	inline PipelineUboGroup<UBO_TYPE>::PipelineUboGroup(const VulkanAppPtr& app)
+		: PipelineUboGroupBase(app)
+	{}
 
 	template<class UBO_TYPE>
 	bool PipelineUboGroup<UBO_TYPE>::PipelineComparePaintLayer(const PipelinePtr& pl1, const PipelinePtr& pl2) {
@@ -115,4 +124,15 @@ namespace VK {
 		}
 	}
 
+	template<class UBO_TYPE>
+	inline void PipelineUboGroup<UBO_TYPE>::cleanupSwapChain() {
+		iterate([&](const PipelinePtr& pipeline) {
+			pipeline->cleanupSwapChain();
+		});
+	}
+
+	template<class UBO_TYPE>
+	inline const typename PipelineUboGroup<UBO_TYPE>::PipelinePtr& PipelineUboGroup<UBO_TYPE>::getPipeline(size_t idx) const {
+		return _pipelines[idx];
+	}
 }

@@ -38,14 +38,13 @@ This file is part of the VulkanQuickStart Project.
 using namespace std;
 using namespace VK;
 
-PipelineUi::PipelineUi(const VulkanAppPtr& app, const UboType* ubo)
-	: Pipeline(app, "UiPipeline", app->getFrameRect())
+PipelineUi::PipelineUi(const PipelineUboGroupBasePtr& plGroup)
+	: Pipeline(plGroup, "UiPipeline", plGroup->getApp()->getFrameRect())
 {
 	setPaintLayer(100);
 	setDepthTestEnabled(false);
 
-	setUniformBufferPtr(ubo);
-	auto& shaders = app->getDeviceContext()->getShaderPool();
+	auto& shaders = plGroup->getApp()->getDeviceContext()->getShaderPool();
 	if (!shaders.getShader(getShaderId()))
 		shaders.addShader(getShaderId(), { "shaders/shader_ui_vert.spv", "shaders/shader_ui_frag.spv" });
 }
@@ -98,7 +97,7 @@ void PipelineUi::createDescriptorSetLayout() {
 	layoutInfo.bindingCount = static_cast<uint32_t>(bindings.size());
 	layoutInfo.pBindings = bindings.data();
 
-	if (vkCreateDescriptorSetLayout(_app->getDeviceContext()->_device, &layoutInfo, nullptr, &_descriptorSetLayout) != VK_SUCCESS) {
+	if (vkCreateDescriptorSetLayout(_dc->_device, &layoutInfo, nullptr, &_descriptorSetLayout) != VK_SUCCESS) {
 		throw std::runtime_error("failed to create descriptor set layout!");
 	}
 }
