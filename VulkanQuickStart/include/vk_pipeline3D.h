@@ -40,31 +40,17 @@ namespace VK {
 
 	class Pipeline3D : public Pipeline<Vertex3_PNCf, UniformBufferObject3D> {
 	public:
-		using UniformBufferObject = UniformBufferObject3D;
 		using BoundingBox = CBoundingBox3D<float>;
 		using PipelinePtr = std::shared_ptr<Pipeline3D>;
 
 		Pipeline3D(const VulkanAppPtr& app, const std::string& shaderId, const VkRect2D& rect);
 
-		void setUniformBufferPtr(const UniformBufferObject* ubo);
 		BoundingBox getBounds() const;
-
-		const UniformBufferObject& getUniformBuffer() const;
 
 	protected:
 		virtual void createDescriptorSetLayout() override;
-
-		const UniformBufferObject* _ubo;
 	};
 
 	using Pipeline3DPtr = std::shared_ptr<Pipeline3D>;
-
-	inline void Pipeline3D::setUniformBufferPtr(const UniformBufferObject* ubo) {
-		_ubo = ubo;
-	}
-
-	inline const Pipeline3D::UniformBufferObject& Pipeline3D::getUniformBuffer() const {
-		return *_ubo;
-	}
 
 }

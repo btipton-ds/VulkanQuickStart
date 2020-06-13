@@ -39,7 +39,7 @@ namespace VK {
 
 	class PipelineSceneNodeUi : public PipelineUi::PipelineSceneNode {
 	public:
-		using UniformBufferObject = PipelineUi::UniformBufferObject;
+		using UboType = PipelineUi::UboType;
 
 		PipelineSceneNodeUi(const PipelineBasePtr& ownerPipeline);
 

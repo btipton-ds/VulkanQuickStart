@@ -83,7 +83,7 @@ VulkanQuickStartLib
 "src/vk_pipelineSceneNodeUi.cpp"
 "vk_base/VulkanTools.cpp"
 "src/vk_imageCopier.cpp" 
-"src/vk_offscreenPass.cpp" "src/vk_pipelineList.cpp")
+"src/vk_offscreenPass.cpp" )
 
 target_compile_features(VulkanQuickStartLib PRIVATE cxx_std_17)
 

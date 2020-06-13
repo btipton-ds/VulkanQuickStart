@@ -45,7 +45,7 @@ namespace VK {
 	class PipelineSceneNode3D : public Pipeline3D::PipelineSceneNode {
 	public:
 		using BoundingBox = Pipeline3D::BoundingBox;
-		using UniformBufferObject = Pipeline3D::UniformBufferObject;
+		using UboType = Pipeline3D::UboType;
 		using XformFuncType = std::function<glm::mat4(const glm::mat4& src)>;
 
 		PipelineSceneNode3D(const PipelineBasePtr& ownerPipeline);

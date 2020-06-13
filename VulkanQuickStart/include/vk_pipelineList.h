@@ -33,28 +33,73 @@ This file is part of the VulkanQuickStart Project.
 
 #include <mutex>
 #include <vector>
+#include <memory>
 
 #include <vk_forwardDeclarations.h>
 
 #include <vulkan/vulkan_core.h>
 
+#include <vk_pipeline.h>
+
 namespace VK {
 
-	class PipelineList {
+	template<class UBO_TYPE>
+	class PipelineUboGroup {
 	public:
-		void add(const PipelineBasePtr& pl);
+		using UboType = UBO_TYPE;
+		using Pipeline = VK::PipelineUbo<UBO_TYPE>;
+		using PipelinePtr = std::shared_ptr<Pipeline>;
+
+		void add(const PipelinePtr& pl);
 		void resized(const VkRect2D& rect);
+
+		const UboType& getUbo() const;
+		void setUbo(const UboType& ubo);
 
 		template<typename FUNC_TYPE>
 		void iterate(FUNC_TYPE func);
 
 	private:
+		static bool PipelineComparePaintLayer(const PipelinePtr& pl1, const PipelinePtr& pl2);
+
 		std::mutex _mutex;
-		std::vector<PipelineBasePtr> _pipelines;
+		std::vector<PipelinePtr> _pipelines;
+		UboType _ubo;
 	};
 
+	template<class UBO_TYPE>
+	bool PipelineUboGroup<UBO_TYPE>::PipelineComparePaintLayer(const PipelinePtr& pl1, const PipelinePtr& pl2) {
+		return pl1->getPaintLayer() < pl2->getPaintLayer();
+	}
+
+	template<class UBO_TYPE>
+	void PipelineUboGroup<UBO_TYPE>::add(const PipelinePtr& pl) {
+		std::lock_guard lg(_mutex);
+		_pipelines.push_back(pl);
+		std::sort(_pipelines.begin(), _pipelines.end(), PipelineComparePaintLayer);
+	}
+
+	template<class UBO_TYPE>
+	void PipelineUboGroup<UBO_TYPE>::resized(const VkRect2D& rect) {
+		iterate([&](const auto& pipeline) {
+			pipeline->setViewportRect(rect);
+			pipeline->setScissorRect(rect);
+		});
+	}
+
+	template<class UBO_TYPE>
+	const typename PipelineUboGroup<UBO_TYPE>::UboType& PipelineUboGroup<UBO_TYPE>::getUbo() const {
+		return _ubo;
+	}
+
+	template<class UBO_TYPE>
+	void PipelineUboGroup<UBO_TYPE>::setUbo(const UboType& ubo) {
+		_ubo = ubo;
+	}
+
+	template<class UBO_TYPE>
 	template<typename FUNC_TYPE>
-	inline void PipelineList::iterate(FUNC_TYPE func) {
+	inline void PipelineUboGroup<UBO_TYPE>::iterate(FUNC_TYPE func) {
 		std::lock_guard lg(_mutex);
 		for (auto& pl : _pipelines) {
 			func(pl);

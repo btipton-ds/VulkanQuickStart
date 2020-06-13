@@ -36,8 +36,29 @@ This file is part of the VulkanQuickStart Project.
 
 namespace VK {
 
+	template<class UBO_TYPE>
+	class PipelineUbo : public PipelineBase {
+	public:
+		using UboType = UBO_TYPE;
+
+		PipelineUbo(const VulkanAppPtr& app, const std::string& shaderId, const VkRect2D& rect)
+			: PipelineBase(app, shaderId, rect) 
+		{}
+
+		inline void setUniformBufferPtr(const UboType* uboPtr) {
+			_ubo = uboPtr;
+		}
+
+		inline const UboType& getUniformBuffer() const {
+			return *_ubo;
+		}
+
+	protected:
+		const UboType* _ubo;
+	};
+
 	template<class VERT_TYPE, class UBO_TYPE>
-	class Pipeline : public PipelineBase {
+	class Pipeline : public PipelineUbo<UBO_TYPE> {
 	public:
 		using VertexType = VERT_TYPE;
 		using PipelineSceneNode = GCC_CLASS PipelineSceneNode<Pipeline<VERT_TYPE, UBO_TYPE>>;
@@ -52,6 +73,7 @@ namespace VK {
 		size_t numSceneNodes() const override;
 
 		void addCommands(VkCommandBuffer cmdBuff, size_t swapChainIdx) const override;
+
 		void updateUniformBuffers(size_t swapChainIndex) override;
 
 		size_t getUboSize() const override;
@@ -79,7 +101,7 @@ namespace VK {
 
 	template<class VERT_TYPE, class UBO_TYPE>
 	inline Pipeline<VERT_TYPE, UBO_TYPE>::Pipeline(const VulkanAppPtr& app, const std::string& shaderId, const VkRect2D& rect)
-	: PipelineBase(app, shaderId, rect)
+	: PipelineUbo(app, shaderId, rect)
 	{ 
 		_vertBindDesc = VERT_TYPE::getBindingDescription();
 		_vertAttribDesc = VERT_TYPE::getAttributeDescriptions();
@@ -87,7 +109,7 @@ namespace VK {
 
 	template<class VERT_TYPE, class UBO_TYPE>
 	inline void Pipeline<VERT_TYPE, UBO_TYPE>::cleanupSwapChain() {
-		PipelineBase::cleanupSwapChain();
+		PipelineUbo::cleanupSwapChain();
 		for (auto& sceneNode : _sceneNodes) {
 			if (sceneNode->isReady())
 				sceneNode->cleanupSwapChain();

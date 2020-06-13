@@ -41,7 +41,8 @@ namespace VK {
 
 	class OffscreenPass {
 	public:
-		using UniformBufferObject = UniformBufferObject3D;
+		using UboType = UniformBufferObject3D;
+		using PipelineGroupType = PipelineUboGroup<UboType>;
 
 		OffscreenPass(const DeviceContextPtr& deviceContext, VkFormat colorFormat, VkFormat depthFormat);
 		~OffscreenPass();
@@ -54,10 +55,10 @@ namespace VK {
 		VkFramebuffer getFrameBuffer() const;
 		const VkExtent2D& getExtent() const;
 
-		const PipelineList& getPipelines() const;
-		PipelineList& getPipelines();
+		const PipelineGroupType& getPipelines() const;
+		PipelineGroupType& getPipelines();
 
-		void setUbo(const UniformBufferObject& ubo);
+		void setUbo(const UboType& ubo);
 
 	private:
 		VkExtent2D _extent = { 0, 0 };
@@ -69,8 +70,8 @@ namespace VK {
 		DeviceContextPtr _deviceContext;
 		VkFormat _colorFormat, _depthFormat;
 
-		UniformBufferObject _ubo;
-		PipelineList _pipelines;
+		UboType _ubo;
+		PipelineGroupType _pipelines;
 	};
 
 	inline const ImagePtr& OffscreenPass::getColorImage() const {
@@ -89,11 +90,11 @@ namespace VK {
 		return _extent;
 	}
 
-	inline const PipelineList& OffscreenPass::getPipelines() const {
+	inline const typename OffscreenPass::PipelineGroupType& OffscreenPass::getPipelines() const {
 		return _pipelines;
 	}
 
-	inline PipelineList& OffscreenPass::getPipelines() {
+	inline typename OffscreenPass::PipelineGroupType& OffscreenPass::getPipelines() {
 		return _pipelines;
 	}
 

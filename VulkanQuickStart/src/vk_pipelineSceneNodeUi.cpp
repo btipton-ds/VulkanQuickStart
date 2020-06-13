@@ -41,7 +41,7 @@ PipelineSceneNodeUi::PipelineSceneNodeUi(const PipelineBasePtr& _ownerPipeline)
 
 
 void PipelineSceneNodeUi::createUniformBuffers() {
-	size_t bufferSize = sizeof(UniformBufferObject);
+	size_t bufferSize = sizeof(UboType);
 	auto& app = _ownerPipeline->getApp();
 	const auto& swap = app->getSwapChain();
 	size_t swapChainSize = (uint32_t)swap._vkImages.size();

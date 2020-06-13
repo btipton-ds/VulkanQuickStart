@@ -119,7 +119,7 @@ void VulkanApp::setUiWindow(const UI::WindowPtr& uiWindow) {
 	}
 }
 
-PipelineBasePtr VulkanApp::addPipeline(const PipelineBasePtr& pipeline) {
+typename VulkanApp::PipelinePtr VulkanApp::addPipeline(const PipelinePtr& pipeline) {
 	_pipelines.add(pipeline);
 	changed();
 	return pipeline;
@@ -255,7 +255,7 @@ void VulkanApp::cleanupSwapChain() {
 		vkDestroyFramebuffer(_deviceContext->_device, framebuffer, nullptr);
 	}
 
-	_pipelines.iterate([](const PipelineBasePtr& pl) {
+	_pipelines.iterate([](const PipelinePtr& pl) {
 		pl->cleanupSwapChain();
 	});
 
@@ -590,7 +590,7 @@ void VulkanApp::createRenderPass() {
 }
 
 void VulkanApp::createGraphicsPipeline() {
-	_pipelines.iterate([](const PipelineBasePtr& pl) {
+	_pipelines.iterate([](const PipelinePtr& pl) {
 		if (pl->isVisible())
 			pl->build();
 	});
@@ -766,7 +766,7 @@ void VulkanApp::createCommandBuffers() {
 		renderPassInfo.renderArea.extent = _swapChain._extent;
 
 		drawCmdBufferLoop(cmdBuff, swapChainIndex, 0, beginInfo, renderPassInfo);
-
+#if 0
 		if (isOffscreenEnabled()) {
 			renderPassInfo.renderPass = _offscreenPass->getRenderPass();
 			renderPassInfo.framebuffer = _offscreenPass->getFrameBuffer();
@@ -774,7 +774,7 @@ void VulkanApp::createCommandBuffers() {
 
 			drawCmdBufferLoop(cmdBuff, swapChainIndex, 1, beginInfo, renderPassInfo);
 		}
-
+#endif
 		if (vkEndCommandBuffer(cmdBuff) != VK_SUCCESS) {
 			throw std::runtime_error("failed to record command buffer!");
 		}
@@ -786,11 +786,12 @@ void VulkanApp::drawCmdBufferLoop(VkCommandBuffer cmdBuff, size_t swapChainIndex
 	VkCommandBufferBeginInfo& beginInfo, VkRenderPassBeginInfo& renderPassInfo) {
 	vkCmdBeginRenderPass(cmdBuff, &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
 
-	PipelineBasePtr uiPipeline = (pipelineNum != 0 && _uiWindow) ? _uiWindow->getPipeline() : nullptr;
-	_pipelines.iterate([&](const PipelineBasePtr& pipeline) {
-		if (pipeline->isVisible() && pipeline != uiPipeline)
+	_pipelines.iterate([&](const PipelinePtr& pipeline) {
+		if (pipeline->isVisible())
 			pipeline->draw(cmdBuff, swapChainIndex, pipelineNum);
 	});
+
+	_uiWindow->getPipeline()->draw(cmdBuff, swapChainIndex, pipelineNum);
 
 	vkCmdEndRenderPass(cmdBuff);
 
@@ -828,7 +829,7 @@ namespace {
 	}
 }
 
-void VulkanApp::updateUBO(const VkExtent2D& extent, const BoundingBox& modelBounds, UniformBufferObject& ubo) const {
+void VulkanApp::updateUBO(const VkExtent2D& extent, const BoundingBox& modelBounds, UboType& ubo) const {
 
 	ubo = {};
 	ubo.ambient = 0.10f;
@@ -868,7 +869,7 @@ void VulkanApp::updateUniformBuffer(uint32_t swapChainImageIndex) {
 
 	BoundingBox modelBounds;
 
-	_pipelines.iterate([&](const PipelineBasePtr& pipeline) {
+	_pipelines.iterate([&](const PipelinePtr& pipeline) {
 		auto ptr3D = dynamic_pointer_cast<Pipeline3D>(pipeline);
 		if (ptr3D)
 			modelBounds.merge(ptr3D->getBounds());
@@ -880,14 +881,14 @@ void VulkanApp::updateUniformBuffer(uint32_t swapChainImageIndex) {
 
 	updateUBO(_swapChain._extent, modelBounds, _ubo);
 
-	_pipelines.iterate([&](const PipelineBasePtr& pipeline) {
+	_pipelines.iterate([&](const PipelinePtr& pipeline) {
 		if (pipeline->isVisible() && pipeline->numSceneNodes() > 0) {
 			pipeline->updateUniformBuffers(swapChainImageIndex);
 		}
 	});
 
 	if (_offscreenPass) {
-		OffscreenPass::UniformBufferObject ubo;
+		OffscreenPass::UboType ubo;
 		updateUBO(_swapChain._extent, modelBounds, ubo);
 		_offscreenPass->setUbo(ubo);
 	}
@@ -895,7 +896,7 @@ void VulkanApp::updateUniformBuffer(uint32_t swapChainImageIndex) {
 
 void VulkanApp::drawFrame() {
 	size_t numSceneNodes = 0;
-	_pipelines.iterate([&](const PipelineBasePtr& pipeline) {
+	_pipelines.iterate([&](const PipelinePtr& pipeline) {
 		// TODO, add update buffers call here.
 		numSceneNodes += pipeline->numSceneNodes();
 	});

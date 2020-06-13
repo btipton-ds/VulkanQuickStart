@@ -86,6 +86,9 @@ namespace VK {
 
 			void scroll(GLFWwindow* window, const glm::dvec2& pos);
 
+			void updateUbo();
+
+			UniformBufferObjectUi _ubo;
 			PipelineUiPtr _pipeline;
 			size_t _changeNumber = 0;
 			glm::dvec2 _mouseStartPos[4];

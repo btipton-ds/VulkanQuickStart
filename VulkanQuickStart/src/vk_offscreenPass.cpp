@@ -181,7 +181,7 @@ void OffscreenPass::cleanup() {
 	_frameBuffer = VK_NULL_HANDLE;
 }
 
-void OffscreenPass::setUbo(const UniformBufferObject& ubo) {
+void OffscreenPass::setUbo(const UboType& ubo) {
 	_ubo = ubo;
 
 	_pipelines.iterate([&](const PipelineBasePtr& pipeline) {

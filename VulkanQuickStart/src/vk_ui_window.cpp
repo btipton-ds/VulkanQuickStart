@@ -252,13 +252,30 @@ namespace VK::UI {
 	void Window::init() {
 		auto win = _app->getWindow();
 
-		_pipeline = make_shared<PipelineUi>(_app);
-		_app->addPipeline(_pipeline);
+		_pipeline = make_shared<PipelineUi>(_app, &_ubo);
 
+		updateUbo();
 
 		glfwSetMouseButtonCallback(win, mouseButtonCB);
 		glfwSetCursorPosCallback(win, cursorPosCB);
 		glfwSetScrollCallback(win, scrollCB);
+	}
+
+	void Window::updateUbo() {
+		int widthPx, heightPx;
+
+		auto win = _app->getWindow();
+		glfwGetWindowSize(win, &widthPx, &heightPx);
+
+		int dpi = _app->getWindowDpi();
+		float widthIn = widthPx / (float)dpi;
+		float heightIn = heightPx / (float)dpi;
+		float widthPts = widthIn * 72;
+		float heightPts = heightIn * 72;
+
+		_ubo._scale = glm::vec2(1.0f / widthPts, 1.0f / heightPts);
+		_ubo._offset = glm::vec2(-1.0f, -1.0f);
+		_ubo._color = glm::vec4(1, 0, 0, 1);
 	}
 
 }

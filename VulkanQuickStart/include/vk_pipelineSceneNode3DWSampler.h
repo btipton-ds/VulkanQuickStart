@@ -45,7 +45,7 @@ namespace VK {
 	class PipelineSceneNode3DWSampler : public Pipeline3DWSampler::PipelineSceneNode {
 	public:
 		using BoundingBox = Pipeline3DWSampler::BoundingBox;
-		using UniformBufferObject = Pipeline3DWSampler::UniformBufferObject;
+		using UboType = Pipeline3DWSampler::UboType;
 		using XformFuncType = std::function<glm::mat4(const glm::mat4& src)>;
 
 		PipelineSceneNode3DWSampler(const PipelineBasePtr& ownerPipeline);

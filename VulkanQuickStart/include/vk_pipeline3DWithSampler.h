@@ -43,35 +43,19 @@ namespace VK {
 	class Pipeline3DWSampler : public Pipeline<Vertex3_PNCTf, UniformBufferObject3D> {
 	public:
 		static uint32_t getMaxSamplers();
-		using UniformBufferObject = UniformBufferObject3D;
 		using BoundingBox = CBoundingBox3D<float>;
 		using PipelinePtr = std::shared_ptr<Pipeline3DWSampler>;
 
 		Pipeline3DWSampler(const VulkanAppPtr& app, const std::string& shaderId, const VkRect2D& rect);
 
-		void setUniformBufferPtr(const UniformBufferObject* ubo);
 		BoundingBox getBounds() const;
-
-		const UniformBufferObject& getUniformBuffer() const;
 
 	protected:
 		virtual void createDescriptorSetLayout() override;
-
-		const UniformBufferObject* _ubo;
-
 	};
 
 	inline uint32_t Pipeline3DWSampler::getMaxSamplers() {
 		return 7; 
 	};
-
-	inline void Pipeline3DWSampler::setUniformBufferPtr(const UniformBufferObject* ubo) {
-		_ubo = ubo;
-	}
-
-
-	inline const Pipeline3DWSampler::UniformBufferObject& Pipeline3DWSampler::getUniformBuffer() const {
-		return *_ubo;
-	}
 
 }

@@ -59,22 +59,18 @@ namespace VK {
 
 	class PipelineUi : public Pipeline<VertexUi, UniformBufferObjectUi> {
 	public:
-		using UniformBufferObject = UniformBufferObjectUi;
 		using PipelinePtr = std::shared_ptr<PipelineUi>;
 		using VertexType = VertexUi;
 
-		PipelineUi(const VulkanAppPtr& app);
+		PipelineUi(const VulkanAppPtr& app, const UboType* ubo);
 
 		void updateUniformBuffers(size_t swapChainIndex) override;
-		const UniformBufferObject& getUniformBuffer() const;
 
 		void addCommands(VkCommandBuffer cmdBuff, size_t swapChainIdx) const override;
 		void cleanupSwapChain() override;
 
 	protected:
 		virtual void createDescriptorSetLayout() override;
-
-		UniformBufferObject _ubo;
 	};
 
 	using PipelineUiPtr = std::shared_ptr<PipelineUi>;
@@ -83,11 +79,6 @@ namespace VK {
 		: _pos(pos)
 		, _texCoord(tc)
 	{ }
-
-	inline const PipelineUi::UniformBufferObject& PipelineUi::getUniformBuffer() const {
-		return _ubo;
-	}
-
 
 }
 

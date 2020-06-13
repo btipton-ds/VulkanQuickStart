@@ -297,7 +297,7 @@ void ModelObj::createDescriptorSets() {
 
 void ModelObj::createUniformBuffers() {
 	auto app = _ownerPipeline->getApp();
-	size_t bufferSize = sizeof(UniformBufferObject);
+	size_t bufferSize = sizeof(UboType);
 	const auto& swap = app->getSwapChain();
 	size_t swapChainSize = (uint32_t)swap._vkImages.size();
 

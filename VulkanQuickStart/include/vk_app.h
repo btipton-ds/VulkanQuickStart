@@ -59,8 +59,10 @@ namespace VK {
 
 	class VulkanApp : public std::enable_shared_from_this<VulkanApp> {
 	public:
-		using UniformBufferObject = Pipeline3D::UniformBufferObject;
+		using UboType = UniformBufferObject3D;
 		using BoundingBox = CBoundingBox3D<float>;
+		using PipelineGroupType = PipelineUboGroup<UboType>;
+		using PipelinePtr = PipelineGroupType::PipelinePtr;
 
 		class Updater {
 			// TODO
@@ -83,10 +85,10 @@ namespace VK {
 		void changed();
 		size_t getRuntimeMillis() const;
 
-		PipelineBasePtr addPipeline(const PipelineBasePtr& pipeline);
+		PipelinePtr addPipeline(const PipelinePtr& pipeline);
 
 		template<class PIPELINE_TYPE>
-		PipelinePtr<PIPELINE_TYPE> addPipelineWithSource(const std::string& shaderId, const std::string& vertShaderFilename, const std::string& fragShaderFilename);
+		VK::PipelinePtr<PIPELINE_TYPE> addPipelineWithSource(const std::string& shaderId, const std::string& vertShaderFilename, const std::string& fragShaderFilename);
 
 		const DeviceContextPtr& getDeviceContext() const;
 
@@ -163,7 +165,7 @@ namespace VK {
 			VkCommandBufferBeginInfo& beginInfo, VkRenderPassBeginInfo& renderPassInfo);
 		void createSyncObjects();
 		void updateUniformBuffer(uint32_t swapChainImageIndex);
-		void updateUBO(const VkExtent2D& extent, const BoundingBox& modelBounds, UniformBufferObject& ubo) const;
+		void updateUBO(const VkExtent2D& extent, const BoundingBox& modelBounds, UboType& ubo) const;
 		void reportFPS();
 		void drawFrame();
 		VkShaderModule createShaderModule(const std::vector<char>& code);
@@ -206,8 +208,8 @@ namespace VK {
 		VkRenderPass renderPass;
 
 		double _targetFrameDurationMillis = -1;
-		UniformBufferObject3D _ubo;
-		PipelineList _pipelines;
+		UboType _ubo;
+		PipelineGroupType _pipelines;
 
 		std::vector<VkCommandBuffer> _commandBuffers;
 
@@ -286,7 +288,7 @@ namespace VK {
 	}
 
 	template<class PIPELINE_TYPE>
-	inline PipelinePtr<PIPELINE_TYPE> VulkanApp::addPipelineWithSource(const std::string& shaderId, const std::string& vertShaderFilename, const std::string& fragShaderFilename) {
+	inline VK::PipelinePtr<PIPELINE_TYPE> VulkanApp::addPipelineWithSource(const std::string& shaderId, const std::string& vertShaderFilename, const std::string& fragShaderFilename) {
 		auto pipeline = createPipelineWithSource<PIPELINE_TYPE>(getAppPtr(), shaderId, _frameRect, vertShaderFilename, fragShaderFilename);
 		pipeline->setUniformBufferPtr(&_ubo);
 		addPipeline(pipeline);
