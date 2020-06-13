@@ -52,8 +52,8 @@ This file is part of the VulkanQuickStart Project.
 using namespace VK;
 using namespace std;
 
-Pipeline3D::Pipeline3D(const VulkanAppPtr& app, const std::string& shaderId)
-	: Pipeline(app, shaderId)
+Pipeline3D::Pipeline3D(const VulkanAppPtr& app, const std::string& shaderId, const VkRect2D& rect)
+	: Pipeline(app, shaderId, rect)
 {}
 
 namespace {

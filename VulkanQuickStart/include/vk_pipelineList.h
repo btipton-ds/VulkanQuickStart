@@ -36,11 +36,14 @@ This file is part of the VulkanQuickStart Project.
 
 #include <vk_forwardDeclarations.h>
 
+#include <vulkan/vulkan_core.h>
+
 namespace VK {
 
 	class PipelineList {
 	public:
 		void add(const PipelineBasePtr& pl);
+		void resized(const VkRect2D& rect);
 
 		template<typename FUNC_TYPE>
 		void iterate(FUNC_TYPE func);

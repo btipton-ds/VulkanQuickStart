@@ -45,13 +45,13 @@ This file is part of the VulkanQuickStart Project.
 using namespace VK;
 using namespace std;
 
-PipelineBase::PipelineBase(const VulkanAppPtr& app, const std::string& shaderId)
+PipelineBase::PipelineBase(const VulkanAppPtr& app, const std::string& shaderId, const VkRect2D& rect)
 	: _app(app)
 	, _dc(app->getDeviceContext())
 	, _shaderId(shaderId)
 {
-	_viewportRect.offset = { 0,0 };
-	_viewportRect.extent = _app->getSwapChain()._extent;
+	_viewportRect.offset = rect.offset;
+	_viewportRect.extent = rect.extent;
 	_scissorRect = _viewportRect;
 }
 

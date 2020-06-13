@@ -73,7 +73,7 @@ namespace VK {
 
 		using UpdaterPtr = std::shared_ptr<Updater>;
 
-		VulkanApp(int width, int height);
+		VulkanApp(const VkRect2D& rect);
 		~VulkanApp();
 
 		VulkanAppPtr getAppPtr();
@@ -119,6 +119,8 @@ namespace VK {
 		bool isOffscreenEnabled() const;
 		ImagePtr getOffscreenImage() const;
 
+		const VkRect2D& getFrameRect() const;
+
 	private:
 		struct SwapChainSupportDetails;
 		struct QueueFamilyIndices;
@@ -127,7 +129,7 @@ namespace VK {
 		static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity, VkDebugUtilsMessageTypeFlagsEXT messageType, const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData, void* pUserData);
 		static void framebufferResizeCallback(GLFWwindow* window, int width, int height);
 
-		void initWindow(int width, int height);
+		void initWindow();
 		void initVulkan();
 		void recreateSwapChain();
 		void mainLoop();
@@ -176,6 +178,7 @@ namespace VK {
 		bool checkValidationLayerSupport();
 
 		GLFWwindow* _window;
+		VkRect2D _frameRect;
 		bool _isRunning = true;
 		size_t _runtimeMillis = 0;
 		UI::WindowPtr _uiWindow;
@@ -284,7 +287,7 @@ namespace VK {
 
 	template<class PIPELINE_TYPE>
 	inline PipelinePtr<PIPELINE_TYPE> VulkanApp::addPipelineWithSource(const std::string& shaderId, const std::string& vertShaderFilename, const std::string& fragShaderFilename) {
-		auto pipeline = createPipelineWithSource<PIPELINE_TYPE>(getAppPtr(), shaderId, vertShaderFilename, fragShaderFilename);
+		auto pipeline = createPipelineWithSource<PIPELINE_TYPE>(getAppPtr(), shaderId, _frameRect, vertShaderFilename, fragShaderFilename);
 		pipeline->setUniformBufferPtr(&_ubo);
 		addPipeline(pipeline);
 		return pipeline;
@@ -306,6 +309,10 @@ namespace VK {
 		if (isOffscreenEnabled())
 			return _offscreenPass->getColorImage();
 		return nullptr;
+	}
+
+	inline const VkRect2D& VulkanApp::getFrameRect() const {
+		return _frameRect;
 	}
 
 }

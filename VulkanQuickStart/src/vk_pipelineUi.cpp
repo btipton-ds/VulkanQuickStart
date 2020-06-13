@@ -39,7 +39,7 @@ using namespace std;
 using namespace VK;
 
 PipelineUi::PipelineUi(const VulkanAppPtr& app)
-	: Pipeline(app, "UiPipeline")
+	: Pipeline(app, "UiPipeline", app->getFrameRect())
 {
 	setPaintLayer(100);
 	setDepthTestEnabled(false);

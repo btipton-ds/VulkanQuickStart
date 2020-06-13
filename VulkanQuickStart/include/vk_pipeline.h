@@ -44,7 +44,7 @@ namespace VK {
 		using SceneNodePtr = std::shared_ptr<PipelineSceneNode>;
 		using SceneNodeList = std::vector<SceneNodePtr>;
 
-		Pipeline(const VulkanAppPtr& app, const std::string& shaderId);
+		Pipeline(const VulkanAppPtr& app, const std::string& shaderId, const VkRect2D& rect);
 
 		void cleanupSwapChain() override;
 		void addSceneNode(const SceneNodePtr& node);
@@ -63,14 +63,14 @@ namespace VK {
 	};
 
 	template<class PIPELINE_TYPE>
-	inline typename PIPELINE_TYPE::PipelinePtr createPipeline(const VulkanAppPtr& app, const std::string& shaderId) {
-		PIPELINE_TYPE* ptr = new PIPELINE_TYPE(app, shaderId);
+	inline typename PIPELINE_TYPE::PipelinePtr createPipeline(const VulkanAppPtr& app, const std::string& shaderId, const VkRect2D& rect) {
+		PIPELINE_TYPE* ptr = new PIPELINE_TYPE(app, shaderId, rect);
 		return PipelinePtr<PIPELINE_TYPE>(ptr);
 	}
 
 	template<class PIPELINE_TYPE>
-	inline typename PIPELINE_TYPE::PipelinePtr createPipelineWithSource(const VulkanAppPtr& app, const std::string& shaderId, const std::string& vertShaderFilename, const std::string& fragShaderFilename) {
-		auto pipeline = createPipeline<PIPELINE_TYPE>(app, shaderId);
+	inline typename PIPELINE_TYPE::PipelinePtr createPipelineWithSource(const VulkanAppPtr& app, const std::string& shaderId, const VkRect2D& rect, const std::string& vertShaderFilename, const std::string& fragShaderFilename) {
+		auto pipeline = createPipeline<PIPELINE_TYPE>(app, shaderId, rect);
 		auto& shaders = app->getDeviceContext()->getShaderPool();
 		if (!shaders.getShader(shaderId))
 			shaders.addShader(shaderId, { vertShaderFilename , fragShaderFilename });
@@ -78,8 +78,8 @@ namespace VK {
 	}
 
 	template<class VERT_TYPE, class UBO_TYPE>
-	inline Pipeline<VERT_TYPE, UBO_TYPE>::Pipeline(const VulkanAppPtr& app, const std::string& shaderId)
-	: PipelineBase(app, shaderId)
+	inline Pipeline<VERT_TYPE, UBO_TYPE>::Pipeline(const VulkanAppPtr& app, const std::string& shaderId, const VkRect2D& rect)
+	: PipelineBase(app, shaderId, rect)
 	{ 
 		_vertBindDesc = VERT_TYPE::getBindingDescription();
 		_vertAttribDesc = VERT_TYPE::getAttributeDescriptions();

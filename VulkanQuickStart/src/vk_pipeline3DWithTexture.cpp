@@ -78,8 +78,8 @@ namespace {
 	}
 }
 
-Pipeline3DWSampler::Pipeline3DWSampler(const VulkanAppPtr& app, const std::string& shaderId)
-	: Pipeline(app, shaderId)
+Pipeline3DWSampler::Pipeline3DWSampler(const VulkanAppPtr& app, const std::string& shaderId, const VkRect2D& rect)
+	: Pipeline(app, shaderId, rect)
 {}
 
 Pipeline3DWSampler::BoundingBox Pipeline3DWSampler::getBounds() const {

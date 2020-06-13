@@ -269,7 +269,11 @@ int addStl() {
 }
 
 int main(int numArgs, char** args) {
-	gApp = make_shared<VulkanApp>(1618, 1000);
+	VkRect2D frame;
+	frame.offset = { 0,0, };
+	frame.extent.width = 1500;
+	frame.extent.height = 900;
+	gApp = make_shared<VulkanApp>(frame);
 
 	gApp->setAntiAliasSamples(VK_SAMPLE_COUNT_4_BIT);
 	VkExtent2D offscreenExtent = { 2048, 2048 };

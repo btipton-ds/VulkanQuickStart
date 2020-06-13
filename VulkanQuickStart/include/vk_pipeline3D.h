@@ -44,7 +44,7 @@ namespace VK {
 		using BoundingBox = CBoundingBox3D<float>;
 		using PipelinePtr = std::shared_ptr<Pipeline3D>;
 
-		Pipeline3D(const VulkanAppPtr& app, const std::string& shaderId);
+		Pipeline3D(const VulkanAppPtr& app, const std::string& shaderId, const VkRect2D& rect);
 
 		void setUniformBufferPtr(const UniformBufferObject* ubo);
 		BoundingBox getBounds() const;

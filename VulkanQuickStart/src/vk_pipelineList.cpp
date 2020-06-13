@@ -47,4 +47,10 @@ void PipelineList::add(const PipelineBasePtr& pl) {
 	std::sort(_pipelines.begin(), _pipelines.end(), PipelineComparePaintLayer);
 }
 
+void PipelineList::resized(const VkRect2D& rect) {
+	iterate([&](const PipelineBasePtr& pipeline) {
+		pipeline->setViewportRect(rect);
+		pipeline->setScissorRect(rect);
+	});
+}
 

@@ -98,13 +98,14 @@ VkResult CreateDebugUtilsMessengerEXT(VkInstance instance, const VkDebugUtilsMes
 	}
 }
 
-VulkanApp::VulkanApp(int width, int height)
+VulkanApp::VulkanApp(const VkRect2D& rect)
 	: _deviceContext(make_shared<DeviceContext>(MAX_FRAMES_IN_FLIGHT))
 	, _swapChain(_deviceContext)
+	, _frameRect(rect)
 {
 	_modelToWorld = glm::identity<glm::mat4>();
 
-	initWindow(width, height);
+	initWindow();
 	initVulkan();
 }
 
@@ -150,12 +151,12 @@ void VulkanApp::run() {
 	mainLoop();
 }
 
-void VulkanApp::initWindow(int width, int height) {
+void VulkanApp::initWindow() {
 	glfwInit();
 
 	glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
 
-	_window = glfwCreateWindow(width, height, "Vulkan", nullptr, nullptr);
+	_window = glfwCreateWindow(_frameRect.extent.width, _frameRect.extent.height, "Vulkan", nullptr, nullptr);
 	glfwSetWindowUserPointer(_window, this);
 	glfwSetFramebufferSizeCallback(_window, framebufferResizeCallback);
 
@@ -168,6 +169,8 @@ void VulkanApp::initWindow(int width, int height) {
 
 void VulkanApp::framebufferResizeCallback(GLFWwindow* window, int width, int height) {
 	auto app = reinterpret_cast<VulkanApp*>(glfwGetWindowUserPointer(window));
+	app->_frameRect.extent.width = width;
+	app->_frameRect.extent.height = height;
 	app->_framebufferResized = true;
 }
 
@@ -919,6 +922,7 @@ void VulkanApp::drawFrame() {
 			_uiWindowChangeNumber = _uiWindow->getChangeNumber();
 		_lastChangeNumber = _changeNumber;
 		_framebufferResized = false;
+		_pipelines.resized(_frameRect);
 		recreateSwapChain();
 		return;
 	}
