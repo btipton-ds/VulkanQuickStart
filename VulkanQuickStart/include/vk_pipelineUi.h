@@ -49,9 +49,9 @@ namespace VK {
 		VertexUi(const VertexUi& src) = default;
 		VertexUi(const glm::vec2& pos, const glm::vec2& tc);
 
+		bool operator==(const VertexUi& other) const;
 		static VkVertexInputBindingDescription getBindingDescription();
 		static std::vector<VkVertexInputAttributeDescription> getAttributeDescriptions();
-		bool operator==(const VertexUi& other) const;
 
 		glm::vec2 _pos;
 		glm::vec2 _texCoord;
@@ -63,11 +63,9 @@ namespace VK {
 		using VertexType = VertexUi;
 
 		PipelineUi(const PipelineUboGroupBasePtr& plGroup);
+		void updateSceneNodeUbo(const SceneNodePtr& sceneNode, UniformBufferObjectUi& ubo) const override {
 
-		void updateUniformBuffers(size_t swapChainIndex) override;
-
-		void addCommands(VkCommandBuffer cmdBuff, size_t swapChainIdx) const override;
-		void cleanupSwapChain() override;
+		}
 
 	protected:
 		virtual void createDescriptorSetLayout() override;

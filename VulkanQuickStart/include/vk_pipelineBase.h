@@ -77,6 +77,8 @@ namespace VK {
 		virtual void updateUniformBuffers(size_t swapChainIndex) = 0;
 
 		virtual void addCommands(VkCommandBuffer cmdBuff, size_t swapChainIdx) const = 0;
+		virtual uint32_t getMaxSamplers() const;
+
 		virtual size_t getUboSize() const = 0;
 
 		VkDescriptorSetLayout getDescriptorSetLayout() const;
@@ -84,9 +86,11 @@ namespace VK {
 		int getPaintLayer() const;
 		void setPaintLayer(int layer);
 
+		const DeviceContextPtr& getDeviceContext() const;
+
 	protected:
 		virtual void createDescriptorSetLayout() = 0;
-		virtual void buildSceneNodes() = 0;
+		virtual void buildSceneNodeBindings() = 0;
 
 		PipelineUboGroupBasePtr _plGroup;
 		DeviceContextPtr _dc;
@@ -119,7 +123,7 @@ namespace VK {
 
 	protected:
 		VkPipelineLayout _pipelineLayout = VK_NULL_HANDLE;
-		VkPipeline _graphicsPipeline;
+		VkPipeline _graphicsPipeline = VK_NULL_HANDLE;
 
 	private:
 		bool _visible = true;
@@ -172,6 +176,10 @@ namespace VK {
 
 	inline void PipelineBase::setPaintLayer(int layer) {
 		_paintLayer = layer;
+	}
+
+	inline const DeviceContextPtr& PipelineBase::getDeviceContext() const {
+		return _dc;
 	}
 
 }

@@ -76,7 +76,12 @@ namespace VK {
 
 		using UpdaterPtr = std::shared_ptr<Updater>;
 
+		static VulkanAppPtr create(const VkRect2D& rect);
+	protected:
 		VulkanApp(const VkRect2D& rect);
+		void init();
+
+	public:
 		~VulkanApp();
 
 		VulkanAppPtr getAppPtr();
@@ -234,11 +239,6 @@ namespace VK {
 
 	inline void VulkanApp::setTargetFrameDurationMillis(double duration) {
 		_targetFrameDurationMillis = duration;
-	}
-
-	inline void VulkanApp::setAntiAliasSamples(VkSampleCountFlagBits samples) {
-		if (samples < _maxMsaaSamples)
-			_msaaSamples = samples;
 	}
 
 	inline GLFWwindow* VulkanApp::getWindow() {

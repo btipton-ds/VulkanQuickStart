@@ -82,7 +82,7 @@ namespace VK::UI {
 
 	ButtonPtr Window::addButton(const glm::vec4& bkgColor, const std::string& label, const Rect& frame) {
 		auto pipeline = dynamic_pointer_cast<PipelineUi>(_pipelines->getPipeline(0));
-		ButtonPtr btnPtr = make_shared<Button>(pipeline, bkgColor, label, frame);
+		ButtonPtr btnPtr = make_shared<Button>(_app, bkgColor, label, frame);
 		btnPtr->createBuffers();
 		_buttons.push_back(btnPtr);
 
@@ -254,8 +254,7 @@ namespace VK::UI {
 	void Window::init() {
 		auto win = _app->getWindow();
 
-		auto x = new PipelineUboGroup<UboType>(_app);
-		auto y = shared_ptr<PipelineUboGroup<UboType>>(x);
+		_pipelines = make_shared<PipelineUboGroup<UboType>>(_app);
 		_pipelines->add(make_shared<PipelineUi>(_pipelines));
 
 		updateUbo();

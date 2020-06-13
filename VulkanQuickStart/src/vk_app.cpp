@@ -99,14 +99,27 @@ VkResult CreateDebugUtilsMessengerEXT(VkInstance instance, const VkDebugUtilsMes
 	}
 }
 
+VulkanAppPtr VulkanApp::create(const VkRect2D& rect) {
+	VulkanApp* ptr = new VulkanApp(rect);
+	VulkanAppPtr result = shared_ptr<VulkanApp>(ptr);
+	result->init();
+	return result;
+}
+
 VulkanApp::VulkanApp(const VkRect2D& rect)
 	: _deviceContext(make_shared<DeviceContext>(MAX_FRAMES_IN_FLIGHT))
 	, _swapChain(_deviceContext)
 	, _frameRect(rect)
 {
 	_modelToWorld = glm::identity<glm::mat4>();
+
+}
+
+void VulkanApp::init() {
 	_pipelines = make_shared<PipelineGroupType>(getAppPtr());
 	_pipelines->setAntiAliasSamples(_msaaSamples);
+	if (_uiWindow)
+		_uiWindow->getPipelines()->setAntiAliasSamples(_msaaSamples);
 
 	initWindow();
 	initVulkan();
@@ -119,6 +132,16 @@ VulkanApp::~VulkanApp() {
 void VulkanApp::setUiWindow(const UI::WindowPtr& uiWindow) {
 	if (uiWindow) {
 		_uiWindow = uiWindow;
+	}
+}
+
+void VulkanApp::setAntiAliasSamples(VkSampleCountFlagBits samples) {
+	if (samples < _maxMsaaSamples) {
+		_msaaSamples = samples;
+		_pipelines->setAntiAliasSamples(_msaaSamples);
+		if (_uiWindow)
+			_uiWindow->getPipelines()->setAntiAliasSamples(_msaaSamples);
+		changed();
 	}
 }
 
@@ -589,6 +612,8 @@ void VulkanApp::createRenderPass() {
 		throw std::runtime_error("failed to create render pass!");
 	}
 	_pipelines->setRenderPass(renderPass);
+	if (_uiWindow)
+		_uiWindow->getPipelines()->setRenderPass(renderPass);
 }
 
 void VulkanApp::createGraphicsPipeline() {

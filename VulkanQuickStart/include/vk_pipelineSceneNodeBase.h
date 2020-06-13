@@ -49,7 +49,7 @@ namespace VK {
 
 	class PipelineSceneNodeBase {
 	public:
-		PipelineSceneNodeBase(const PipelineBasePtr& ownerPipeline);
+		PipelineSceneNodeBase(const VulkanAppPtr& app);
 		virtual ~PipelineSceneNodeBase();
 
 		void toggleVisibility();
@@ -58,31 +58,16 @@ namespace VK {
 		bool isReady() const;
 		void setReady(bool ready);
 
-		virtual void addCommands(VkCommandBuffer cmdBuff, VkPipelineLayout pipelineLayout, size_t swapChainIndex) const = 0;
+		virtual void addCommands(VkCommandBuffer cmdBuff) const = 0;
 		virtual void buildImageInfoList(std::vector<VkDescriptorImageInfo>& imageInfoList) const = 0;
-		virtual void updateUniformBuffer(size_t swapChainIndex);
 
-		void cleanupSwapChain();
-		virtual void createDescriptorPool() = 0;
-		virtual void createUniformBuffers() = 0;
-		virtual void createDescriptorSets() = 0;
+		const VulkanAppPtr& getApp() const;
 
-		template<class BUF_TYPE>
-		void updateUniformBufferTempl(size_t swapChainIndex, const BUF_TYPE& ubo);
 	protected:
-		PipelineBasePtr _ownerPipeline;
 		bool _ready = false;
 		bool _visible = true;
-
-		std::vector<Buffer> _uniformBuffers;
-		VkDescriptorPool _descriptorPool = VK_NULL_HANDLE;
-		std::vector<VkDescriptorSet> _descriptorSets;
+		VulkanAppPtr _app;
 	};
-
-	template<class BUF_TYPE>
-	inline void PipelineSceneNodeBase::updateUniformBufferTempl(size_t swapChainIndex, const BUF_TYPE& ubo) {
-		_uniformBuffers[swapChainIndex].update(ubo);
-	}
 
 	inline bool PipelineSceneNodeBase::isVisible() const {
 		return _visible;
@@ -96,4 +81,7 @@ namespace VK {
 		_ready = ready;
 	}
 
+	inline const VulkanAppPtr& PipelineSceneNodeBase::getApp() const {
+		return _app;
+	}
 }

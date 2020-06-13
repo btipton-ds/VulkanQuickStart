@@ -49,30 +49,6 @@ PipelineUi::PipelineUi(const PipelineUboGroupBasePtr& plGroup)
 		shaders.addShader(getShaderId(), { "shaders/shader_ui_vert.spv", "shaders/shader_ui_frag.spv" });
 }
 
-void PipelineUi::addCommands(VkCommandBuffer cmdBuff, size_t swapChainIdx) const {
-	for (const auto& sceneNode : _sceneNodes) {
-		if (sceneNode->isVisible()) {
-			SceneNodeUiPtr ptr = dynamic_pointer_cast<PipelineSceneNodeUi>(sceneNode);
-			ptr->addCommandsIdx(cmdBuff, _pipelineLayout, swapChainIdx);
-		}
-	}
-}
-
-void PipelineUi::cleanupSwapChain() {
-	PipelineBase::cleanupSwapChain();
-
-	for (auto& sceneNode : _sceneNodes) {
-		SceneNodeUiPtr ptr = dynamic_pointer_cast<PipelineSceneNodeUi>(sceneNode);
-		ptr->cleanupSwapChain(this);
-	}
-}
-
-void PipelineUi::updateUniformBuffers(size_t swapChainIndex) {
-	for (auto& sceneNode : _sceneNodes) {
-		sceneNode->updateUniformBuffer(swapChainIndex);
-	}
-}
-
 void PipelineUi::createDescriptorSetLayout() {
 	std::vector<VkDescriptorSetLayoutBinding> bindings;
 

@@ -49,10 +49,9 @@ PipelineBase::PipelineBase(const PipelineUboGroupBasePtr& plGroup, const std::st
 	: _plGroup(plGroup)
 	, _dc(plGroup->getApp()->getDeviceContext())
 	, _shaderId(shaderId)
+	, _viewportRect(rect)
+	, _scissorRect(rect)
 {
-	_viewportRect.offset = rect.offset;
-	_viewportRect.extent = rect.extent;
-	_scissorRect = _viewportRect;
 }
 
 PipelineBase::~PipelineBase() {
@@ -100,9 +99,13 @@ void PipelineBase::changed() {
 	getApp()->changed();
 }
 
+uint32_t PipelineBase::getMaxSamplers() const {
+	return 7;
+}
+
 void PipelineBase::build() {
 	createDescriptorSetLayout();
-	buildSceneNodes();
+	buildSceneNodeBindings();
 
 	/*
 		Caution!

@@ -181,7 +181,7 @@ void addObj() {
 #if TEST_OBJ
 	glm::mat4 xform;
 
-	plant = ModelObj::create(pipeline3DWSampler, pottedPlantPath, pottedPlantFilename);
+	plant = ModelObj::create(gApp, pottedPlantPath, pottedPlantFilename);
 	pipeline3DWSampler->addSceneNode(plant);
 	xform = glm::rotate(glm::mat4(1.0f), glm::radians(90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
 	plant->setModelTransform(xform);
@@ -196,7 +196,7 @@ void addObj() {
 		return xform;
 	});
 
-	dna = ModelObj::create(pipeline3DWSampler, dnaPath, dnaFilename);
+	dna = ModelObj::create(gApp, dnaPath, dnaFilename);
 	pipeline3DWSampler->addSceneNode(dna);
 	xform = glm::translate(glm::mat4(1.0f), glm::vec3(0, 10, 0));
 	dna->setModelTransform(xform);
@@ -211,7 +211,7 @@ void addObj() {
 		return xform;
 	});
 
-	apricot = ModelObj::create(pipeline3DWSampler, apricotPath, apricotFilename);
+	apricot = ModelObj::create(gApp, apricotPath, apricotFilename);
 	xform = glm::translate(glm::mat4(1.0f), glm::vec3(10, 10, 0));
 	xform *= glm::rotate(glm::mat4(1.0f), glm::radians(90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
 	apricot->setModelTransform(xform);
@@ -225,10 +225,10 @@ int readStl(const string& filename, ModelPtr& modelShaded, ModelPtr& modelWF) {
 		return 1;
 
 
-	modelShaded = Model::create(pipeline3DShaded, meshPtr);
+	modelShaded = Model::create(gApp, meshPtr);
 	pipeline3DShaded->addSceneNode(modelShaded);
 
-	modelWF = Model::create(pipeline3DWireframe, meshPtr);
+	modelWF = Model::create(gApp, meshPtr);
 	pipeline3DWireframe->addSceneNode(modelWF);
 
 	return 0;
@@ -273,7 +273,7 @@ int main(int numArgs, char** args) {
 	frame.offset = { 0,0, };
 	frame.extent.width = 1500;
 	frame.extent.height = 900;
-	gApp = make_shared<VulkanApp>(frame);
+	gApp = VulkanApp::create(frame);
 
 	gApp->setAntiAliasSamples(VK_SAMPLE_COUNT_4_BIT);
 	VkExtent2D offscreenExtent = { 2048, 2048 };

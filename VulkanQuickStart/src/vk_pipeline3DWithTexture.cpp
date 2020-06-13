@@ -84,12 +84,19 @@ Pipeline3DWSampler::Pipeline3DWSampler(const PipelineUboGroupBasePtr& plGroup, c
 
 Pipeline3DWSampler::BoundingBox Pipeline3DWSampler::getBounds() const {
 	BoundingBox bb;
-	for (auto& sceneNode : _sceneNodes) {
+
+	for (auto& binding : _sceneNodeBindings) {
+		auto sceneNode = binding->getSceneNode();
 		SceneNode3DWithTexturePtr node3D = dynamic_pointer_cast<PipelineSceneNode3DWSampler> (sceneNode);
 		BoundingBox modelBb = node3D->getBounds();
 		bb.merge(transform(modelBb, node3D->getModelTransform()));
 	}
 	return bb;
+}
+
+void Pipeline3DWSampler::updateSceneNodeUbo(const SceneNodePtr& sceneNode, UniformBufferObject3D& ubo) const {
+	PipelineSceneNode3DWSamplerPtr ptr = dynamic_pointer_cast<PipelineSceneNode3DWSampler>(sceneNode);
+	ptr->updateUbo(ubo);
 }
 
 void Pipeline3DWSampler::createDescriptorSetLayout() {

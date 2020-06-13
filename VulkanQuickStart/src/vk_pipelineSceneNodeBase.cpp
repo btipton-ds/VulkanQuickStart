@@ -35,59 +35,19 @@ This file is part of the VulkanQuickStart Project.
 
 using namespace VK;
 
-PipelineSceneNodeBase::PipelineSceneNodeBase(const PipelineBasePtr& ownerPipeline)
-	: _ownerPipeline(ownerPipeline)
+PipelineSceneNodeBase::PipelineSceneNodeBase(const VulkanAppPtr& app)
+	: _app(app)
 {}
 
 PipelineSceneNodeBase::~PipelineSceneNodeBase() {
-	auto& device = _ownerPipeline->getApp()->getDeviceContext()->_device;
-	if (_descriptorPool != VK_NULL_HANDLE)
-		vkDestroyDescriptorPool(device, _descriptorPool, nullptr);
 }
 
 void PipelineSceneNodeBase::toggleVisibility() {
 	_visible = !_visible;
-	_ownerPipeline->getApp()->changed();
+	_app->changed();
 }
 
 void PipelineSceneNodeBase::setVisibility(bool visible) {
 	_visible = visible;
-	_ownerPipeline->getApp()->changed();
-}
-
-void PipelineSceneNodeBase::updateUniformBuffer(size_t swapChainIndex) {
-
-}
-
-void PipelineSceneNodeBase::cleanupSwapChain() {
-	if (_uniformBuffers.empty())
-		return;
-
-	_uniformBuffers.clear();
-	_descriptorSets.clear();
-
-	auto devCon = _ownerPipeline->getApp()->getDeviceContext()->_device;
-	if (_descriptorPool != VK_NULL_HANDLE)
-		vkDestroyDescriptorPool(devCon, _descriptorPool, nullptr);
-}
-
-void PipelineSceneNodeBase::createUniformBuffers() {
-	size_t uboSize = _ownerPipeline->getUboSize();
-	if (uboSize == stm1)
-		return;
-
-	const auto& app = _ownerPipeline->getApp();
-	const auto& swap = app->getSwapChain();
-	auto devCon = app->getDeviceContext()->_device;
-
-	size_t swapChainSize = (uint32_t)swap._vkImages.size();
-
-	_uniformBuffers.clear();
-	_uniformBuffers.reserve(swapChainSize);
-
-	for (size_t i = 0; i < swapChainSize; i++) {
-		_uniformBuffers.push_back(Buffer(app->getDeviceContext()));
-		_uniformBuffers.back().create(uboSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
-			VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
-	}
+	_app->changed();
 }

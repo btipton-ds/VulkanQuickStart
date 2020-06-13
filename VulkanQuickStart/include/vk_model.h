@@ -60,11 +60,11 @@ namespace VK {
 		using BoundingBox = CBoundingBox3D<float>;
 		using VertexType = Pipeline3D::VertexType;
 
-		static inline ModelPtr create(const PipelineBasePtr& ownerPipeline, const TriMesh::CMeshPtr& meshPtr, const glm::vec3& color = glm::vec3(1, 1, 1)) {
-			return std::shared_ptr<Model>(new Model(ownerPipeline, meshPtr, color));
+		static inline ModelPtr create(const VulkanAppPtr& app, const TriMesh::CMeshPtr& meshPtr, const glm::vec3& color = glm::vec3(1, 1, 1)) {
+			return std::shared_ptr<Model>(new Model(app, meshPtr, color));
 		}
 
-		void addCommands(VkCommandBuffer cmdBuff, VkPipelineLayout pipelineLayout, size_t swapChainIndex) const override;
+		void addCommands(VkCommandBuffer cmdBuff) const override;
 		void buildImageInfoList(std::vector<VkDescriptorImageInfo>& imageInfoList) const override;
 		BoundingBox getBounds() const override;
 
@@ -88,13 +88,9 @@ namespace VK {
 			return static_cast<uint32_t>(_indices.size());
 		}
 
-		void createDescriptorPool() override;
-		void createDescriptorSets() override;
-		void createUniformBuffers() override;
-
 	protected:
-		Model(const PipelineBasePtr& ownerPipeline);
-		Model(const PipelineBasePtr& ownerPipeline, const TriMesh::CMeshPtr& meshPtr, const glm::vec3& color);
+		Model(const VulkanAppPtr& app);
+		Model(const VulkanAppPtr& app, const TriMesh::CMeshPtr& meshPtr, const glm::vec3& color);
 
 		void loadModel(const TriMesh::CMeshPtr& meshPtr, const glm::vec3& color);
 

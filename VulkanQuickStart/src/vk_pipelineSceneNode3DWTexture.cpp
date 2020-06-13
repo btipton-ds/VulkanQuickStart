@@ -39,24 +39,14 @@ This file is part of the VulkanQuickStart Project.
 using namespace std;
 using namespace VK;
 
-PipelineSceneNode3DWSampler::PipelineSceneNode3DWSampler(const PipelineBasePtr& ownerPipeline)
-	: Pipeline3DWSampler::PipelineSceneNode(ownerPipeline)
+PipelineSceneNode3DWSampler::PipelineSceneNode3DWSampler(const VulkanAppPtr& app)
+	: Pipeline3DWSampler::PipelineSceneNode(app)
 	, _modelXForm(glm::mat4(1.0f))
-{
-}
+{}
 
-PipelineSceneNode3DWSampler::~PipelineSceneNode3DWSampler() {
-}
-
-
-void PipelineSceneNode3DWSampler::updateUniformBuffer(size_t swapChainIndex) {
-	auto pipeline3D = dynamic_pointer_cast<Pipeline3DWSampler>(_ownerPipeline);
-	auto ubo = pipeline3D->getUniformBuffer();
-
+void PipelineSceneNode3DWSampler::updateUbo(UboType& ubo) const {
 	if (_modelXFormFunc)
 		ubo.modelView *= _modelXFormFunc(_modelXForm);
 	else
 		ubo.modelView *= _modelXForm;
-
-	updateUniformBufferTempl(swapChainIndex, ubo);
 }

@@ -48,11 +48,10 @@ namespace VK {
 		using UboType = Pipeline3D::UboType;
 		using XformFuncType = std::function<glm::mat4(const glm::mat4& src)>;
 
-		PipelineSceneNode3D(const PipelineBasePtr& ownerPipeline);
+		PipelineSceneNode3D(const VulkanAppPtr& app);
 		virtual ~PipelineSceneNode3D();
 
 		virtual BoundingBox getBounds() const = 0;
-		void updateUniformBuffer(size_t swapChainIndex) override;
 
 		void setModelTransform(const glm::mat4& xform);
 		const glm::mat4& getModelTransform() const;
@@ -60,6 +59,8 @@ namespace VK {
 
 		template<typename FUNC_TYPE>
 		void setModelTransformFunc(FUNC_TYPE func);
+
+		void updateUbo(UboType& ubo) const;
 
 	private:
 		glm::mat4 _modelXForm;

@@ -33,6 +33,7 @@ This file is part of the VulkanQuickStart Project.
 
 #include <vk_pipelineBase.h>
 #include <vk_pipelineSceneNode.h>
+#include <vk_sceneNodeBinding.h>
 
 namespace VK {
 
@@ -57,31 +58,40 @@ namespace VK {
 		const UboType* _ubo;
 	};
 
+
+
 	template<class VERT_TYPE, class UBO_TYPE>
 	class Pipeline : public PipelineUbo<UBO_TYPE> {
 	public:
 		using VertexType = VERT_TYPE;
-		using PipelineSceneNode = GCC_CLASS PipelineSceneNode<Pipeline<VERT_TYPE, UBO_TYPE>>;
+		using PipelineSceneNode = GCC_CLASS PipelineSceneNode<VERT_TYPE>;
 		using SceneNodePtr = std::shared_ptr<PipelineSceneNode>;
-		using SceneNodeList = std::vector<SceneNodePtr>;
+		using PipelinePtr = std::shared_ptr<Pipeline>;
+		using BindingPtr = SceneNodeToPipelineBindingPtr<VERT_TYPE, UBO_TYPE>;
 
 		Pipeline(const PipelineUboGroupBasePtr& plGroup, const std::string& shaderId, const VkRect2D& rect);
 
 		void cleanupSwapChain() override;
-		void addSceneNode(const SceneNodePtr& node);
-		void removeSceneNode(const SceneNodePtr& node);
+		BindingPtr addSceneNode(const SceneNodePtr& node);
+		void removeSceneNode(const BindingPtr& node);
 		size_t numSceneNodes() const override;
 
 		void addCommands(VkCommandBuffer cmdBuff, size_t swapChainIdx) const override;
 
 		void updateUniformBuffers(size_t swapChainIndex) override;
+		virtual void updateSceneNodeUbo(const SceneNodePtr& sceneNode, UBO_TYPE& ubo) const = 0;
 
 		size_t getUboSize() const override;
 
 	protected:
-		void buildSceneNodes() override;
+		void buildSceneNodeBindings() override {
+			for (auto& binding : _sceneNodeBindings) {
+				binding->build();
+			}
+		}
 
-		SceneNodeList _sceneNodes;
+		std::vector<BindingPtr> _sceneNodeBindings;
+		//		SceneNodeList _sceneNodeBindings;
 	};
 
 	template<class PIPELINE_TYPE>
@@ -110,17 +120,17 @@ namespace VK {
 	template<class VERT_TYPE, class UBO_TYPE>
 	inline void Pipeline<VERT_TYPE, UBO_TYPE>::cleanupSwapChain() {
 		PipelineUbo::cleanupSwapChain();
-		for (auto& sceneNode : _sceneNodes) {
-			if (sceneNode->isReady())
-				sceneNode->cleanupSwapChain();
+		for (auto& binding : _sceneNodeBindings) {
+			if (binding->isReady())
+				binding->cleanup();
 		}
 	}
 
 	template<class VERT_TYPE, class UBO_TYPE>
 	inline void Pipeline<VERT_TYPE, UBO_TYPE>::addCommands(VkCommandBuffer cmdBuff, size_t swapChainIdx) const {
-		for (const auto& sceneNode : _sceneNodes) {
-			if (sceneNode->isReady() && sceneNode->isVisible())
-				sceneNode->addCommands(cmdBuff, _pipelineLayout, swapChainIdx);
+		for (const auto& binding : _sceneNodeBindings) {
+			if (binding->isReady() && binding->isVisible())
+				binding->addCommands(cmdBuff, _pipelineLayout, swapChainIdx);
 		}
 	}
 
@@ -130,40 +140,34 @@ namespace VK {
 	}
 
 	template<class VERT_TYPE, class UBO_TYPE>
-	inline void Pipeline<VERT_TYPE, UBO_TYPE>::buildSceneNodes() {
-		for (const auto& sceneNode : _sceneNodes) {
-			sceneNode->createDescriptorPool();
-			sceneNode->createUniformBuffers();
-			sceneNode->createDescriptorSets();
-			sceneNode->setReady(true);
-		}
-	}
-
-	template<class VERT_TYPE, class UBO_TYPE>
-	inline void Pipeline<VERT_TYPE, UBO_TYPE>::addSceneNode(const SceneNodePtr& node) {
-		_sceneNodes.push_back(node);
+	inline typename Pipeline<VERT_TYPE, UBO_TYPE>::BindingPtr Pipeline<VERT_TYPE, UBO_TYPE>::addSceneNode(const SceneNodePtr& node) {
+		auto& swap = getApp()->getSwapChain();
+		size_t numSwapChains = swap._images.size();
+		auto binding = std::make_shared<SceneNodeToPipelineBinding<VERT_TYPE, UBO_TYPE>>(numSwapChains, this, node);
+		_sceneNodeBindings.push_back(binding);
 		changed();
+		return binding;
 	}
 
 	template<class VERT_TYPE, class UBO_TYPE>
-	inline void Pipeline<VERT_TYPE, UBO_TYPE>::removeSceneNode(const SceneNodePtr& node) {
-		auto iter = std::find(_sceneNodes.begin(), _sceneNodes.end(), node);
-		if (iter != _sceneNodes.end()) {
-			_sceneNodes.erase(iter);
+	inline void Pipeline<VERT_TYPE, UBO_TYPE>::removeSceneNode(const BindingPtr& node) {
+		auto iter = std::find(_sceneNodeBindings.begin(), _sceneNodeBindings.end(), node);
+		if (iter != _sceneNodeBindings.end()) {
+			_sceneNodeBindings.erase(iter);
 			changed();
 		}
 	}
 
 	template<class VERT_TYPE, class UBO_TYPE>
 	inline size_t Pipeline<VERT_TYPE, UBO_TYPE>::numSceneNodes() const {
-		return _sceneNodes.size();
+		return _sceneNodeBindings.size();
 	}
 
 	template<class VERT_TYPE, class UBO_TYPE>
 	inline void Pipeline<VERT_TYPE, UBO_TYPE>::updateUniformBuffers(size_t swapChainIndex) {
-		for (auto& sceneNode : _sceneNodes) {
-			if (sceneNode->isReady())
-				sceneNode->updateUniformBuffer(swapChainIndex);
+		for (auto& binding : _sceneNodeBindings) {
+			if (binding->isReady())
+				binding->updateUniformBuffer(swapChainIndex, *_ubo);
 		}
 	}
 

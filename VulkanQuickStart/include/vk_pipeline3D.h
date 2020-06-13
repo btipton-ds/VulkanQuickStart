@@ -47,6 +47,7 @@ namespace VK {
 
 		BoundingBox getBounds() const;
 
+		void updateSceneNodeUbo(const SceneNodePtr& sceneNode, UniformBufferObject3D& ubo) const override;
 	protected:
 		virtual void createDescriptorSetLayout() override;
 	};

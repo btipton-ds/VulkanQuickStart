@@ -35,17 +35,14 @@ This file is part of the VulkanQuickStart Project.
 
 namespace VK {
 
-	template<class PIPELINE_TYPE>
+	template<class VERT_TYPE>
 	class PipelineSceneNode : public PipelineSceneNodeBase {
 	public:
-		PipelineSceneNode(const PipelineBasePtr& ownerPipeline);
+		inline PipelineSceneNode(const VulkanAppPtr& app)
+			: PipelineSceneNodeBase(app)
+		{}
 
 	};
 
-	template<class PIPELINE_TYPE>
-	inline PipelineSceneNode<PIPELINE_TYPE>::PipelineSceneNode(const PipelineBasePtr& ownerPipeline)
-		: PipelineSceneNodeBase(ownerPipeline)
-	{
-	}
 
 }

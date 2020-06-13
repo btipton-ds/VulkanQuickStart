@@ -43,18 +43,18 @@ namespace VK::UI {
 
 	using namespace std;
 
-	Button::Button(const PipelineBasePtr& ownerPipeline)
-	: PipelineSceneNodeUi(ownerPipeline)
-	, _vertexBuffer(ownerPipeline->getApp()->getDeviceContext())
-	, _indexBuffer(ownerPipeline->getApp()->getDeviceContext())
+	Button::Button(const VulkanAppPtr& app)
+	: PipelineSceneNodeUi(app)
+	, _vertexBuffer(app->getDeviceContext())
+	, _indexBuffer(app->getDeviceContext())
 	{
 		init();
 	}
 
-	Button::Button(const PipelineBasePtr& ownerPipeline, const glm::vec4& backgroundColor, const std::string& label, const Rect& rect, const Accel& accel)
-		: PipelineSceneNodeUi(ownerPipeline)
-		, _vertexBuffer(ownerPipeline->getApp()->getDeviceContext())
-		, _indexBuffer(ownerPipeline->getApp()->getDeviceContext())
+	Button::Button(const VulkanAppPtr& app, const glm::vec4& backgroundColor, const std::string& label, const Rect& rect, const Accel& accel)
+		: PipelineSceneNodeUi(app)
+		, _vertexBuffer(app->getDeviceContext())
+		, _indexBuffer(app->getDeviceContext())
 		, _backgroundColor(backgroundColor)
 		, _label(label)
 		, _rect(rect)
@@ -132,7 +132,7 @@ namespace VK::UI {
 
 		createImage(w, h, image);
 
-		_texture = TextureImage::create(_ownerPipeline->getApp()->getDeviceContext(), w, h, (unsigned char*)image.data());
+		_texture = TextureImage::create(getApp()->getDeviceContext(), w, h, (unsigned char*)image.data());
 	}
 
 	void Button::createImage(size_t& width, size_t& height, vector<uint32_t>& image) {
@@ -206,7 +206,7 @@ namespace VK::UI {
 		else if (err)
 			throw std::runtime_error("Failed to read font file.");
 
-		unsigned int dpi = _ownerPipeline->getApp()->getUiWindow()->getPixelDPI();
+		unsigned int dpi = getApp()->getUiWindow()->getPixelDPI();
 
 		err = FT_Set_Char_Size(face, 0, (FT_F26Dot6)(_fontSizePoints * 64 * IMG_SCALE + 0.5), dpi, dpi);
 		if (err)
@@ -244,14 +244,14 @@ namespace VK::UI {
 		}
 	}
 
-	void Button::addCommands(VkCommandBuffer cmdBuff, VkPipelineLayout pipelineLayout, size_t swapChainIndex) const {
+	void Button::addCommands(VkCommandBuffer cmdBuff) const {
 		VkBuffer vertexBuffers[] = { _vertexBuffer };
 		VkDeviceSize offsets[] = { 0 };
 		vkCmdBindVertexBuffers(cmdBuff, 0, 1, vertexBuffers, offsets);
 
 		vkCmdBindIndexBuffer(cmdBuff, _indexBuffer, 0, VK_INDEX_TYPE_UINT32);
 
-		vkCmdBindDescriptorSets(cmdBuff, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, 1, &_descriptorSets[swapChainIndex], 0, nullptr);
+//		vkCmdBindDescriptorSets(cmdBuff, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, 1, &_descriptorSets[swapChainIndex], 0, nullptr);
 
 		vkCmdDrawIndexed(cmdBuff, 6, 1, 0, 0, 0);
 	}

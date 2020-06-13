@@ -41,14 +41,8 @@ namespace VK {
 	public:
 		using UboType = PipelineUi::UboType;
 
-		PipelineSceneNodeUi(const PipelineBasePtr& ownerPipeline);
+		PipelineSceneNodeUi(const VulkanAppPtr& app);
 
-		void updateUniformBuffer(size_t swapChainIndex) override;
-
-		void createUniformBuffers() override;
-		void createDescriptorPool() override;
-		void createDescriptorSets() override;
-		void cleanupSwapChain(PipelineUi* ownerPipeline);
 		void addCommandsIdx(VkCommandBuffer cmdBuff, VkPipelineLayout pipelineLayout, size_t swapChainIdx);
 
 	};

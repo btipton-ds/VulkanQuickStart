@@ -74,14 +74,14 @@ namespace VK {
 			// Currently using one, over featured, generic callback
 			using FuncMouse = std::function<void(int btnNum, int modifiers)>;
 
-			Button(const PipelineBasePtr& ownerPipeline);
-			Button(const PipelineBasePtr& ownerPipeline, const glm::vec4& backgroundColor, const std::string& label, const Rect& rect, const Accel& accel = Accel());
+			Button(const VulkanAppPtr& app);
+			Button(const VulkanAppPtr& app, const glm::vec4& backgroundColor, const std::string& label, const Rect& rect, const Accel& accel = Accel());
 
 			const glm::vec4& getFontColor() const;
 			const glm::vec4& getBackgroundColor() const;
 
 			void createBuffers();
-			void addCommands(VkCommandBuffer cmdBuff, VkPipelineLayout pipelineLayout, size_t swapChainIndex) const override;
+			void addCommands(VkCommandBuffer cmdBuff) const override;
 
 			void buildImageInfoList(std::vector<VkDescriptorImageInfo>& imageInfoList) const override;
 
