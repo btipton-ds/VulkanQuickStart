@@ -65,6 +65,8 @@ namespace VK {
 			int getPixelDPI() const;
 			const PipelineGroupTypePtr& getPipelines() const;
 
+			void updateUniformBuffer(size_t swapChainImageIndex);
+
 		private:
 
 			void init();

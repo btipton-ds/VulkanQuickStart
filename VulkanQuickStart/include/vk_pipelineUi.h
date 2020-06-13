@@ -63,9 +63,7 @@ namespace VK {
 		using VertexType = VertexUi;
 
 		PipelineUi(const PipelineUboGroupBasePtr& plGroup);
-		void updateSceneNodeUbo(const SceneNodePtr& sceneNode, UniformBufferObjectUi& ubo) const override {
-
-		}
+		void updateSceneNodeUbo(const SceneNodePtr& sceneNode, UniformBufferObjectUi& ubo) const override;
 
 	protected:
 		virtual void createDescriptorSetLayout() override;

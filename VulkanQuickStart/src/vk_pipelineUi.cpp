@@ -49,6 +49,9 @@ PipelineUi::PipelineUi(const PipelineUboGroupBasePtr& plGroup)
 		shaders.addShader(getShaderId(), { "shaders/shader_ui_vert.spv", "shaders/shader_ui_frag.spv" });
 }
 
+void PipelineUi::updateSceneNodeUbo(const SceneNodePtr& sceneNode, UniformBufferObjectUi& ubo) const {
+}
+
 void PipelineUi::createDescriptorSetLayout() {
 	std::vector<VkDescriptorSetLayoutBinding> bindings;
 

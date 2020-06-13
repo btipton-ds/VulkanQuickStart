@@ -56,6 +56,12 @@ namespace VK::UI {
 		init();
 	}
 
+	void Window::updateUniformBuffer(size_t swapChainImageIndex) {
+		_pipelines->iterate([&](const PipelinePtr& pipeline) {
+			pipeline->updateUniformBuffers(swapChainImageIndex);
+		});
+	}
+
 	inline dvec2 Window::scaleCursorPos(GLFWwindow* window, double xPos, double yPos) {
 		dvec2 result;
 		int width, height;

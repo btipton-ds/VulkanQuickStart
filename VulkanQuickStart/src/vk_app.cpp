@@ -132,6 +132,7 @@ VulkanApp::~VulkanApp() {
 void VulkanApp::setUiWindow(const UI::WindowPtr& uiWindow) {
 	if (uiWindow) {
 		_uiWindow = uiWindow;
+		_uiWindow->getPipelines()->setAntiAliasSamples(_msaaSamples);
 	}
 }
 
@@ -917,12 +918,10 @@ void VulkanApp::updateUniformBuffer(uint32_t swapChainImageIndex) {
 	updateUBO(_swapChain._extent, modelBounds, ubo);
 	_pipelines->setUbo(ubo, swapChainImageIndex);
 
-#if 0
-	if (_uiWindow)
-		_uiWindow->getPipelines()->iterate([&](const PipelinePtr& pipeline) {
-		pipeline->updateUniformBuffers(swapChainImageIndex);
-	});
-#endif
+	if (_uiWindow) {
+		_uiWindow->updateUniformBuffer(swapChainImageIndex);
+	}
+
 
 	if (_offscreenPass) {
 		updateUBO(_swapChain._extent, modelBounds, ubo);
