@@ -71,7 +71,9 @@ namespace VK {
 	template<class PIPELINE_TYPE>
 	inline typename PIPELINE_TYPE::PipelinePtr createPipelineWithSource(const VulkanAppPtr& app, const std::string& shaderId, const std::string& vertShaderFilename, const std::string& fragShaderFilename) {
 		auto pipeline = createPipeline<PIPELINE_TYPE>(app, shaderId);
-		PipelineBase::addShaders(app, shaderId, { vertShaderFilename , fragShaderFilename });
+		auto& shaders = app->getDeviceContext()->getShaderPool();
+		if (!shaders.getShader(shaderId))
+			shaders.addShader(shaderId, { vertShaderFilename , fragShaderFilename });
 		return pipeline;
 	}
 

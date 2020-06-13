@@ -59,6 +59,9 @@ namespace VK {
 
 		uint32_t getMemoryType(uint32_t typeBits, VkMemoryPropertyFlags properties, VkBool32* memTypeFound = nullptr);
 
+		const ShaderPool& getShaderPool() const;
+		ShaderPool& getShaderPool();
+
 		VkDevice _device = VK_NULL_HANDLE;
 		VkPhysicalDevice _physicalDevice = VK_NULL_HANDLE;
 		VkCommandPool _commandPool = VK_NULL_HANDLE;
@@ -72,6 +75,7 @@ namespace VK {
 		std::vector<VkFence> _inFlightFences;
 		size_t _currentFrame = 0;
 
+		ShaderPoolPtr _shaderPool;
 	};
 
 	inline void DeviceContext::waitForFences() {
@@ -88,6 +92,14 @@ namespace VK {
 
 	inline void DeviceContext::nextFrame() {
 		_currentFrame = (_currentFrame + 1) % _maxFramesInFlight;
+	}
+
+	inline const ShaderPool& DeviceContext::getShaderPool() const {
+		return *_shaderPool;
+	}
+
+	inline ShaderPool& DeviceContext::getShaderPool() {
+		return *_shaderPool;
 	}
 
 }

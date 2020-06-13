@@ -49,8 +49,6 @@ namespace VK {
 
 	class PipelineBase {
 	public:
-		static void addShaders(const VulkanAppPtr& app, const std::string& shaderId, const std::vector<std::string>& filenames);
-
 		PipelineBase(const VulkanAppPtr& app, const std::string& shaderId);
 		virtual ~PipelineBase();
 
@@ -91,6 +89,7 @@ namespace VK {
 		virtual void buildSceneNodes() = 0;
 
 		VulkanAppPtr _app;
+		DeviceContextPtr _dc;
 
 		VkVertexInputBindingDescription _vertBindDesc;
 		std::vector<VkVertexInputAttributeDescription> _vertAttribDesc;

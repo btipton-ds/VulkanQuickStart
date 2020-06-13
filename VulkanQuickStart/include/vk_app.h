@@ -108,8 +108,6 @@ namespace VK {
 		void setModelScale(double scale);
 		double getModelScale() const;
 
-		const ShaderPool& getShaderPool() const;
-		ShaderPool& getShaderPool();
 		uint32_t getSwapChainIndex() const;
 
 		void run();
@@ -203,7 +201,6 @@ namespace VK {
 
 		OffscreenPassPtr _offscreenPass;
 		VkRenderPass renderPass;
-		ShaderPoolPtr _shaderPool;
 
 		double _targetFrameDurationMillis = -1;
 		UniformBufferObject3D _ubo;
@@ -275,14 +272,6 @@ namespace VK {
 
 	inline double VulkanApp::getModelScale() const {
 		return _modelScale;
-	}
-
-	inline const ShaderPool& VulkanApp::getShaderPool() const {
-		return *_shaderPool;
-	}
-
-	inline ShaderPool& VulkanApp::getShaderPool() {
-		return *_shaderPool;
 	}
 
 	inline uint32_t VulkanApp::getSwapChainIndex() const {

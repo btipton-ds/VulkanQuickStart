@@ -31,17 +31,20 @@ This file is part of the VulkanQuickStart Project.
 
 #include <iostream>
 
-#include "vk_buffer.h"
-#include "vk_image.h"
-#include "vk_textureImage.h"
-#include "vk_deviceContext.h"
+#include <vk_buffer.h>
+#include <vk_image.h>
+#include <vk_textureImage.h>
+#include <vk_shaderPool.h>
+#include <vk_deviceContext.h>
 
 using namespace std;
 using namespace VK;
 
 DeviceContext::DeviceContext(size_t maxFramesInFlight) 
 : _maxFramesInFlight(maxFramesInFlight)
-{}
+{
+	_shaderPool = make_shared<ShaderPool>(this);
+}
 
 DeviceContext::~DeviceContext() {
 	destroy();

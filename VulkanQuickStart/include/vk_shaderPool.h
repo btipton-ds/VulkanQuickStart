@@ -53,7 +53,7 @@ namespace VK {
 
 		using ShaderRecPtr = std::shared_ptr<ShaderRec>;
 
-		ShaderPool(const DeviceContextPtr& dc);
+		ShaderPool(DeviceContext* dc);
 		~ShaderPool();
 
 		ShaderRecPtr addShader(const std::string& shaderId, const std::vector<std::string>& filenames);
@@ -62,7 +62,7 @@ namespace VK {
 		void removeShader(const std::string& shaderId);
 
 	private:
-		DeviceContextPtr _dc;
+		DeviceContext* _dc;
 		VkShaderModule createShaderModule(const std::vector<char>& code) const;
 		static std::vector<char> readFile(const std::string& filename);
 

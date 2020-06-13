@@ -45,7 +45,7 @@ PipelineUi::PipelineUi(const VulkanAppPtr& app)
 	setDepthTestEnabled(false);
 
 	_ubo._color = glm::vec4(1, 0, 0, 1);
-	auto& shaders = app->getShaderPool();
+	auto& shaders = app->getDeviceContext()->getShaderPool();
 	if (!shaders.getShader(getShaderId()))
 		shaders.addShader(getShaderId(), { "shaders/shader_ui_vert.spv", "shaders/shader_ui_frag.spv" });
 }

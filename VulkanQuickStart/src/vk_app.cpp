@@ -102,7 +102,6 @@ VulkanApp::VulkanApp(int width, int height)
 	: _deviceContext(make_shared<DeviceContext>(MAX_FRAMES_IN_FLIGHT))
 	, _swapChain(_deviceContext)
 {
-	_shaderPool = make_shared<ShaderPool>(_deviceContext);
 	_modelToWorld = glm::identity<glm::mat4>();
 
 	initWindow(width, height);
@@ -295,8 +294,6 @@ void VulkanApp::cleanup() {
 		_offscreenPass->cleanup();
 
 	cleanupSwapChain();
-
-	_shaderPool = nullptr;
 
 	if (enableValidationLayers) {
 		DestroyDebugUtilsMessengerEXT(instance, debugMessenger, nullptr);

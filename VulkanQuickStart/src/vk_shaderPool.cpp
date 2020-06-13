@@ -42,7 +42,7 @@ void ShaderPool::ShaderRec::add(const std::string& filename, const VkShaderModul
 	_shaderModules.push_back(shaderModule);
 }
 
-ShaderPool::ShaderPool(const DeviceContextPtr& dc) 
+ShaderPool::ShaderPool(DeviceContext* dc) 
 	: _dc(dc)
 {
 }

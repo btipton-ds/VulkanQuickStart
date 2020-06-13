@@ -45,14 +45,9 @@ This file is part of the VulkanQuickStart Project.
 using namespace VK;
 using namespace std;
 
-void PipelineBase::addShaders(const VulkanAppPtr& app, const std::string& shaderId, const std::vector<std::string>& filenames) {
-	auto& shaders = app->getShaderPool();
-	if (!shaders.getShader(shaderId))
-		shaders.addShader(shaderId, filenames);
-}
-
 PipelineBase::PipelineBase(const VulkanAppPtr& app, const std::string& shaderId)
 	: _app(app)
+	, _dc(app->getDeviceContext())
 	, _shaderId(shaderId)
 {
 	_viewportRect.offset = { 0,0 };
@@ -66,7 +61,7 @@ PipelineBase::~PipelineBase() {
 
 void PipelineBase::toggleVisiblity() {
 	_visible = !_visible;
-	_app->changed();
+	changed();
 }
 
 void PipelineBase::setVisibility(bool visible) {
@@ -78,15 +73,15 @@ size_t PipelineBase::numSceneNodes() const {
 }
 
 void PipelineBase::cleanupSwapChain() {
-	auto devCon = _app->getDeviceContext()->_device;
+	VkDevice vkDevice = _dc->_device;
 	if (_descriptorSetLayout != VK_NULL_HANDLE)
-		vkDestroyDescriptorSetLayout(devCon, _descriptorSetLayout, nullptr);
+		vkDestroyDescriptorSetLayout(vkDevice, _descriptorSetLayout, nullptr);
 	for (auto gpl : _graphicsPipelines) {
 		if (gpl != VK_NULL_HANDLE)
-			vkDestroyPipeline(devCon, gpl, nullptr);
+			vkDestroyPipeline(vkDevice, gpl, nullptr);
 	}
 	if (_pipelineLayout != VK_NULL_HANDLE)
-		vkDestroyPipelineLayout(devCon, _pipelineLayout, nullptr);
+		vkDestroyPipelineLayout(vkDevice, _pipelineLayout, nullptr);
 
 	_descriptorSetLayout = VK_NULL_HANDLE;
 	_graphicsPipelines.clear();
@@ -184,7 +179,7 @@ void PipelineBase::build() {
 	pipelineInfo.subpass = 0;
 	pipelineInfo.basePipelineHandle = VK_NULL_HANDLE;
 
-	auto device = _app->getDeviceContext()->_device;
+	VkDevice device = _dc->_device;
 
 	for (size_t i = 0; i < numPipelines; i++) {
 		multisampling.rasterizationSamples = _app->getAntiAliasSamples(i);
@@ -197,7 +192,7 @@ void PipelineBase::build() {
 
 inline void PipelineBase::setShaderStages(vector<VkPipelineShaderStageCreateInfo>& shaderStages) {
 	string shaderId = getShaderId();
-	ShaderPool& shaders = _app->getShaderPool();
+	ShaderPool& shaders = _dc->getShaderPool();
 	auto shader = shaders.getShader(shaderId);
 	for (size_t i = 0; i < shader->_shaderModules.size(); i++) {
 		const auto& shaderModule = shader->_shaderModules[i];
@@ -300,7 +295,7 @@ inline void PipelineBase::createPipelineLayout() {
 	pipelineLayoutInfo.setLayoutCount = 1;
 	pipelineLayoutInfo.pSetLayouts = &_descriptorSetLayout;
 
-	if (vkCreatePipelineLayout(_app->getDeviceContext()->_device, &pipelineLayoutInfo, nullptr, &_pipelineLayout) != VK_SUCCESS) {
+	if (vkCreatePipelineLayout(_dc->_device, &pipelineLayoutInfo, nullptr, &_pipelineLayout) != VK_SUCCESS) {
 		throw std::runtime_error("failed to create pipeline layout!");
 	}
 }
