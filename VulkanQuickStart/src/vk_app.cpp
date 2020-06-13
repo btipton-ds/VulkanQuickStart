@@ -255,6 +255,9 @@ void VulkanApp::cleanupSwapChain() {
 		pl->cleanupSwapChain();
 	});
 
+	if (_uiWindow)
+		_uiWindow->getPipeline()->cleanupSwapChain();
+
 	vkFreeCommandBuffers(_deviceContext->_device, _deviceContext->_commandPool, static_cast<uint32_t>(_commandBuffers.size()), _commandBuffers.data());
 
 	vkDestroyRenderPass(_deviceContext->_device, renderPass, nullptr);
@@ -590,6 +593,8 @@ void VulkanApp::createGraphicsPipeline() {
 		if (pl->isVisible())
 			pl->build();
 	});
+	if (_uiWindow)
+		_uiWindow->getPipeline()->build();
 }
 
 void VulkanApp::createFramebuffers() {
@@ -787,11 +792,10 @@ void VulkanApp::drawCmdBufferLoop(VkCommandBuffer cmdBuff, size_t swapChainIndex
 			pipeline->draw(cmdBuff, swapChainIndex, pipelineNum);
 	});
 
-	_uiWindow->getPipeline()->draw(cmdBuff, swapChainIndex, pipelineNum);
+	if (_uiWindow)
+		_uiWindow->getPipeline()->draw(cmdBuff, swapChainIndex, pipelineNum);
 
 	vkCmdEndRenderPass(cmdBuff);
-
-
 }
 
 void VulkanApp::createSyncObjects() {
@@ -864,6 +868,9 @@ void VulkanApp::updateUniformBuffer(uint32_t swapChainImageIndex) {
 	reportFPS();
 
 	BoundingBox modelBounds;
+
+	if (_uiWindow)
+		_uiWindow->getPipeline()->updateUniformBuffers(swapChainImageIndex);
 
 	_pipelines->iterate([&](const PipelinePtr& pipeline) {
 		auto ptr3D = dynamic_pointer_cast<Pipeline3D>(pipeline);
