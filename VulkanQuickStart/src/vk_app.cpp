@@ -64,6 +64,7 @@ This file is part of the VulkanQuickStart Project.
 #include <vk_pipeline3D.h>
 #include <vk_pipeline3DWithSampler.h>
 #include <vk_pipelineUi.h>
+#include <vk_pipelineUboGroup.h>
 #include <vk_ui_window.h>
 #include "vk_app.h"
 
@@ -104,6 +105,7 @@ VulkanApp::VulkanApp(const VkRect2D& rect)
 	, _frameRect(rect)
 {
 	_modelToWorld = glm::identity<glm::mat4>();
+	_pipelines = make_shared<PipelineGroupType>();
 
 	initWindow();
 	initVulkan();
@@ -117,12 +119,6 @@ void VulkanApp::setUiWindow(const UI::WindowPtr& uiWindow) {
 	if (uiWindow) {
 		_uiWindow = uiWindow;
 	}
-}
-
-typename VulkanApp::PipelinePtr VulkanApp::addPipeline(const PipelinePtr& pipeline) {
-	_pipelines.add(pipeline);
-	changed();
-	return pipeline;
 }
 
 void DestroyDebugUtilsMessengerEXT(VkInstance instance, VkDebugUtilsMessengerEXT debugMessenger, const VkAllocationCallbacks* pAllocator) {
@@ -253,9 +249,9 @@ void VulkanApp::mainLoop() {
 void VulkanApp::cleanupSwapChain() {
 	for (auto framebuffer : _swapChain._vkFrameBuffers) {
 		vkDestroyFramebuffer(_deviceContext->_device, framebuffer, nullptr);
-	}
+}
 
-	_pipelines.iterate([](const PipelinePtr& pl) {
+	_pipelines->iterate([](const PipelinePtr& pl) {
 		pl->cleanupSwapChain();
 	});
 
@@ -590,7 +586,7 @@ void VulkanApp::createRenderPass() {
 }
 
 void VulkanApp::createGraphicsPipeline() {
-	_pipelines.iterate([](const PipelinePtr& pl) {
+	_pipelines->iterate([](const PipelinePtr& pl) {
 		if (pl->isVisible())
 			pl->build();
 	});
@@ -786,7 +782,7 @@ void VulkanApp::drawCmdBufferLoop(VkCommandBuffer cmdBuff, size_t swapChainIndex
 	VkCommandBufferBeginInfo& beginInfo, VkRenderPassBeginInfo& renderPassInfo) {
 	vkCmdBeginRenderPass(cmdBuff, &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
 
-	_pipelines.iterate([&](const PipelinePtr& pipeline) {
+	_pipelines->iterate([&](const PipelinePtr& pipeline) {
 		if (pipeline->isVisible())
 			pipeline->draw(cmdBuff, swapChainIndex, pipelineNum);
 	});
@@ -869,7 +865,7 @@ void VulkanApp::updateUniformBuffer(uint32_t swapChainImageIndex) {
 
 	BoundingBox modelBounds;
 
-	_pipelines.iterate([&](const PipelinePtr& pipeline) {
+	_pipelines->iterate([&](const PipelinePtr& pipeline) {
 		auto ptr3D = dynamic_pointer_cast<Pipeline3D>(pipeline);
 		if (ptr3D)
 			modelBounds.merge(ptr3D->getBounds());
@@ -879,16 +875,11 @@ void VulkanApp::updateUniformBuffer(uint32_t swapChainImageIndex) {
 			modelBounds.merge(ptr3DWTex->getBounds());
 	});
 
-	updateUBO(_swapChain._extent, modelBounds, _ubo);
-
-	_pipelines.iterate([&](const PipelinePtr& pipeline) {
-		if (pipeline->isVisible() && pipeline->numSceneNodes() > 0) {
-			pipeline->updateUniformBuffers(swapChainImageIndex);
-		}
-	});
+	OffscreenPass::UboType ubo;
+	updateUBO(_swapChain._extent, modelBounds, ubo);
+	_pipelines->setUbo(ubo, swapChainImageIndex);
 
 	if (_offscreenPass) {
-		OffscreenPass::UboType ubo;
 		updateUBO(_swapChain._extent, modelBounds, ubo);
 		_offscreenPass->setUbo(ubo);
 	}
@@ -896,7 +887,7 @@ void VulkanApp::updateUniformBuffer(uint32_t swapChainImageIndex) {
 
 void VulkanApp::drawFrame() {
 	size_t numSceneNodes = 0;
-	_pipelines.iterate([&](const PipelinePtr& pipeline) {
+	_pipelines->iterate([&](const PipelinePtr& pipeline) {
 		// TODO, add update buffers call here.
 		numSceneNodes += pipeline->numSceneNodes();
 	});
@@ -923,7 +914,7 @@ void VulkanApp::drawFrame() {
 			_uiWindowChangeNumber = _uiWindow->getChangeNumber();
 		_lastChangeNumber = _changeNumber;
 		_framebufferResized = false;
-		_pipelines.resized(_frameRect);
+		_pipelines->resized(_frameRect);
 		recreateSwapChain();
 		return;
 	}

@@ -51,7 +51,6 @@ This file is part of the VulkanQuickStart Project.
 #include <vk_pipelineSceneNode3DWSampler.h>
 #include <vk_pipeline3D.h>
 #include <vk_shaderPool.h>
-#include <vk_pipelineList.h>
 #include <vk_swapChain.h>
 #include <vk_offscreenPass.h>
 
@@ -62,6 +61,7 @@ namespace VK {
 		using UboType = UniformBufferObject3D;
 		using BoundingBox = CBoundingBox3D<float>;
 		using PipelineGroupType = PipelineUboGroup<UboType>;
+		using PipelineGroupTypePtr = PipelineUboGroupPtr<UboType>;
 		using PipelinePtr = PipelineGroupType::PipelinePtr;
 
 		class Updater {
@@ -84,8 +84,6 @@ namespace VK {
 
 		void changed();
 		size_t getRuntimeMillis() const;
-
-		PipelinePtr addPipeline(const PipelinePtr& pipeline);
 
 		template<class PIPELINE_TYPE>
 		VK::PipelinePtr<PIPELINE_TYPE> addPipelineWithSource(const std::string& shaderId, const std::string& vertShaderFilename, const std::string& fragShaderFilename);
@@ -208,8 +206,7 @@ namespace VK {
 		VkRenderPass renderPass;
 
 		double _targetFrameDurationMillis = -1;
-		UboType _ubo;
-		PipelineGroupType _pipelines;
+		PipelineGroupTypePtr _pipelines;
 
 		std::vector<VkCommandBuffer> _commandBuffers;
 
@@ -290,8 +287,8 @@ namespace VK {
 	template<class PIPELINE_TYPE>
 	inline VK::PipelinePtr<PIPELINE_TYPE> VulkanApp::addPipelineWithSource(const std::string& shaderId, const std::string& vertShaderFilename, const std::string& fragShaderFilename) {
 		auto pipeline = createPipelineWithSource<PIPELINE_TYPE>(getAppPtr(), shaderId, _frameRect, vertShaderFilename, fragShaderFilename);
-		pipeline->setUniformBufferPtr(&_ubo);
-		addPipeline(pipeline);
+		_pipelines->add(pipeline);
+		changed();
 		return pipeline;
 	}
 

@@ -45,6 +45,9 @@ namespace VK {
 
 	template<class UBO_TYPE>
 	class PipelineUboGroup {
+		/*
+		This class contains a list of pipelines which share a common uniform buffer object and related descriptors.
+		*/
 	public:
 		using UboType = UBO_TYPE;
 		using Pipeline = VK::PipelineUbo<UBO_TYPE>;
@@ -54,7 +57,7 @@ namespace VK {
 		void resized(const VkRect2D& rect);
 
 		const UboType& getUbo() const;
-		void setUbo(const UboType& ubo);
+		void setUbo(const UboType& ubo, uint32_t swapChainImageIndex);
 
 		template<typename FUNC_TYPE>
 		void iterate(FUNC_TYPE func);
@@ -75,6 +78,7 @@ namespace VK {
 	template<class UBO_TYPE>
 	void PipelineUboGroup<UBO_TYPE>::add(const PipelinePtr& pl) {
 		std::lock_guard lg(_mutex);
+		pl->setUniformBufferPtr(&_ubo);
 		_pipelines.push_back(pl);
 		std::sort(_pipelines.begin(), _pipelines.end(), PipelineComparePaintLayer);
 	}
@@ -93,8 +97,13 @@ namespace VK {
 	}
 
 	template<class UBO_TYPE>
-	void PipelineUboGroup<UBO_TYPE>::setUbo(const UboType& ubo) {
+	void PipelineUboGroup<UBO_TYPE>::setUbo(const UboType& ubo, uint32_t swapChainImageIndex) {
 		_ubo = ubo;
+		iterate([&](const PipelinePtr& pipeline) {
+			if (pipeline->isVisible() && pipeline->numSceneNodes() > 0) {
+				pipeline->updateUniformBuffers(swapChainImageIndex);
+			}
+		});
 	}
 
 	template<class UBO_TYPE>

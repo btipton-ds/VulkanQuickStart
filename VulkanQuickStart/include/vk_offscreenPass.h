@@ -34,7 +34,7 @@ This file is part of the VulkanQuickStart Project.
 #include <vk_forwardDeclarations.h>
 
 #include <vulkan/vulkan_core.h>
-#include <vk_pipelineList.h>
+#include <vk_pipelineUboGroup.h>
 #include <vk_uniformBuffers.h>
 
 namespace VK {
