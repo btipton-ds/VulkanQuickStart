@@ -163,6 +163,7 @@ namespace VK {
 			VkCommandBufferBeginInfo& beginInfo, VkRenderPassBeginInfo& renderPassInfo);
 		void createSyncObjects();
 		void updateUniformBuffer(uint32_t swapChainImageIndex);
+		void updateUBO(const VkExtent2D& extent, const BoundingBox& modelBounds, UniformBufferObject& ubo) const;
 		void reportFPS();
 		void drawFrame();
 		VkShaderModule createShaderModule(const std::vector<char>& code);
@@ -204,8 +205,8 @@ namespace VK {
 		VkRenderPass renderPass;
 		ShaderPoolPtr _shaderPool;
 
-		UniformBufferObject3D _ubo;
 		double _targetFrameDurationMillis = -1;
+		UniformBufferObject3D _ubo;
 		PipelineList _pipelines;
 
 		std::vector<VkCommandBuffer> _commandBuffers;

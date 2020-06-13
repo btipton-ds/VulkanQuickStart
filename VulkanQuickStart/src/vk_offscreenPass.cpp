@@ -35,6 +35,7 @@ This file is part of the VulkanQuickStart Project.
 
 #include <vk_deviceContext.h>
 #include <vk_image.h>
+#include <vk_pipelineBase.h>
 
 using namespace std;
 using namespace VK;
@@ -179,3 +180,14 @@ void OffscreenPass::cleanup() {
 	_sampler = VK_NULL_HANDLE;
 	_frameBuffer = VK_NULL_HANDLE;
 }
+
+void OffscreenPass::setUbo(const UniformBufferObject& ubo) {
+	_ubo = ubo;
+
+	_pipelines.iterate([&](const PipelineBasePtr& pipeline) {
+		if (pipeline->isVisible() && pipeline->numSceneNodes() > 0) {
+			pipeline->updateUniformBuffers(0 /*swapChainImageIndex*/); // These pipelines don't have a swap chain
+		}
+	});
+}
+

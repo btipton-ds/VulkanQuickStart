@@ -828,29 +828,16 @@ namespace {
 	}
 }
 
-void VulkanApp::updateUniformBuffer(uint32_t swapChainImageIndex) {
-	reportFPS();
+void VulkanApp::updateUBO(const VkExtent2D& extent, const BoundingBox& modelBounds, UniformBufferObject& ubo) const {
 
-	BoundingBox modelBounds;
+	ubo = {};
+	ubo.ambient = 0.10f;
+	ubo.numLights = 2;
+	ubo.lightDir[0] = glm::normalize(glm::vec3(1, -0.5, 1));
+	ubo.lightDir[1] = glm::normalize(glm::vec3(-1, -0.5, 3));
 
-	_pipelines.iterate([&](const PipelineBasePtr& pipeline) {
-		auto ptr3D = dynamic_pointer_cast<Pipeline3D>(pipeline);
-		if (ptr3D)
-			modelBounds.merge(ptr3D->getBounds());
-
-		auto ptr3DWTex = dynamic_pointer_cast<Pipeline3DWSampler>(pipeline);
-		if (ptr3DWTex)
-			modelBounds.merge(ptr3DWTex->getBounds());
-	});
-
-	_ubo = {};
-	_ubo.ambient = 0.10f;
-	_ubo.numLights = 2;
-	_ubo.lightDir[0] = glm::normalize(glm::vec3(1, -0.5, 1));
-	_ubo.lightDir[1] = glm::normalize(glm::vec3(-1, -0.5, 3));
-
-	float w = (float)_swapChain._extent.width;
-	float h = (float)_swapChain._extent.height;
+	float w = (float)extent.width;
+	float h = (float)extent.height;
 	float maxDim = std::max(w, h);
 	float minDim = std::min(w, h);
 	w /= maxDim;
@@ -868,18 +855,42 @@ void VulkanApp::updateUniformBuffer(uint32_t swapChainImageIndex) {
 
 	glm::mat4 view = glm::lookAt(glm::vec3(1.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
 
-	_ubo.modelView = view * model;
+	ubo.modelView = view * model;
 
 	//		auto proj = glm::perspective(glm::radians(45.0f), _extent.width / (float)_extent.height, 0.1f, 10.0f);
 	float k = 0.5f;
-	_ubo.proj = glm::ortho(-w, w, -h, h, -10.0f, 10.0f);
-	_ubo.proj[1][1] *= -1;
+	ubo.proj = glm::ortho(-w, w, -h, h, -10.0f, 10.0f);
+	ubo.proj[1][1] *= -1;
+}
+
+void VulkanApp::updateUniformBuffer(uint32_t swapChainImageIndex) {
+	reportFPS();
+
+	BoundingBox modelBounds;
+
+	_pipelines.iterate([&](const PipelineBasePtr& pipeline) {
+		auto ptr3D = dynamic_pointer_cast<Pipeline3D>(pipeline);
+		if (ptr3D)
+			modelBounds.merge(ptr3D->getBounds());
+
+		auto ptr3DWTex = dynamic_pointer_cast<Pipeline3DWSampler>(pipeline);
+		if (ptr3DWTex)
+			modelBounds.merge(ptr3DWTex->getBounds());
+	});
+
+	updateUBO(_swapChain._extent, modelBounds, _ubo);
 
 	_pipelines.iterate([&](const PipelineBasePtr& pipeline) {
 		if (pipeline->isVisible() && pipeline->numSceneNodes() > 0) {
 			pipeline->updateUniformBuffers(swapChainImageIndex);
 		}
 	});
+
+	if (_offscreenPass) {
+		OffscreenPass::UniformBufferObject ubo;
+		updateUBO(_swapChain._extent, modelBounds, ubo);
+		_offscreenPass->setUbo(ubo);
+	}
 }
 
 void VulkanApp::drawFrame() {

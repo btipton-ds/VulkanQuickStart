@@ -34,11 +34,15 @@ This file is part of the VulkanQuickStart Project.
 #include <vk_forwardDeclarations.h>
 
 #include <vulkan/vulkan_core.h>
+#include <vk_pipelineList.h>
+#include <vk_uniformBuffers.h>
 
 namespace VK {
 
 	class OffscreenPass {
 	public:
+		using UniformBufferObject = UniformBufferObject3D;
+
 		OffscreenPass(const DeviceContextPtr& deviceContext, VkFormat colorFormat, VkFormat depthFormat);
 		~OffscreenPass();
 
@@ -50,6 +54,11 @@ namespace VK {
 		VkFramebuffer getFrameBuffer() const;
 		const VkExtent2D& getExtent() const;
 
+		const PipelineList& getPipelines() const;
+		PipelineList& getPipelines();
+
+		void setUbo(const UniformBufferObject& ubo);
+
 	private:
 		VkExtent2D _extent = { 0, 0 };
 		VkFramebuffer _frameBuffer = VK_NULL_HANDLE;
@@ -59,6 +68,9 @@ namespace VK {
 		VkDescriptorImageInfo _descriptor{};
 		DeviceContextPtr _deviceContext;
 		VkFormat _colorFormat, _depthFormat;
+
+		UniformBufferObject _ubo;
+		PipelineList _pipelines;
 	};
 
 	inline const ImagePtr& OffscreenPass::getColorImage() const {
@@ -75,6 +87,14 @@ namespace VK {
 
 	inline const VkExtent2D& OffscreenPass::getExtent() const {
 		return _extent;
+	}
+
+	inline const PipelineList& OffscreenPass::getPipelines() const {
+		return _pipelines;
+	}
+
+	inline PipelineList& OffscreenPass::getPipelines() {
+		return _pipelines;
 	}
 
 }
