@@ -53,7 +53,7 @@ namespace VK {
 		using Pipeline = VK::PipelineUbo<UBO_TYPE>;
 		using PipelinePtr = std::shared_ptr<Pipeline>;
 
-		PipelineUboGroup(const VulkanAppPtr& app);
+		PipelineUboGroup(const VulkanAppPtr& app, size_t numBuffers);
 
 		void add(const PipelinePtr& pl);
 		void resized(const VkRect2D& rect);
@@ -75,8 +75,8 @@ namespace VK {
 	};
 
 	template<class UBO_TYPE>
-	inline PipelineUboGroup<UBO_TYPE>::PipelineUboGroup(const VulkanAppPtr& app)
-		: PipelineUboGroupBase(app)
+	inline PipelineUboGroup<UBO_TYPE>::PipelineUboGroup(const VulkanAppPtr& app, size_t numBuffers)
+		: PipelineUboGroupBase(app, numBuffers)
 	{}
 
 	template<class UBO_TYPE>

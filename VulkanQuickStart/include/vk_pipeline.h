@@ -141,9 +141,7 @@ namespace VK {
 
 	template<class VERT_TYPE, class UBO_TYPE>
 	inline typename Pipeline<VERT_TYPE, UBO_TYPE>::BindingPtr Pipeline<VERT_TYPE, UBO_TYPE>::addSceneNode(const SceneNodePtr& node) {
-		auto& swap = getApp()->getSwapChain();
-		size_t numSwapChains = swap._images.size();
-		auto binding = std::make_shared<SceneNodeToPipelineBinding<VERT_TYPE, UBO_TYPE>>(numSwapChains, this, node);
+		auto binding = std::make_shared<SceneNodeToPipelineBinding<VERT_TYPE, UBO_TYPE>>(this, node);
 		_sceneNodeBindings.push_back(binding);
 		changed();
 		return binding;

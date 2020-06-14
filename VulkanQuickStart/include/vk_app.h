@@ -99,7 +99,6 @@ namespace VK {
 		const SwapChain& getSwapChain() const;
 		SwapChain& getSwapChain();
 
-		VkRenderPass getRenderPass(size_t passNum) const;
 		void setTargetFrameDurationMillis(double duration);
 		void setAntiAliasSamples(VkSampleCountFlagBits samples);
 		GLFWwindow* getWindow();
@@ -119,7 +118,6 @@ namespace VK {
 		void stop();
 
 		void setUpdater(const UpdaterPtr& updater);
-		size_t getNumGraphicsPipelines() const;
 		void setOffscreenExtent(const VkExtent2D& extent);
 		bool isOffscreenEnabled() const;
 		ImagePtr getOffscreenImage() const;
@@ -149,6 +147,7 @@ namespace VK {
 
 		void createLogicalDevice();
 		void createSwapChain();
+		void createPipelines();
 		void createImageViews();
 		void createRenderPass();
 		void createGraphicsPipeline();
@@ -165,7 +164,7 @@ namespace VK {
 		uint32_t findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties);
 		void createCommandBuffers();
 		void drawCmdBufferLoopScreen(VkCommandBuffer cmdBuff, size_t swapChainIndex, VkCommandBufferBeginInfo& beginInfo, VkRenderPassBeginInfo& renderPassInfo);
-		void drawCmdBufferLoopOffscreen(VkCommandBuffer cmdBuff, size_t swapChainIndex, VkCommandBufferBeginInfo& beginInfo, VkRenderPassBeginInfo& renderPassInfo);
+		void drawCmdBufferLoopOffscreen(VkCommandBuffer cmdBuff, VkCommandBufferBeginInfo& beginInfo, VkRenderPassBeginInfo& renderPassInfo);
 		void createSyncObjects();
 		void updateUniformBuffer(uint32_t swapChainImageIndex);
 		void updateUBO(const VkExtent2D& extent, const BoundingBox& modelBounds, UboType& ubo) const;

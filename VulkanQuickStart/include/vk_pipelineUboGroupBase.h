@@ -45,7 +45,7 @@ namespace VK {
 
 	class PipelineUboGroupBase {
 	public:
-		PipelineUboGroupBase(const VulkanAppPtr& app);
+		PipelineUboGroupBase(const VulkanAppPtr& app, size_t numBuffers);
 		virtual ~PipelineUboGroupBase();
 
 		VkRenderPass getRenderPass() const;
@@ -55,12 +55,14 @@ namespace VK {
 		VkSampleCountFlagBits getAntiAliasSamples() const;
 
 		const VulkanAppPtr& getApp() const;
+		size_t getNumBuffers() const;
 
 	protected:
 		VkSampleCountFlagBits _msaaSamples = VK_SAMPLE_COUNT_1_BIT;
 
 		std::mutex _mutex;
 		VulkanAppPtr _app;
+		size_t _numBuffers;
 		VkRenderPass _renderPass = VK_NULL_HANDLE;
 	};
 
@@ -82,6 +84,10 @@ namespace VK {
 
 	inline const VulkanAppPtr& PipelineUboGroupBase::getApp() const {
 		return _app;
+	}
+
+	inline size_t PipelineUboGroupBase::getNumBuffers() const {
+		return _numBuffers;
 	}
 
 }

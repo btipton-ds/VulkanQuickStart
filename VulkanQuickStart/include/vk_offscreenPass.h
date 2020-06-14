@@ -71,7 +71,6 @@ namespace VK {
 		DeviceContextPtr _deviceContext;
 		VkFormat _colorFormat, _depthFormat;
 
-		UboType _ubo;
 		PipelineGroupTypePtr _pipelines;
 	};
 

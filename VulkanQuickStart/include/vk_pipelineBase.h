@@ -87,6 +87,7 @@ namespace VK {
 		void setPaintLayer(int layer);
 
 		const DeviceContextPtr& getDeviceContext() const;
+		const PipelineUboGroupBasePtr& getPipelineGroup() const;
 
 	protected:
 		virtual void createDescriptorSetLayout() = 0;
@@ -180,6 +181,10 @@ namespace VK {
 
 	inline const DeviceContextPtr& PipelineBase::getDeviceContext() const {
 		return _dc;
+	}
+
+	inline const PipelineUboGroupBasePtr& PipelineBase::getPipelineGroup() const {
+		return _plGroup;
 	}
 
 }

@@ -46,7 +46,7 @@ OffscreenPass::OffscreenPass(const VulkanAppPtr& app, VkFormat colorFormat, VkFo
 	, _colorFormat(colorFormat)
 	, _depthFormat(depthFormat)
 {
-	_pipelines = make_shared<PipelineGroupType>(app);
+	_pipelines = make_shared<PipelineGroupType>(app, 1);
 }
 
 OffscreenPass::~OffscreenPass() {
@@ -58,15 +58,18 @@ void OffscreenPass::init(const VkExtent2D& extent) {
 	_rect = { {0, 0}, extent };
 	auto device = _deviceContext->_device;
 
+	VkSampleCountFlagBits antiAliasSampleBits = _pipelines->getAntiAliasSamples();
+
 	// Find a suitable _depth format
 	VkFormat fbColorFormat = _colorFormat; // VK_FORMAT_R8G8B8A8_UNORM; // VK_FORMAT_R32G32B32A32_SFLOAT
 
 	_color = make_shared<Image>(_deviceContext);
-	uint32_t colorUsageBits = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT;
-	_color->create(fbColorFormat, colorUsageBits, _rect.extent.width, _rect.extent.height, VK_SAMPLE_COUNT_1_BIT);
+	uint32_t colorUsageBits = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT;
+	_color->create(fbColorFormat, colorUsageBits, _rect.extent.width, _rect.extent.height, antiAliasSampleBits);
 
 	// Create _sampler to sample from the attachment in the fragment shader
 	VkSamplerCreateInfo samplerInfo = {};
+	samplerInfo.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
 	samplerInfo.magFilter = VK_FILTER_LINEAR;
 	samplerInfo.minFilter = VK_FILTER_LINEAR;
 	samplerInfo.mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR;
@@ -84,23 +87,23 @@ void OffscreenPass::init(const VkExtent2D& extent) {
 	VkFormat fbDepthFormat = _depthFormat;
 
 	_depth = make_shared<Image>(_deviceContext);
-	_depth->create(fbDepthFormat, VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT, _rect.extent.width, _rect.extent.height, VK_SAMPLE_COUNT_1_BIT);
+	_depth->create(fbDepthFormat, VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT, _rect.extent.width, _rect.extent.height, antiAliasSampleBits);
 
 	// Create a separate render pass for the offscreen rendering as it may differ from the one used for scene rendering
 
 	std::array<VkAttachmentDescription, 2> attchmentDescriptions = {};
 	// Color attachment
 	attchmentDescriptions[0].format = fbColorFormat;
-	attchmentDescriptions[0].samples = VK_SAMPLE_COUNT_1_BIT;
+	attchmentDescriptions[0].samples = antiAliasSampleBits;
 	attchmentDescriptions[0].loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
 	attchmentDescriptions[0].storeOp = VK_ATTACHMENT_STORE_OP_STORE;
 	attchmentDescriptions[0].stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
 	attchmentDescriptions[0].stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
 	attchmentDescriptions[0].initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-	attchmentDescriptions[0].finalLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+	attchmentDescriptions[0].finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
 	// Depth attachment
 	attchmentDescriptions[1].format = fbDepthFormat;
-	attchmentDescriptions[1].samples = VK_SAMPLE_COUNT_1_BIT;
+	attchmentDescriptions[1].samples = antiAliasSampleBits;
 	attchmentDescriptions[1].loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
 	attchmentDescriptions[1].storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
 	attchmentDescriptions[1].stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
@@ -155,6 +158,7 @@ void OffscreenPass::init(const VkExtent2D& extent) {
 	attachments[1] = _depth->getImageView();
 
 	VkFramebufferCreateInfo fbufCreateInfo = {};
+	fbufCreateInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
 	fbufCreateInfo.renderPass = renderPass;
 	fbufCreateInfo.attachmentCount = 2;
 	fbufCreateInfo.pAttachments = attachments;
@@ -183,12 +187,6 @@ void OffscreenPass::cleanup() {
 }
 
 void OffscreenPass::setUbo(const UboType& ubo) {
-	_ubo = ubo;
-
-	_pipelines->iterate([&](const PipelineBasePtr& pipeline) {
-		if (pipeline->isVisible() && pipeline->numSceneNodes() > 0) {
-			pipeline->updateUniformBuffers(0 /*swapChainImageIndex*/); // These pipelines don't have a swap chain
-		}
-	});
+	_pipelines->setUbo(ubo, 0);
 }
 

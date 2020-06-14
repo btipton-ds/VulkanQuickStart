@@ -32,6 +32,7 @@ This file is part of the VulkanQuickStart Project.
 #include <vk_defines.h>
 
 #include <vector>
+#include <exception>
 
 #include <vulkan/vulkan_core.h>
 #include <vk_forwardDeclarations.h>
@@ -48,7 +49,7 @@ namespace VK {
 		using SceneNodeType = PipelineSceneNode<VERT_TYPE>;
 		using SceneNodeTypePtr = std::shared_ptr<SceneNodeType>;
 
-		SceneNodeToPipelineBinding(size_t numBuffers, PipelineType* pipeline, const SceneNodeTypePtr& sceneNode);
+		SceneNodeToPipelineBinding(PipelineType* pipeline, const SceneNodeTypePtr& sceneNode);
 		~SceneNodeToPipelineBinding();
 
 		const SceneNodeTypePtr& getSceneNode() const;
@@ -86,11 +87,14 @@ namespace VK {
 	using SceneNodeToPipelineBindingPtr = std::shared_ptr<SceneNodeToPipelineBinding<VERT_TYPE, UBO_TYPE>>;
 
 	template<class VERT_TYPE, class UBO_TYPE>
-	inline SceneNodeToPipelineBinding<VERT_TYPE, UBO_TYPE>::SceneNodeToPipelineBinding(size_t numBuffers, PipelineType* pipeline, const SceneNodeTypePtr& sceneNode)
+	inline SceneNodeToPipelineBinding<VERT_TYPE, UBO_TYPE>::SceneNodeToPipelineBinding(PipelineType* pipeline, const SceneNodeTypePtr& sceneNode)
 		: _pipeline(pipeline)
 		, _sceneNode(sceneNode)
-		, _numBuffers(numBuffers)
-	{}
+	{
+		_numBuffers = _pipeline->getPipelineGroup()->getNumBuffers();
+		if (_numBuffers == 0)
+			throw std::runtime_error("_numBuffers == 0");
+	}
 
 	template<class VERT_TYPE, class UBO_TYPE>
 	inline void SceneNodeToPipelineBinding<VERT_TYPE, UBO_TYPE>::build() {

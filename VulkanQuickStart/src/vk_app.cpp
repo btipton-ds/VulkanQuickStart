@@ -116,13 +116,15 @@ VulkanApp::VulkanApp(const VkRect2D& rect)
 }
 
 void VulkanApp::init() {
-	_pipelines = make_shared<PipelineGroupType>(getAppPtr());
+	initWindow();
+	initVulkan();
+}
+
+void VulkanApp::createPipelines() {
+	_pipelines = make_shared<PipelineGroupType>(getAppPtr(), _swapChain._images.size());
 	_pipelines->setAntiAliasSamples(_msaaSamples);
 	if (_uiWindow)
 		_uiWindow->getPipelines()->setAntiAliasSamples(_msaaSamples);
-
-	initWindow();
-	initVulkan();
 }
 
 VulkanApp::~VulkanApp() {
@@ -202,6 +204,7 @@ void VulkanApp::initVulkan() {
 	pickPhysicalDevice();
 	createLogicalDevice();
 	createSwapChain();
+	createPipelines();
 	createImageViews();
 	createRenderPass();
 	createGraphicsPipeline();
@@ -298,28 +301,14 @@ void VulkanApp::cleanupSwapChain() {
 	vkDestroySwapchainKHR(_deviceContext->_device, _swapChain._vkSwapChain, nullptr);
 }
 
-size_t VulkanApp::getNumGraphicsPipelines() const {
-	if (isOffscreenEnabled())
-		return 2;
-	else
-		return 1;
-}
-
 void VulkanApp::setOffscreenExtent(const VkExtent2D& extent) {
 	if (!_offscreenPass) {
 		_offscreenPass = make_shared<OffscreenPass>(getAppPtr(), VK_FORMAT_R8G8B8A8_UNORM, findDepthFormat());
-		_offscreenPass->setAntiAliasSamples(_msaaSamples);
+		_offscreenPass->setAntiAliasSamples(VK_SAMPLE_COUNT_1_BIT);
 	}
 
 	_offscreenPass->init(extent);
-}
-
-
-VkRenderPass VulkanApp::getRenderPass(size_t passNum) const {
-	if (passNum == 0)
-		return _pipelines->getRenderPass();
-	else
-		return _offscreenPass->getRenderPass();
+	changed();
 }
 
 void VulkanApp::cleanup() {
@@ -594,7 +583,7 @@ void VulkanApp::createRenderPass() {
 	subpass.colorAttachmentCount = 1;
 	subpass.pColorAttachments = &colorAttachmentRef;
 	subpass.pDepthStencilAttachment = &depthAttachmentRef;
-	subpass.pResolveAttachments = &colorAttachmentResolveRef;
+	subpass.pResolveAttachments = (_msaaSamples == VK_SAMPLE_COUNT_1_BIT) ? nullptr : &colorAttachmentResolveRef;
 
 	VkSubpassDependency dependency = {};
 	dependency.srcSubpass = VK_SUBPASS_EXTERNAL;
@@ -819,7 +808,7 @@ void VulkanApp::createCommandBuffers() {
 			renderPassInfo.framebuffer = _offscreenPass->getFrameBuffer();
 			renderPassInfo.renderArea.extent = _offscreenPass->getRect().extent;
 
-			drawCmdBufferLoopOffscreen(cmdBuff, swapChainIndex, beginInfo, renderPassInfo);
+			drawCmdBufferLoopOffscreen(cmdBuff, beginInfo, renderPassInfo);
 		}
 
 		if (vkEndCommandBuffer(cmdBuff) != VK_SUCCESS) {
@@ -846,15 +835,13 @@ void VulkanApp::drawCmdBufferLoopScreen(VkCommandBuffer cmdBuff, size_t swapChai
 	vkCmdEndRenderPass(cmdBuff);
 }
 
-void VulkanApp::drawCmdBufferLoopOffscreen(VkCommandBuffer cmdBuff, size_t swapChainIndex, VkCommandBufferBeginInfo& beginInfo, VkRenderPassBeginInfo& renderPassInfo) {
+void VulkanApp::drawCmdBufferLoopOffscreen(VkCommandBuffer cmdBuff, VkCommandBufferBeginInfo& beginInfo, VkRenderPassBeginInfo& renderPassInfo) {
 	vkCmdBeginRenderPass(cmdBuff, &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
 
-	if (_offscreenPass) {
-		_offscreenPass->getPipelines()->iterate([&](const OffscreenPass::PipelinePtr& pipeline) {
-			if (pipeline->isVisible())
-				pipeline->draw(cmdBuff, swapChainIndex);
-		});
-	}
+	_offscreenPass->getPipelines()->iterate([&](const OffscreenPass::PipelinePtr& pipeline) {
+		if (pipeline->isVisible())
+			pipeline->draw(cmdBuff, 0);
+	});
 
 	vkCmdEndRenderPass(cmdBuff);
 }

@@ -260,7 +260,8 @@ namespace VK::UI {
 	void Window::init() {
 		auto win = _app->getWindow();
 
-		_pipelines = make_shared<PipelineUboGroup<UboType>>(_app);
+		size_t numSwapChains = _app->getSwapChain()._images.size();
+		_pipelines = make_shared<PipelineUboGroup<UboType>>(_app, numSwapChains);
 		_pipelines->add(make_shared<PipelineUi>(_pipelines));
 
 		updateUbo();

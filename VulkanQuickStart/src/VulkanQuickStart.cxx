@@ -53,7 +53,7 @@ This file is part of the VulkanQuickStart Project.
 using namespace VK;
 using namespace std;
 
-#define TEST_OBJ 1
+#define TEST_OBJ 0
 #define TEST_STL 1
 #define TEST_GUI 1
 
@@ -277,7 +277,7 @@ int main(int numArgs, char** args) {
 
 	gApp->setAntiAliasSamples(VK_SAMPLE_COUNT_4_BIT);
 	VkExtent2D offscreenExtent = { 2048, 2048 };
-//	gApp->setOffscreenExtent(offscreenExtent);
+	gApp->setOffscreenExtent(offscreenExtent);
 
 #if TEST_GUI
 	UI::WindowPtr gui = make_shared<UI::Window>(gApp);

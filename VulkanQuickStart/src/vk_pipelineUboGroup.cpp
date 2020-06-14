@@ -36,9 +36,13 @@ This file is part of the VulkanQuickStart Project.
 using namespace std;
 using namespace VK;
 
-PipelineUboGroupBase::PipelineUboGroupBase(const VulkanAppPtr& app)
+PipelineUboGroupBase::PipelineUboGroupBase(const VulkanAppPtr& app, size_t numBuffers)
 	: _app(app)
-{ }
+	, _numBuffers(numBuffers)
+{ 
+	if (_numBuffers == 0)
+		throw runtime_error("_numBuffers == 0");
+}
 
 PipelineUboGroupBase::~PipelineUboGroupBase() {
 	auto device = _app->getDeviceContext()->_device;
