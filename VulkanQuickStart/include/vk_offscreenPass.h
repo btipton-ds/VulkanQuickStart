@@ -31,6 +31,8 @@ This file is part of the VulkanQuickStart Project.
 
 #include <vk_defines.h>
 
+#include <functional>
+
 #include <vk_forwardDeclarations.h>
 
 #include <vulkan/vulkan_core.h>
@@ -45,6 +47,7 @@ namespace VK {
 		using PipelineGroupType = PipelineUboGroup<UboType>;
 		using PipelineGroupTypePtr = PipelineUboGroupPtr<UboType>;
 		using PipelinePtr = PipelineGroupType::PipelinePtr;
+		using UpdateUboFunctionType = UpdateUboFunctionType<UboType>;
 
 		OffscreenPass(const VulkanAppPtr& app, VkFormat colorFormat);
 		~OffscreenPass();
@@ -58,6 +61,19 @@ namespace VK {
 		const VkRect2D& getRect() const;
 
 		const PipelineGroupTypePtr& getPipelines() const;
+
+		template<typename FUNC_TYPE>
+		inline void setUboUpdateFunction(FUNC_TYPE f) {
+			_updateUbo = f;
+		}
+
+		inline bool updateUbo() {
+			if (_updateUbo) {
+				setUbo(_updateUbo(_rect.extent.width, _rect.extent.height));
+				return true;
+			}
+			return false;
+		}
 
 		void setUbo(const UboType& ubo);
 		void setAntiAliasSamples(VkSampleCountFlagBits samples);
@@ -76,6 +92,7 @@ namespace VK {
 		VkDescriptorImageInfo _descriptor{};
 		DeviceContextPtr _deviceContext;
 		VkFormat _colorFormat, _depthFormat;
+		UpdateUboFunctionType _updateUbo;
 
 		PipelineGroupTypePtr _pipelines;
 	};

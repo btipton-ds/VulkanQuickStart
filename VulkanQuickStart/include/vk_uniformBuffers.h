@@ -31,11 +31,16 @@ This file is part of the VulkanQuickStart Project.
 
 #include <vk_defines.h>
 
+#include <functional>
+
 #define GLM_FORCE_RADIANS
 #define GLM_FORCE_DEPTH_ZERO_TO_ONE
 #include <glm/glm.hpp>
 
 namespace VK {
+
+	template<typename UBO_TYPE>
+	using UpdateUboFunctionType = std::function<UBO_TYPE(uint32_t width, uint32_t height)>;
 
 	struct UniformBufferObject3D {
 		alignas(16) float ambient;

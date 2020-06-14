@@ -59,8 +59,8 @@ namespace VK {
 	class VulkanApp : public std::enable_shared_from_this<VulkanApp> {
 	public:
 		using BoundingBox = CBoundingBox3D<float>;
-
 		using UboType = UniformBufferObject3D;
+		using UpdateUboFunctionType = UpdateUboFunctionType<UboType>;
 		using PipelineGroupType = PipelineUboGroup<UboType>;
 		using PipelineGroupTypePtr = PipelineUboGroupPtr<UboType>;
 		using PipelinePtr = PipelineGroupType::PipelinePtr;
@@ -124,6 +124,11 @@ namespace VK {
 		ImagePtr getOffscreenImage(size_t index) const;
 
 		const VkRect2D& getFrameRect() const;
+
+		template<typename FUNC_TYPE>
+		void setUboUpdateFunction(FUNC_TYPE f) {
+			_uboUpdater = f;
+		}
 
 	private:
 		struct SwapChainSupportDetails;
@@ -190,6 +195,7 @@ namespace VK {
 		VkFormat _requestedFormat = VK_FORMAT_B8G8R8A8_UNORM;
 		VkColorSpaceKHR _requestedColorSpace = VK_COLOR_SPACE_SRGB_NONLINEAR_KHR;
 		UpdaterPtr _updater;
+		UpdateUboFunctionType _uboUpdater;
 		
 		glm::mat4 _modelToWorld;
 		double _modelScale = 1.0;

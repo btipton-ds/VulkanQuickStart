@@ -57,6 +57,7 @@ using namespace std;
 #define TEST_OBJ 1
 #define TEST_STL 1
 #define TEST_GUI 1
+#define ORBIT 0 // Test the user defined world transform option
 
 
 const std::string modelPath = "../../../../resources/models/";
@@ -279,6 +280,45 @@ void createPipelines() {
 	gApp->changed();
 }
 
+auto orbitFunc = [](uint32_t width, uint32_t height)->VulkanApp::UboType {
+	VulkanApp::UboType ubo;
+
+	ubo = {};
+	ubo.ambient = 0.10f;
+	ubo.numLights = 2;
+	ubo.lightDir[0] = glm::normalize(glm::vec3(1, -0.5, 1));
+	ubo.lightDir[1] = glm::normalize(glm::vec3(-1, -0.5, 3));
+
+	float w = (float)width;
+	float h = (float)height;
+	float maxDim = std::max(w, h);
+	float minDim = std::min(w, h);
+	w /= maxDim;
+	h /= maxDim;
+
+
+	double revs = gApp->getRuntimeMillis() / 1000.0 * (-5.0 / 60.0);
+	while (revs > 1)
+		revs -= 1;
+
+	float scale = 0.075f;
+	float theta = (float)(15.0 * EIGEN_PI / 180.0);
+	glm::vec3 ctr(0, 0, 0);
+	glm::mat4 model = glm::scale(glm::mat4(1.0f), glm::vec3(scale, scale, scale));
+	model *= glm::translate(glm::mat4(1.0f), ctr);
+	model *= glm::rotate(glm::mat4(1.0f), theta, glm::vec3(0.0f, 1.0f, 0.0f));
+	model *= glm::rotate(glm::mat4(1.0f), (float)(2 * EIGEN_PI * revs), glm::vec3(0.0f, 0.0f, 1.0f));
+
+	glm::mat4 view = glm::lookAt(glm::vec3(1.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+
+	ubo.modelView = view * model;
+
+	ubo.proj = glm::ortho(-w, w, -h, h, -10.0f, 10.0f);
+	ubo.proj[1][1] *= -1;
+
+	return ubo;
+};
+
 int main(int numArgs, char** args) {
 	VkRect2D frame;
 	frame.offset = { 0,0, };
@@ -309,6 +349,10 @@ int main(int numArgs, char** args) {
 
 	addObj();
 	addStl();
+
+#if ORBIT
+	gApp->setUboUpdateFunction(orbitFunc);
+#endif
 
 	try {
 		gApp->run();
