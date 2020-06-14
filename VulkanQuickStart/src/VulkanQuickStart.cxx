@@ -41,8 +41,8 @@ This file is part of the VulkanQuickStart Project.
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
-#include "vk_model.h"
-#include "vk_modelObj.h"
+#include <vk_modelPNC3f.h>
+#include <vk_modelPNCT3f.h>
 #include <vk_pipelineUi.h>
 #include <vk_ui_button.h>
 #include <vk_ui_window.h>
@@ -77,9 +77,9 @@ const std::string gliderFilename = "FFGLOBJ.obj";
 const std::string apricotPath = modelPath + "apricot/";
 const std::string apricotFilename = "Apricot_02_hi_poly.obj";
 
-ModelObjPtr plant;
-ModelObjPtr dna;
-ModelObjPtr apricot;
+ModelPNCT3fPtr plant;
+ModelPNCT3fPtr dna;
+ModelPNCT3fPtr apricot;
 
 #endif
 
@@ -97,7 +97,7 @@ VulkanAppPtr gApp;
 OffscreenPassPtr offscreen;
 size_t offscreenIdx = stm1;
 
-ModelPtr vase, part;
+ModePNC3flPtr vase, part;
 
 
 #if TEST_GUI
@@ -180,7 +180,7 @@ void addObj() {
 #if TEST_OBJ
 	glm::mat4 xform;
 
-	plant = ModelObj::create(gApp, pottedPlantPath, pottedPlantFilename);
+	plant = ModelPNCT3f::create(gApp, pottedPlantPath, pottedPlantFilename);
 	pipeline3DWSampler.addSceneNode(plant);
 
 	xform = glm::rotate(glm::mat4(1.0f), glm::radians(90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
@@ -196,7 +196,7 @@ void addObj() {
 		return xform;
 	});
 
-	dna = ModelObj::create(gApp, dnaPath, dnaFilename);
+	dna = ModelPNCT3f::create(gApp, dnaPath, dnaFilename);
 	pipeline3DWSampler.addSceneNode(dna);
 	xform = glm::translate(glm::mat4(1.0f), glm::vec3(0, 10, 0));
 	dna->setModelTransform(xform);
@@ -211,7 +211,7 @@ void addObj() {
 		return xform;
 	});
 
-	apricot = ModelObj::create(gApp, apricotPath, apricotFilename);
+	apricot = ModelPNCT3f::create(gApp, apricotPath, apricotFilename);
 	pipeline3DWSampler.addSceneNode(apricot);
 	xform = glm::translate(glm::mat4(1.0f), glm::vec3(10, 10, 0));
 	xform *= glm::rotate(glm::mat4(1.0f), glm::radians(90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
@@ -219,7 +219,7 @@ void addObj() {
 #endif
 }
 
-int readStl(const string& filename, ModelPtr& model) {
+int readStl(const string& filename, ModePNC3flPtr& model) {
 	TriMesh::CMeshPtr meshPtr = std::make_shared<TriMesh::CMesh>();
 	CReadSTL readStl(meshPtr);
 	if (!readStl.read(modelPath, filename))

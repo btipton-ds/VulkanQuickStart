@@ -38,7 +38,7 @@ This file is part of the VulkanQuickStart Project.
 
 #include <vk_forwardDeclarations.h>
 #include <vk_buffer.h>
-#include <vk_pipelineSceneNodeUi.h>
+#include <vk_sceneNodeUi.h>
 #include <vk_pipelineUi.h>
 
 namespace VK {

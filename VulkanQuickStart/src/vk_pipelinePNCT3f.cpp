@@ -43,7 +43,7 @@ This file is part of the VulkanQuickStart Project.
 #include <glm/gtc/matrix_transform.hpp>
 
 #include <vk_pipelinePNCT3f.h>
-#include <vk_pipelineSceneNode3DWSampler.h>
+#include <vk_sceneNodePNCT3f.h>
 #include <vk_deviceContext.h>
 #include <vk_buffer.h>
 #include <vk_vertexTypes.h>
@@ -87,7 +87,7 @@ PipelinePNCT3f::BoundingBox PipelinePNCT3f::getBounds() const {
 
 	for (auto& binding : _sceneNodeBindings) {
 		auto sceneNode = binding->getSceneNode();
-		SceneNodePNC3fWithTexturePtr node3D = dynamic_pointer_cast<SceneNodePNC3fWSampler> (sceneNode);
+		SceneNodePNC3fWithTexturePtr node3D = dynamic_pointer_cast<SceneNodePNCT3f> (sceneNode);
 		BoundingBox modelBb = node3D->getBounds();
 		bb.merge(transform(modelBb, node3D->getModelTransform()));
 	}
@@ -95,7 +95,7 @@ PipelinePNCT3f::BoundingBox PipelinePNCT3f::getBounds() const {
 }
 
 void PipelinePNCT3f::updateSceneNodeUbo(const SceneNodePtr& sceneNode, UniformBufferObject3D& ubo) const {
-	SceneNodePNC3fWSamplerPtr ptr = dynamic_pointer_cast<SceneNodePNC3fWSampler>(sceneNode);
+	SceneNodePNCT3fPtr ptr = dynamic_pointer_cast<SceneNodePNCT3f>(sceneNode);
 	ptr->updateUbo(ubo);
 }
 

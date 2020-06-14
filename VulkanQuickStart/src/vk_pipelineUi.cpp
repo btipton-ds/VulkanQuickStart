@@ -31,7 +31,7 @@ This file is part of the VulkanQuickStart Project.
 
 #include <array>
 #include <vk_pipelineUi.h>
-#include <vk_pipelineSceneNodeUi.h>
+#include <vk_sceneNodeUi.h>
 #include <vk_shaderPool.h>
 #include <vk_app.h>
 

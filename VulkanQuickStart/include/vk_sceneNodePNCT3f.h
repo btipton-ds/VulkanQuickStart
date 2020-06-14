@@ -44,12 +44,12 @@ This file is part of the VulkanQuickStart Project.
 
 namespace VK {
 
-	class SceneNodePNC3fWSampler : public SceneNode<Vertex3_PNCTf> {
+	class SceneNodePNCT3f : public SceneNode<Vertex3_PNCTf> {
 	public:
 		using BoundingBox = CBoundingBox3Df;
 		using XformFuncType = std::function<glm::mat4(const glm::mat4& src)>;
 
-		SceneNodePNC3fWSampler(const VulkanAppPtr& app);
+		SceneNodePNCT3f(const VulkanAppPtr& app);
 
 		virtual BoundingBox getBounds() const = 0;
 
@@ -67,24 +67,24 @@ namespace VK {
 		XformFuncType _modelXFormFunc;
 	};
 
-	using SceneNodePNC3fWSamplerPtr = std::shared_ptr<SceneNodePNC3fWSampler>;
+	using SceneNodePNCT3fPtr = std::shared_ptr<SceneNodePNCT3f>;
 
-	using SceneNodePNC3fWithTexturePtr = std::shared_ptr<SceneNodePNC3fWSampler>;
+	using SceneNodePNC3fWithTexturePtr = std::shared_ptr<SceneNodePNCT3f>;
 
-	inline void SceneNodePNC3fWSampler::setModelTransform(const glm::mat4& xform) {
+	inline void SceneNodePNCT3f::setModelTransform(const glm::mat4& xform) {
 		_modelXForm = xform;
 	}
 
-	inline const glm::mat4& SceneNodePNC3fWSampler::getModelTransform() const {
+	inline const glm::mat4& SceneNodePNCT3f::getModelTransform() const {
 		return _modelXForm;
 	}
 
-	inline glm::mat4& SceneNodePNC3fWSampler::getModelTransform() {
+	inline glm::mat4& SceneNodePNCT3f::getModelTransform() {
 		return _modelXForm;
 	}
 
 	template<typename FUNC_TYPE>
-	inline void SceneNodePNC3fWSampler::setModelTransformFunc(FUNC_TYPE func) {
+	inline void SceneNodePNCT3f::setModelTransformFunc(FUNC_TYPE func) {
 		_modelXFormFunc = func;
 	}
 }

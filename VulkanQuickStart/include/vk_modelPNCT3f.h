@@ -49,7 +49,7 @@ This file is part of the VulkanQuickStart Project.
 #include <vk_buffer.h>
 #include <vk_textureImage.h>
 #include <vk_vertexTypes.h>
-#include <vk_pipelineSceneNode3DWSampler.h>
+#include <vk_sceneNodePNCT3f.h>
 
 namespace VK {
 
@@ -59,15 +59,15 @@ namespace VK {
 		Obj can arrive with hundreds of textures. So the image must be decomposed into shapes/chunks with as few textures as you can get
 		away with. 
 
-		The current ModelObj is near the texture bining limit and isn't even loading specular or bump maps.
+		The current ModelPNCT3f is near the texture bining limit and isn't even loading specular or bump maps.
 
 		Current project focus is on scientific visualization which is mostly about vertex colors. Off to work on that first.
 	*/
 
-	class ModelObj;
-	using ModelObjPtr = std::shared_ptr<ModelObj>;
+	class ModelPNCT3f;
+	using ModelPNCT3fPtr = std::shared_ptr<ModelPNCT3f>;
 
-	class ModelObj : public SceneNodePNC3fWSampler {
+	class ModelPNCT3f : public SceneNodePNCT3f {
 	public:
 		using BoundingBox = CBoundingBox3D<float>;
 
@@ -75,8 +75,8 @@ namespace VK {
 		Tiny obj doesn't handle file names with spaces. It thinks material file names with spaces are multiple files. Remove the spaces.
 		*/
 
-		static inline ModelObjPtr create(const VulkanAppPtr& app, const std::string& path, const std::string& filename) {
-			return std::shared_ptr<ModelObj>(new ModelObj(app, path, filename));
+		static inline ModelPNCT3fPtr create(const VulkanAppPtr& app, const std::string& path, const std::string& filename) {
+			return std::shared_ptr<ModelPNCT3f>(new ModelPNCT3f(app, path, filename));
 		}
 
 		void addCommands(VkCommandBuffer cmdBuff) const override;
@@ -104,7 +104,7 @@ namespace VK {
 		}
 
 	protected:
-		ModelObj(const VulkanAppPtr& app, const std::string& path, const std::string& filename);
+		ModelPNCT3f(const VulkanAppPtr& app, const std::string& path, const std::string& filename);
 
 		void loadModel(std::string path, std::string filename);
 

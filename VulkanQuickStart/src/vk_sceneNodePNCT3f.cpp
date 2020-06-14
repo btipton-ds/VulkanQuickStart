@@ -32,19 +32,19 @@ This file is part of the VulkanQuickStart Project.
 #include <memory>
 
 #include <vk_pipelinePNCT3f.h>
-#include <vk_pipelineSceneNode3DWSampler.h>
+#include <vk_sceneNodePNCT3f.h>
 #include <vk_pipelinePNC3f.h>
 #include <vk_app.h>
 
 using namespace std;
 using namespace VK;
 
-SceneNodePNC3fWSampler::SceneNodePNC3fWSampler(const VulkanAppPtr& app)
+SceneNodePNCT3f::SceneNodePNCT3f(const VulkanAppPtr& app)
 	: PipelinePNCT3f::SceneNode(app)
 	, _modelXForm(glm::mat4(1.0f))
 {}
 
-void SceneNodePNC3fWSampler::updateUbo(UniformBufferObject3D& ubo) const {
+void SceneNodePNCT3f::updateUbo(UniformBufferObject3D& ubo) const {
 	if (_modelXFormFunc)
 		ubo.modelView *= _modelXFormFunc(_modelXForm);
 	else

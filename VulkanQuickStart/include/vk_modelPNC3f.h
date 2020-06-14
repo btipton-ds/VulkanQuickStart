@@ -58,7 +58,7 @@ namespace VK {
 	public:
 		using BoundingBox = CBoundingBox3D<float>;
 
-		static inline ModelPtr create(const VulkanAppPtr& app, const TriMesh::CMeshPtr& meshPtr, const glm::vec3& color = glm::vec3(1, 1, 1)) {
+		static inline ModePNC3flPtr create(const VulkanAppPtr& app, const TriMesh::CMeshPtr& meshPtr, const glm::vec3& color = glm::vec3(1, 1, 1)) {
 			return std::shared_ptr<Model>(new Model(app, meshPtr, color));
 		}
 

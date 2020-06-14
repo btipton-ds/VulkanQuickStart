@@ -29,7 +29,7 @@ This file is part of the VulkanQuickStart Project.
 
 #include <vk_defines.h>
 
-#include <vk_pipelineSceneNodeUi.h>
+#include <vk_sceneNodeUi.h>
 #include <vk_app.h>
 
 using namespace std;

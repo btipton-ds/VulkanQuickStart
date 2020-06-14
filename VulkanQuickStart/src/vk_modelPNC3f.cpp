@@ -37,13 +37,12 @@ This file is part of the VulkanQuickStart Project.
 #include <glm/glm.hpp>
 #include <glm/gtx/hash.hpp>
 
-#include "vk_deviceContext.h"
-#include "vk_vertexTypes.h"
-#include "vk_model.h"
+#include <vk_deviceContext.h>
+#include <vk_vertexTypes.h>
+#include <vk_modelPNC3f.h>
 #include <triMesh.h>
 
 #include <vk_app.h>
-
 
 using namespace std;
 using namespace VK;

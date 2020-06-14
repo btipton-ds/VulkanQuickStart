@@ -99,7 +99,7 @@ namespace VK {
 
 
 	class Model;
-	using ModelPtr = std::shared_ptr<Model>;
+	using ModePNC3flPtr = std::shared_ptr<Model>;
 
 	namespace UI {
 		class Window;

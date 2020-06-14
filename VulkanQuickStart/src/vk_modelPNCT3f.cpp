@@ -40,15 +40,15 @@ This file is part of the VulkanQuickStart Project.
 #define TINYOBJLOADER_IMPLEMENTATION
 #include <tiny_obj_loader.h>
 
-#include <vk_modelObj.h>
+#include <vk_modelPNCT3f.h>
 #include <vk_app.h>
 
 using namespace std;
 using namespace VK;
 
 namespace std {
-	template<> struct hash<ModelObj::VertexType> {
-		size_t operator()(ModelObj::VertexType const& vertex) const {
+	template<> struct hash<ModelPNCT3f::VertexType> {
+		size_t operator()(ModelPNCT3f::VertexType const& vertex) const {
 			return ((hash<glm::vec3>()(vertex.pos) ^ (hash<glm::vec3>()(vertex.color) << 1)) >> 1) ^ (hash<glm::vec2>()(vertex.texCoord) << 1);
 		}
 	};
@@ -59,8 +59,8 @@ namespace std {
 }
 
 
-ModelObj::ModelObj(const VulkanAppPtr& app, const std::string& path, const std::string& filename)
-	: SceneNodePNC3fWSampler(app)
+ModelPNCT3f::ModelPNCT3f(const VulkanAppPtr& app, const std::string& path, const std::string& filename)
+	: SceneNodePNCT3f(app)
 	, _vertexBuffer(app->getDeviceContext())
 	, _indexBuffer(app->getDeviceContext())
 {
@@ -69,7 +69,7 @@ ModelObj::ModelObj(const VulkanAppPtr& app, const std::string& path, const std::
 	createIndexBuffer();
 }
 
-void ModelObj::addCommands(VkCommandBuffer cmdBuff) const {
+void ModelPNCT3f::addCommands(VkCommandBuffer cmdBuff) const {
 	VkBuffer vertexBuffers[] = { getVertexBuffer() };
 	VkDeviceSize offsets[] = { 0 };
 	vkCmdBindVertexBuffers(cmdBuff, 0, 1, vertexBuffers, offsets);
@@ -81,7 +81,7 @@ void ModelObj::addCommands(VkCommandBuffer cmdBuff) const {
 	vkCmdDrawIndexed(cmdBuff, numIndices(), 1, 0, 0, 0);
 }
 
-void ModelObj::buildImageInfoList(vector<VkDescriptorImageInfo>& imageInfoList) const {
+void ModelPNCT3f::buildImageInfoList(vector<VkDescriptorImageInfo>& imageInfoList) const {
 	imageInfoList.clear();
 
 	for (const auto& texture : _textureImagesDiffuse) {
@@ -93,7 +93,7 @@ void ModelObj::buildImageInfoList(vector<VkDescriptorImageInfo>& imageInfoList) 
 	}
 }
 
-ModelObj::BoundingBox ModelObj::getBounds() const {
+ModelPNCT3f::BoundingBox ModelPNCT3f::getBounds() const {
 	return _bounds;
 }
 
@@ -124,7 +124,7 @@ namespace {
 
 }
 
-void ModelObj::loadModel(string path, string filename) {
+void ModelPNCT3f::loadModel(string path, string filename) {
 	_bounds.clear();
 
 	tinyobj::attrib_t attrib;
@@ -207,10 +207,10 @@ void ModelObj::loadModel(string path, string filename) {
 
 }
 
-void ModelObj::createVertexBuffer() {
+void ModelPNCT3f::createVertexBuffer() {
 	_vertexBuffer.create(_vertices, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
 }
 
-void ModelObj::createIndexBuffer() {
+void ModelPNCT3f::createIndexBuffer() {
 	_indexBuffer.create(_indices, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
 }

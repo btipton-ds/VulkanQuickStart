@@ -58,8 +58,8 @@ This file is part of the VulkanQuickStart Project.
 #include "vk_image.h"
 #include "vk_textureImage.h"
 #include "vk_vertexTypes.h"
-#include "vk_model.h"
-#include <vk_modelObj.h>
+#include "vk_modelPNC3f.h"
+#include <vk_modelPNCT3f.h>
 #include <vk_sceneNode.h>
 #include <vk_pipelinePNC3f.h>
 #include <vk_pipelinePNCT3f.h>
