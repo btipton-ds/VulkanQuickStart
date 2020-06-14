@@ -938,7 +938,13 @@ void VulkanApp::updateUniformBuffer(uint32_t swapChainImageIndex) {
 
 	for (const OffscreenPassPtr& osp : _offscreenPasses) {
 		if (!osp->updateUbo()) {
-			updateUBO(osp->getRect().extent, modelBounds, ubo);
+			const auto& rect = osp->getRect();
+			if (_uboUpdater) {
+				ubo = _uboUpdater(rect.extent.width, rect.extent.height);
+			}
+			else {
+				updateUBO(rect.extent, modelBounds, ubo);
+			}
 			osp->setUbo(ubo);
 		}
 	}
