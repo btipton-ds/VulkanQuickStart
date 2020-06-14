@@ -95,7 +95,7 @@ namespace VK {
 		size_t getRuntimeMillis() const;
 
 		template<class PIPELINE_TYPE>
-		std::vector<VK::PipelinePtr<PIPELINE_TYPE>> addPipelineWithSource(const std::string& shaderId, const std::string& vertShaderFilename, const std::string& fragShaderFilename);
+		VK::PipelinePtr<PIPELINE_TYPE> addPipelineWithSource(const std::string& shaderId, const std::vector<std::string>& filenames);
 
 		const DeviceContextPtr& getDeviceContext() const;
 
@@ -277,26 +277,9 @@ namespace VK {
 	}
 
 	template<class PIPELINE_TYPE>
-	inline std::vector<VK::PipelinePtr<PIPELINE_TYPE>> VulkanApp::addPipelineWithSource(const std::string& shaderId, const std::string& vertShaderFilename, const std::string& fragShaderFilename) {
-		std::vector<VK::PipelinePtr<PIPELINE_TYPE>> result;
-
-		PipelineGroupTypePtr pls;
-		
-		pls = _pipelines;
-		VK::PipelinePtr<PIPELINE_TYPE> pipeline;
-		pipeline = createPipelineWithSource<PIPELINE_TYPE>(pls, shaderId, _frameRect, vertShaderFilename, fragShaderFilename);
-		pls->add(pipeline);
-		result.push_back(pipeline);
-
-		for (const auto& osp : _offscreenPasses) {
-			pls = osp->getPipelines();
-			pipeline = createPipelineWithSource<PIPELINE_TYPE>(pls, shaderId, osp->getRect(), vertShaderFilename, fragShaderFilename);
-			pls->add(pipeline);
-			result.push_back(pipeline);
-		}
-
-		changed();
-		return result;
+	inline VK::PipelinePtr<PIPELINE_TYPE> VulkanApp::addPipelineWithSource(const std::string& shaderId, const std::vector<std::string>& filenames) {
+		VK::PipelinePtr<PIPELINE_TYPE> pipeline = _pipelines->addPipelineWithSource<PIPELINE_TYPE>(shaderId, _frameRect, filenames);
+		return pipeline;
 	}
 
 	inline void VulkanApp::stop() {

@@ -62,6 +62,12 @@ namespace VK {
 		void setUbo(const UboType& ubo);
 		void setAntiAliasSamples(VkSampleCountFlagBits samples);
 
+		template<class PIPELINE_TYPE>
+		VK::PipelinePtr<PIPELINE_TYPE> addPipelineWithSource(const std::string& shaderId, const std::vector<std::string>& filenames) {
+			VK::PipelinePtr<PIPELINE_TYPE> pipeline = _pipelines->addPipelineWithSource<PIPELINE_TYPE>(shaderId, _rect, filenames);
+			return pipeline;
+		}
+
 	private:
 		VkRect2D _rect = { { 0, 0 }, {0, 0 } };
 		VkFramebuffer _frameBuffer = VK_NULL_HANDLE;

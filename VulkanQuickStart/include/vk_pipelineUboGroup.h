@@ -40,11 +40,12 @@ This file is part of the VulkanQuickStart Project.
 #include <vulkan/vulkan_core.h>
 
 #include <vk_pipelineUboGroupBase.h>
+#include <vk_pipeline.h>
 
 namespace VK {
 
 	template<class UBO_TYPE>
-	class PipelineUboGroup : public PipelineUboGroupBase {
+	class PipelineUboGroup : public PipelineUboGroupBase, public std::enable_shared_from_this<PipelineUboGroup<UBO_TYPE>> {
 		/*
 		This class contains a list of pipelines which share a common uniform buffer object and related descriptors.
 		*/
@@ -67,6 +68,15 @@ namespace VK {
 		void cleanupSwapChain();
 		const PipelinePtr& getPipeline(size_t idx) const;
 
+		template<class PIPELINE_TYPE>
+		inline VK::PipelinePtr<PIPELINE_TYPE> addPipelineWithSource(const std::string& shaderId, const VkRect2D& rect, const std::vector<std::string>& filenames) {
+			auto self = shared_from_this();
+			auto pipeline = createPipelineWithSource<PIPELINE_TYPE>(self, shaderId, rect, filenames[0], filenames[1]);
+			pipeline->setUniformBufferPtr(&_ubo);
+			_pipelines.push_back(pipeline);
+
+			return std::dynamic_pointer_cast<PIPELINE_TYPE> (pipeline);
+		}
 	private:
 		static bool PipelineComparePaintLayer(const PipelinePtr& pl1, const PipelinePtr& pl2);
 
@@ -135,4 +145,5 @@ namespace VK {
 	inline const typename PipelineUboGroup<UBO_TYPE>::PipelinePtr& PipelineUboGroup<UBO_TYPE>::getPipeline(size_t idx) const {
 		return _pipelines[idx];
 	}
+
 }

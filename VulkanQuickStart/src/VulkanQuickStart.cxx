@@ -90,6 +90,7 @@ vector<Pipeline3DPtr> pipeline3DWireframe;
 vector<Pipeline3DWSamplerPtr> pipeline3DWSampler;
 
 VulkanAppPtr gApp;
+OffscreenPassPtr offscreen;
 size_t offscreenIdx = stm1;
 
 ModelPtr vase, part;
@@ -267,6 +268,26 @@ int addStl() {
 	return 0;
 }
 
+void createPipelines() {
+	vector<string> sampler3DFilenames = { "shaders/shader_depth_vert.spv", "shaders/shader_depth_frag.spv" };
+
+	pipeline3DWSampler.push_back(gApp->addPipelineWithSource<Pipeline3DWSampler>("obj_shader", sampler3DFilenames));
+	pipeline3DWSampler.push_back(offscreen->addPipelineWithSource<Pipeline3DWSampler>("obj_shader", sampler3DFilenames));
+
+	vector<string> shaded3DFilenames = { "shaders/shader_vert.spv", "shaders/shader_frag.spv" };
+	pipeline3DShaded.push_back(gApp->addPipelineWithSource<Pipeline3D>("stl_shaded", shaded3DFilenames));
+	pipeline3DShaded.push_back(offscreen->addPipelineWithSource<Pipeline3D>("stl_shaded", shaded3DFilenames));
+
+	vector<string> wf3DFilenames = { "shaders/shader_vert.spv", "shaders/shader_wireframe_frag.spv" };
+	pipeline3DWireframe.push_back(gApp->addPipelineWithSource<Pipeline3D>("stl_wireframe", wf3DFilenames));
+	pipeline3DWireframe.push_back(offscreen->addPipelineWithSource<Pipeline3D>("stl_wireframe", wf3DFilenames));
+	for (auto plPtr : pipeline3DWireframe) {
+		plPtr->setPolygonMode(VK_POLYGON_MODE_LINE);
+		plPtr->toggleVisiblity();
+	}
+
+}
+
 int main(int numArgs, char** args) {
 	VkRect2D frame;
 	frame.offset = { 0,0, };
@@ -277,10 +298,10 @@ int main(int numArgs, char** args) {
 	gApp->setAntiAliasSamples(VK_SAMPLE_COUNT_4_BIT);
 
 	VkExtent2D offscreenExtent = { 2048, 2048 };
-	auto osp = make_shared<OffscreenPass>(gApp, VK_FORMAT_R8G8B8A8_UNORM);
-	osp->setAntiAliasSamples(VK_SAMPLE_COUNT_1_BIT);
-	osp->init(offscreenExtent);
-	offscreenIdx = gApp->addOffscreen(osp);
+	offscreen = make_shared<OffscreenPass>(gApp, VK_FORMAT_R8G8B8A8_UNORM);
+	offscreen->setAntiAliasSamples(VK_SAMPLE_COUNT_1_BIT);
+	offscreen->init(offscreenExtent);
+	offscreenIdx = gApp->addOffscreen(offscreen);
 
 
 #if TEST_GUI
@@ -293,14 +314,7 @@ int main(int numArgs, char** args) {
 
 	glfwSetWindowTitle(gApp->getWindow(), "Vulkan Quick Start");
 
-	pipeline3DWSampler = gApp->addPipelineWithSource<Pipeline3DWSampler>("obj_shader", "shaders/shader_depth_vert.spv", "shaders/shader_depth_frag.spv");
-
-	pipeline3DShaded = gApp->addPipelineWithSource<Pipeline3D>("stl_shaded", "shaders/shader_vert.spv", "shaders/shader_frag.spv");
-	pipeline3DWireframe = gApp->addPipelineWithSource<Pipeline3D>("stl_wireframe", "shaders/shader_vert.spv", "shaders/shader_wireframe_frag.spv");
-	for (auto plPtr : pipeline3DWireframe) {
-		plPtr->setPolygonMode(VK_POLYGON_MODE_LINE);
-		plPtr->toggleVisiblity();
-	}
+	createPipelines();
 
 	addObj();
 	addStl();
