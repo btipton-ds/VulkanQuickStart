@@ -48,13 +48,13 @@ This file is part of the VulkanQuickStart Project.
 #include "vk_buffer.h"
 #include "vk_textureImage.h"
 #include "vk_vertexTypes.h"
-#include <vk_pipelineSceneNode3D.h>
+#include <vk_sceneNodePNC3f.h>
 
 #include <tm_boundingBox.h>
 
 namespace VK {
 
-	class Model : public SceneNode3D {
+	class Model : public SceneNodePNC3f {
 	public:
 		using BoundingBox = CBoundingBox3D<float>;
 

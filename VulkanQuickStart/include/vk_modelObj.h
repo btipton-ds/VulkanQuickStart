@@ -67,7 +67,7 @@ namespace VK {
 	class ModelObj;
 	using ModelObjPtr = std::shared_ptr<ModelObj>;
 
-	class ModelObj : public SceneNode3DWSampler {
+	class ModelObj : public SceneNodePNC3fWSampler {
 	public:
 		using BoundingBox = CBoundingBox3D<float>;
 

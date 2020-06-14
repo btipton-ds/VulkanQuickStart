@@ -47,9 +47,9 @@ This file is part of the VulkanQuickStart Project.
 #include "vk_deviceContext.h"
 #include "vk_image.h"
 #include <vk_sceneNode.h>
-#include <vk_pipelineSceneNode3D.h>
+#include <vk_sceneNodePNC3f.h>
 #include <vk_pipelineSceneNode3DWSampler.h>
-#include <vk_pipeline3D.h>
+#include <vk_pipelinePNC3f.h>
 #include <vk_shaderPool.h>
 #include <vk_swapChain.h>
 #include <vk_offscreenPass.h>

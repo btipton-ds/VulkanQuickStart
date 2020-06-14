@@ -1,3 +1,5 @@
+#pragma once
+
 /*
 
 This file is part of the VulkanQuickStart Project.
@@ -29,26 +31,27 @@ This file is part of the VulkanQuickStart Project.
 
 #include <vk_defines.h>
 
-#include <memory>
+#include <tm_boundingBox.h>
+#include <vk_pipeline.h>
+#include <vk_uniformBuffers.h>
+#include <vk_vertexTypes.h>
 
-#include <vk_pipelineSceneNode3D.h>
-#include <vk_pipelineBase.h>
-#include <vk_pipeline3D.h>
+namespace VK {
 
-using namespace std;
-using namespace VK;
+	class PipelinePNC3f : public Pipeline<Vertex3_PNCf, UniformBufferObject3D> {
+	public:
+		using BoundingBox = CBoundingBox3D<float>;
+		using PipelinePtr = std::shared_ptr<PipelinePNC3f>;
 
-SceneNode3D::SceneNode3D(const VulkanAppPtr& app)
-	: Pipeline3D::SceneNode(app)
-	, _modelXForm(glm::mat4(1.0f))
-{}
+		PipelinePNC3f(const PipelineUboGroupBasePtr& plGroup, const std::string& shaderId, const VkRect2D& rect);
 
-SceneNode3D::~SceneNode3D() {
-}
+		BoundingBox getBounds() const;
 
-void SceneNode3D::updateUbo(UniformBufferObject3D& ubo) const {
-	if (_modelXFormFunc)
-		ubo.modelView *= _modelXFormFunc(_modelXForm);
-	else
-		ubo.modelView *= _modelXForm;
+		void updateSceneNodeUbo(const SceneNodePtr& sceneNode, UniformBufferObject3D& ubo) const override;
+	protected:
+		virtual void createDescriptorSetLayout() override;
+	};
+
+	using PipelinePNC3fPtr = std::shared_ptr<PipelinePNC3f>;
+
 }

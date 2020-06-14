@@ -47,8 +47,8 @@ This file is part of the VulkanQuickStart Project.
 #include <vk_ui_button.h>
 #include <vk_ui_window.h>
 #include <vk_pipelineGroup.h>
-#include <vk_pipeline3DWithSampler.h>
-#include <vk_pipeline3D.h>
+#include <vk_pipelinePNCT3f.h>
+#include <vk_pipelinePNC3f.h>
 
 #include <triMesh.h>
 #include <readStl.h>
@@ -88,10 +88,10 @@ const std::string stlFilenameCourse = "test_part_course.stl";
 const std::string stlFilenameFine = "test_part_fine.stl";
 #endif
 
-PipelineGroup<Pipeline3DPtr> pipeline3DShaded;
-PipelineGroup<Pipeline3DPtr> pipeline3DWireframe;
+PipelineGroup<PipelinePNC3fPtr> pipeline3DShaded;
+PipelineGroup<PipelinePNC3fPtr> pipeline3DWireframe;
 
-PipelineGroup<Pipeline3DWSamplerPtr> pipeline3DWSampler;
+PipelineGroup<PipelinePNCT3fPtr> pipeline3DWSampler;
 
 VulkanAppPtr gApp;
 OffscreenPassPtr offscreen;
@@ -266,16 +266,16 @@ int addStl() {
 void createPipelines() {
 	vector<string> sampler3DFilenames = { "shaders/shader_depth_vert.spv", "shaders/shader_depth_frag.spv" };
 
-	pipeline3DWSampler.add(gApp->addPipelineWithSource<Pipeline3DWSampler>("obj_shader", sampler3DFilenames));
-	pipeline3DWSampler.add(offscreen->addPipelineWithSource<Pipeline3DWSampler>("obj_shader", sampler3DFilenames));
+	pipeline3DWSampler.add(gApp->addPipelineWithSource<PipelinePNCT3f>("obj_shader", sampler3DFilenames));
+	pipeline3DWSampler.add(offscreen->addPipelineWithSource<PipelinePNCT3f>("obj_shader", sampler3DFilenames));
 
 	vector<string> shaded3DFilenames = { "shaders/shader_vert.spv", "shaders/shader_frag.spv" };
-	pipeline3DShaded.add(gApp->addPipelineWithSource<Pipeline3D>("stl_shaded", shaded3DFilenames));
-	pipeline3DShaded.add(offscreen->addPipelineWithSource<Pipeline3D>("stl_shaded", shaded3DFilenames));
+	pipeline3DShaded.add(gApp->addPipelineWithSource<PipelinePNC3f>("stl_shaded", shaded3DFilenames));
+	pipeline3DShaded.add(offscreen->addPipelineWithSource<PipelinePNC3f>("stl_shaded", shaded3DFilenames));
 
 	vector<string> wf3DFilenames = { "shaders/shader_vert.spv", "shaders/shader_wireframe_frag.spv" };
-	pipeline3DWireframe.add(gApp->addPipelineWithSource<Pipeline3D>("stl_wireframe", wf3DFilenames));
-	pipeline3DWireframe.add(offscreen->addPipelineWithSource<Pipeline3D>("stl_wireframe", wf3DFilenames));
+	pipeline3DWireframe.add(gApp->addPipelineWithSource<PipelinePNC3f>("stl_wireframe", wf3DFilenames));
+	pipeline3DWireframe.add(offscreen->addPipelineWithSource<PipelinePNC3f>("stl_wireframe", wf3DFilenames));
 	//pipeline3DWireframe.toggleVisiblity();
 	pipeline3DWireframe.setPolygonMode(VK_POLYGON_MODE_LINE);
 

@@ -61,8 +61,8 @@ This file is part of the VulkanQuickStart Project.
 #include "vk_model.h"
 #include <vk_modelObj.h>
 #include <vk_sceneNode.h>
-#include <vk_pipeline3D.h>
-#include <vk_pipeline3DWithSampler.h>
+#include <vk_pipelinePNC3f.h>
+#include <vk_pipelinePNCT3f.h>
 #include <vk_pipelineUi.h>
 #include <vk_pipelineUboGroup.h>
 #include <vk_ui_window.h>
@@ -915,11 +915,11 @@ void VulkanApp::updateUniformBuffer(uint32_t swapChainImageIndex) {
 	BoundingBox modelBounds;
 
 	_pipelines->iterate([&](const PipelinePtr& pipeline) {
-		auto ptr3D = dynamic_pointer_cast<Pipeline3D>(pipeline);
+		auto ptr3D = dynamic_pointer_cast<PipelinePNC3f>(pipeline);
 		if (ptr3D)
 			modelBounds.merge(ptr3D->getBounds());
 
-		auto ptr3DWTex = dynamic_pointer_cast<Pipeline3DWSampler>(pipeline);
+		auto ptr3DWTex = dynamic_pointer_cast<PipelinePNCT3f>(pipeline);
 		if (ptr3DWTex)
 			modelBounds.merge(ptr3DWTex->getBounds());
 	});

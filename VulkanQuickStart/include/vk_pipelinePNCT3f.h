@@ -37,21 +37,21 @@ This file is part of the VulkanQuickStart Project.
 #include <vk_vertexTypes.h>
 
 namespace VK {
+	class PipelinePNCT3f;
+	using PipelinePNCT3fPtr = std::shared_ptr<class PipelinePNCT3f>;
 
-	class Pipeline3D : public Pipeline<Vertex3_PNCf, UniformBufferObject3D> {
+	class PipelinePNCT3f : public Pipeline<Vertex3_PNCTf, UniformBufferObject3D> {
 	public:
 		using BoundingBox = CBoundingBox3D<float>;
-		using PipelinePtr = std::shared_ptr<Pipeline3D>;
+		using PipelinePtr = std::shared_ptr<PipelinePNCT3f>;
 
-		Pipeline3D(const PipelineUboGroupBasePtr& plGroup, const std::string& shaderId, const VkRect2D& rect);
+		PipelinePNCT3f(const PipelineUboGroupBasePtr& plGroup, const std::string& shaderId, const VkRect2D& rect);
 
 		BoundingBox getBounds() const;
-
 		void updateSceneNodeUbo(const SceneNodePtr& sceneNode, UniformBufferObject3D& ubo) const override;
+
 	protected:
 		virtual void createDescriptorSetLayout() override;
 	};
-
-	using Pipeline3DPtr = std::shared_ptr<Pipeline3D>;
 
 }

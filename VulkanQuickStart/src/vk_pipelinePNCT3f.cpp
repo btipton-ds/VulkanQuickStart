@@ -29,7 +29,7 @@ This file is part of the VulkanQuickStart Project.
 
 #include <vk_defines.h>
 
-#include <vk_pipeline3D.h>
+#include <vk_pipelinePNC3f.h>
 
 #include <stdexcept>
 #include <string>
@@ -42,19 +42,15 @@ This file is part of the VulkanQuickStart Project.
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
-#include <vk_pipeline3D.h>
-#include <vk_pipelineSceneNode3D.h>
+#include <vk_pipelinePNCT3f.h>
+#include <vk_pipelineSceneNode3DWSampler.h>
 #include <vk_deviceContext.h>
 #include <vk_buffer.h>
 #include <vk_vertexTypes.h>
 #include <vk_app.h>
 
-using namespace VK;
 using namespace std;
-
-Pipeline3D::Pipeline3D(const PipelineUboGroupBasePtr& plGroup, const std::string& shaderId, const VkRect2D& rect)
-	: Pipeline(plGroup, shaderId, rect)
-{}
+using namespace VK;
 
 namespace {
 	inline glm::vec3 conv(const Vector3f& pt) {
@@ -64,8 +60,8 @@ namespace {
 		return glm::vec4(pt[0], pt[1], pt[2], 1);
 	}
 
-	Pipeline3D::BoundingBox transform(const Pipeline3D::BoundingBox& bb, const glm::mat4& xform) {
-		Pipeline3D::BoundingBox result;
+	PipelinePNCT3f::BoundingBox transform(const PipelinePNC3f::BoundingBox& bb, const glm::mat4& xform) {
+		PipelinePNC3f::BoundingBox result;
 		glm::vec4 pt(0, 0, 0, 1);
 		for (int i = 0; i < 2; i++) {
 			pt[0] = i == 0 ? bb.getMin()[0] : bb.getMax()[0];
@@ -82,24 +78,28 @@ namespace {
 	}
 }
 
-Pipeline3D::BoundingBox Pipeline3D::getBounds() const {
+PipelinePNCT3f::PipelinePNCT3f(const PipelineUboGroupBasePtr& plGroup, const std::string& shaderId, const VkRect2D& rect)
+	: Pipeline(plGroup, shaderId, rect)
+{}
+
+PipelinePNCT3f::BoundingBox PipelinePNCT3f::getBounds() const {
 	BoundingBox bb;
 
 	for (auto& binding : _sceneNodeBindings) {
 		auto sceneNode = binding->getSceneNode();
-		SceneNode3DPtr node3D = dynamic_pointer_cast<SceneNode3D> (sceneNode);
+		SceneNodePNC3fWithTexturePtr node3D = dynamic_pointer_cast<SceneNodePNC3fWSampler> (sceneNode);
 		BoundingBox modelBb = node3D->getBounds();
 		bb.merge(transform(modelBb, node3D->getModelTransform()));
 	}
 	return bb;
 }
 
-void Pipeline3D::updateSceneNodeUbo(const SceneNodePtr& sceneNode, UniformBufferObject3D& ubo) const {
-	SceneNode3DPtr ptr = dynamic_pointer_cast<SceneNode3D>(sceneNode);
+void PipelinePNCT3f::updateSceneNodeUbo(const SceneNodePtr& sceneNode, UniformBufferObject3D& ubo) const {
+	SceneNodePNC3fWSamplerPtr ptr = dynamic_pointer_cast<SceneNodePNC3fWSampler>(sceneNode);
 	ptr->updateUbo(ubo);
 }
 
-void Pipeline3D::createDescriptorSetLayout() {
+void PipelinePNCT3f::createDescriptorSetLayout() {
 	VkDescriptorSetLayoutBinding uboLayoutBinding = {};
 	uboLayoutBinding.binding = 0;
 	uboLayoutBinding.descriptorCount = 1;
@@ -107,7 +107,14 @@ void Pipeline3D::createDescriptorSetLayout() {
 	uboLayoutBinding.pImmutableSamplers = nullptr;
 	uboLayoutBinding.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
 
-	std::array<VkDescriptorSetLayoutBinding, 1> bindings = { uboLayoutBinding };
+	VkDescriptorSetLayoutBinding samplerLayoutBinding = {};
+	samplerLayoutBinding.binding = 1;
+	samplerLayoutBinding.descriptorCount = getMaxSamplers();;
+	samplerLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+	samplerLayoutBinding.pImmutableSamplers = nullptr;
+	samplerLayoutBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
+
+	std::array<VkDescriptorSetLayoutBinding, 2> bindings = { uboLayoutBinding, samplerLayoutBinding };
 	VkDescriptorSetLayoutCreateInfo layoutInfo = {};
 	layoutInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
 	layoutInfo.bindingCount = static_cast<uint32_t>(bindings.size());
@@ -117,5 +124,4 @@ void Pipeline3D::createDescriptorSetLayout() {
 		throw std::runtime_error("failed to create descriptor set layout!");
 	}
 }
-
 
