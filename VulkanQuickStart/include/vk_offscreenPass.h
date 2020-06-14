@@ -46,7 +46,7 @@ namespace VK {
 		using PipelineGroupTypePtr = PipelineUboGroupPtr<UboType>;
 		using PipelinePtr = PipelineGroupType::PipelinePtr;
 
-		OffscreenPass(const VulkanAppPtr& app, VkFormat colorFormat, VkFormat depthFormat);
+		OffscreenPass(const VulkanAppPtr& app, VkFormat colorFormat);
 		~OffscreenPass();
 
 		void init(const VkExtent2D& extent);

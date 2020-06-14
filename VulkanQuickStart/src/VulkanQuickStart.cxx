@@ -53,7 +53,7 @@ This file is part of the VulkanQuickStart Project.
 using namespace VK;
 using namespace std;
 
-#define TEST_OBJ 0
+#define TEST_OBJ 1
 #define TEST_STL 1
 #define TEST_GUI 1
 
@@ -90,6 +90,7 @@ vector<Pipeline3DPtr> pipeline3DWireframe;
 vector<Pipeline3DWSamplerPtr> pipeline3DWSampler;
 
 VulkanAppPtr gApp;
+size_t offscreenIdx = stm1;
 
 ModelPtr vase, part;
 
@@ -157,10 +158,8 @@ void buildUi(UI::WindowPtr& gui) {
 		setAction(UI::Button::ActionType::ACT_CLICK, [&](int btnNum, int modifiers) {
 		string path = "/Users/Bob/Documents/Projects/ElectroFish/HexMeshTests/";
 		if (btnNum == 0) {
-			ImagePtr image;
-			if (gApp->isOffscreenEnabled()) {
-				image = gApp->getOffscreenImage();
-			} else {
+			ImagePtr image = gApp->getOffscreenImage(offscreenIdx);
+			if (!image) {
 				const auto& swapChain = gApp->getSwapChain();
 				const auto& images = swapChain._images;
 				image = images[gApp->getSwapChainIndex()];
@@ -276,8 +275,13 @@ int main(int numArgs, char** args) {
 	gApp = VulkanApp::create(frame);
 
 	gApp->setAntiAliasSamples(VK_SAMPLE_COUNT_4_BIT);
+
 	VkExtent2D offscreenExtent = { 2048, 2048 };
-	gApp->setOffscreenExtent(offscreenExtent);
+	auto osp = make_shared<OffscreenPass>(gApp, VK_FORMAT_R8G8B8A8_UNORM);
+	osp->setAntiAliasSamples(VK_SAMPLE_COUNT_1_BIT);
+	osp->init(offscreenExtent);
+	offscreenIdx = gApp->addOffscreen(osp);
+
 
 #if TEST_GUI
 	UI::WindowPtr gui = make_shared<UI::Window>(gApp);

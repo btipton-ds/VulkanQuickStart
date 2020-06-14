@@ -88,6 +88,9 @@ namespace VK {
 
 		void setUiWindow(const UI::WindowPtr& uiWindow );
 
+		VkFormat findDepthFormat();
+		size_t addOffscreen(const OffscreenPassPtr& osp);
+
 		void changed();
 		size_t getRuntimeMillis() const;
 
@@ -118,9 +121,7 @@ namespace VK {
 		void stop();
 
 		void setUpdater(const UpdaterPtr& updater);
-		void setOffscreenExtent(const VkExtent2D& extent);
-		bool isOffscreenEnabled() const;
-		ImagePtr getOffscreenImage() const;
+		ImagePtr getOffscreenImage(size_t index) const;
 
 		const VkRect2D& getFrameRect() const;
 
@@ -156,15 +157,14 @@ namespace VK {
 		void createColorResources();
 		void createDepthResources();
 		VkFormat findSupportedFormat(const std::vector<VkFormat>& candidates, VkImageTiling tiling, VkFormatFeatureFlags features);
-		VkFormat findDepthFormat();
 		bool hasStencilComponent(VkFormat format);
 		VkSampleCountFlagBits getMaxUsableSampleCount();
 
 		void createBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer& buffer, VkDeviceMemory& bufferMemory);
 		uint32_t findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties);
 		void createCommandBuffers();
-		void drawCmdBufferLoopScreen(VkCommandBuffer cmdBuff, size_t swapChainIndex, VkCommandBufferBeginInfo& beginInfo, VkRenderPassBeginInfo& renderPassInfo);
-		void drawCmdBufferLoopOffscreen(VkCommandBuffer cmdBuff, VkCommandBufferBeginInfo& beginInfo, VkRenderPassBeginInfo& renderPassInfo);
+		void drawCmdBufferLoop(VkCommandBuffer cmdBuff, size_t swapChainIndex, VkCommandBufferBeginInfo& beginInfo, VkRenderPassBeginInfo renderPassInfo);
+		void drawCmdBufferLoop(const OffscreenPassPtr& osp, VkCommandBuffer cmdBuff, VkCommandBufferBeginInfo& beginInfo, VkRenderPassBeginInfo renderPassInfo);
 		void createSyncObjects();
 		void updateUniformBuffer(uint32_t swapChainImageIndex);
 		void updateUBO(const VkExtent2D& extent, const BoundingBox& modelBounds, UboType& ubo) const;
@@ -208,7 +208,7 @@ namespace VK {
 		SwapChain _swapChain;
 
 		double _targetFrameDurationMillis = -1;
-		OffscreenPassPtr _offscreenPass;
+		std::vector<OffscreenPassPtr> _offscreenPasses;
 		PipelineGroupTypePtr _pipelines;
 
 		std::vector<VkCommandBuffer> _commandBuffers;
@@ -288,9 +288,9 @@ namespace VK {
 		pls->add(pipeline);
 		result.push_back(pipeline);
 
-		if (_offscreenPass) {
-			pls = _offscreenPass->getPipelines();
-			pipeline = createPipelineWithSource<PIPELINE_TYPE>(pls, shaderId, _offscreenPass->getRect(), vertShaderFilename, fragShaderFilename);
+		for (const auto& osp : _offscreenPasses) {
+			pls = osp->getPipelines();
+			pipeline = createPipelineWithSource<PIPELINE_TYPE>(pls, shaderId, osp->getRect(), vertShaderFilename, fragShaderFilename);
 			pls->add(pipeline);
 			result.push_back(pipeline);
 		}
@@ -307,13 +307,10 @@ namespace VK {
 		return _runtimeMillis;
 	}
 
-	inline bool VulkanApp::isOffscreenEnabled() const {
-		return _offscreenPass != nullptr;
-	}
 
-	inline ImagePtr VulkanApp::getOffscreenImage() const {
-		if (isOffscreenEnabled())
-			return _offscreenPass->getColorImage();
+	inline ImagePtr VulkanApp::getOffscreenImage(size_t index) const {
+		if (index < _offscreenPasses.size())
+			return _offscreenPasses[index]->getColorImage();
 		return nullptr;
 	}
 

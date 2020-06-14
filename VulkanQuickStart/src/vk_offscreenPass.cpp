@@ -41,10 +41,10 @@ This file is part of the VulkanQuickStart Project.
 using namespace std;
 using namespace VK;
 
-OffscreenPass::OffscreenPass(const VulkanAppPtr& app, VkFormat colorFormat, VkFormat depthFormat)
+OffscreenPass::OffscreenPass(const VulkanAppPtr& app, VkFormat colorFormat)
 	: _deviceContext(app->getDeviceContext())
 	, _colorFormat(colorFormat)
-	, _depthFormat(depthFormat)
+	, _depthFormat(app->findDepthFormat())
 {
 	_pipelines = make_shared<PipelineGroupType>(app, 1);
 }
