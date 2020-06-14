@@ -138,6 +138,7 @@ namespace VK {
 		VkDevice device = _pipeline->getDeviceContext()->_device;
 		if (_descriptorPool != VK_NULL_HANDLE)
 			vkDestroyDescriptorPool(device, _descriptorPool, nullptr);
+		_descriptorPool = VK_NULL_HANDLE;
 
 		_descriptorSets.clear(); // Sets are destroyed when the pool is destroyed
 		_uniformBuffers.clear();
@@ -167,9 +168,12 @@ namespace VK {
 		DeviceContextPtr context = _pipeline->getDeviceContext();
 		size_t bufferSize = sizeof(UboType);
 
-		_uniformBuffers.reserve(_numBuffers);
+		if (_uniformBuffers.empty()) {
+			_uniformBuffers.reserve(_numBuffers);
+			for (size_t i = 0; i < _numBuffers; i++)
+				_uniformBuffers.push_back(Buffer(context));
+		}
 		for (size_t i = 0; i < _numBuffers; i++) {
-			_uniformBuffers.push_back(Buffer(context));
 			_uniformBuffers[i].create(bufferSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
 				VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
 		}
@@ -177,13 +181,14 @@ namespace VK {
 
 	template<class VERT_TYPE, class UBO_TYPE>
 	inline void SceneNodeToPipelineBinding<VERT_TYPE, UBO_TYPE>::createDescriptorSets(VkDevice device) {
-		_descriptorSets.resize(_numBuffers);
+		if (_descriptorSets.empty())
+			_descriptorSets.resize(_numBuffers);
 
 		VkDescriptorSetLayout layout = _pipeline->getDescriptorSetLayout();
 		std::vector<VkDescriptorSetLayout> layouts(_numBuffers, layout);
 		VkDescriptorSetAllocateInfo allocInfo = {};
 		allocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
-		allocInfo.descriptorPool = _descriptorPool; // TODO I haven't figured out yet if there should be one pool for the entire pipeline or not. Attempts to do that all crashed.
+		allocInfo.descriptorPool = _descriptorPool;
 		allocInfo.descriptorSetCount = static_cast<uint32_t>(_numBuffers);
 		allocInfo.pSetLayouts = layouts.data();
 

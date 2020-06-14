@@ -46,6 +46,7 @@ This file is part of the VulkanQuickStart Project.
 #include <vk_pipelineUi.h>
 #include <vk_ui_button.h>
 #include <vk_ui_window.h>
+#include <vk_pipelineGroup.h>
 
 #include <triMesh.h>
 #include <readStl.h>
@@ -84,10 +85,10 @@ const std::string stlFilenameCourse = "test_part_course.stl";
 const std::string stlFilenameFine = "test_part_fine.stl";
 #endif
 
-vector<Pipeline3DPtr> pipeline3DShaded;
-vector<Pipeline3DPtr> pipeline3DWireframe;
+PipelineGroup<Pipeline3DPtr> pipeline3DShaded;
+PipelineGroup<Pipeline3DPtr> pipeline3DWireframe;
 
-vector<Pipeline3DWSamplerPtr> pipeline3DWSampler;
+PipelineGroup<Pipeline3DWSamplerPtr> pipeline3DWSampler;
 
 VulkanAppPtr gApp;
 OffscreenPassPtr offscreen;
@@ -115,12 +116,8 @@ void buildUi(UI::WindowPtr& gui) {
 	gui->addButton(bkgColor, "Toggle Wireframe", UI::Rect(row, 0, row + h, w))->
 		setAction(UI::Button::ActionType::ACT_CLICK, [&](int btnNum, int modifiers) {
 		if (btnNum == 0) {
-			for (auto plPtr : pipeline3DShaded) {
-				plPtr->toggleVisiblity();
-			}
-			for (auto plPtr : pipeline3DWireframe) {
-				plPtr->toggleVisiblity();
-			}
+			pipeline3DShaded.toggleVisiblity();
+			pipeline3DWireframe.toggleVisiblity();
 		}
 	});
 
@@ -181,9 +178,8 @@ void addObj() {
 	glm::mat4 xform;
 
 	plant = ModelObj::create(gApp, pottedPlantPath, pottedPlantFilename);
-	for (auto plPtr : pipeline3DWSampler) {
-		plPtr->addSceneNode(plant);
-	}
+	pipeline3DWSampler.addSceneNode(plant);
+
 	xform = glm::rotate(glm::mat4(1.0f), glm::radians(90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
 	plant->setModelTransform(xform);
 	plant->setModelTransformFunc([&](const glm::mat4& src)->glm::mat4 {
@@ -198,9 +194,7 @@ void addObj() {
 	});
 
 	dna = ModelObj::create(gApp, dnaPath, dnaFilename);
-	for (auto plPtr : pipeline3DWSampler) {
-		plPtr->addSceneNode(dna);
-	}
+	pipeline3DWSampler.addSceneNode(dna);
 	xform = glm::translate(glm::mat4(1.0f), glm::vec3(0, 10, 0));
 	dna->setModelTransform(xform);
 	dna->setModelTransformFunc([&](const glm::mat4& src)->glm::mat4 {
@@ -215,6 +209,7 @@ void addObj() {
 	});
 
 	apricot = ModelObj::create(gApp, apricotPath, apricotFilename);
+	pipeline3DWSampler.addSceneNode(apricot);
 	xform = glm::translate(glm::mat4(1.0f), glm::vec3(10, 10, 0));
 	xform *= glm::rotate(glm::mat4(1.0f), glm::radians(90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
 	apricot->setModelTransform(xform);
@@ -229,10 +224,7 @@ int readStl(const string& filename, ModelPtr& model) {
 
 
 	model = Model::create(gApp, meshPtr);
-	for (auto plPtr : pipeline3DShaded)
-		plPtr->addSceneNode(model);
-	for (auto plPtr : pipeline3DWireframe)
-		plPtr->addSceneNode(model);
+	pipeline3DShaded.addSceneNode(model);
 
 	return 0;
 }
@@ -271,21 +263,20 @@ int addStl() {
 void createPipelines() {
 	vector<string> sampler3DFilenames = { "shaders/shader_depth_vert.spv", "shaders/shader_depth_frag.spv" };
 
-	pipeline3DWSampler.push_back(gApp->addPipelineWithSource<Pipeline3DWSampler>("obj_shader", sampler3DFilenames));
-	pipeline3DWSampler.push_back(offscreen->addPipelineWithSource<Pipeline3DWSampler>("obj_shader", sampler3DFilenames));
+	pipeline3DWSampler.add(gApp->addPipelineWithSource<Pipeline3DWSampler>("obj_shader", sampler3DFilenames));
+	pipeline3DWSampler.add(offscreen->addPipelineWithSource<Pipeline3DWSampler>("obj_shader", sampler3DFilenames));
 
 	vector<string> shaded3DFilenames = { "shaders/shader_vert.spv", "shaders/shader_frag.spv" };
-	pipeline3DShaded.push_back(gApp->addPipelineWithSource<Pipeline3D>("stl_shaded", shaded3DFilenames));
-	pipeline3DShaded.push_back(offscreen->addPipelineWithSource<Pipeline3D>("stl_shaded", shaded3DFilenames));
+	pipeline3DShaded.add(gApp->addPipelineWithSource<Pipeline3D>("stl_shaded", shaded3DFilenames));
+	pipeline3DShaded.add(offscreen->addPipelineWithSource<Pipeline3D>("stl_shaded", shaded3DFilenames));
 
 	vector<string> wf3DFilenames = { "shaders/shader_vert.spv", "shaders/shader_wireframe_frag.spv" };
-	pipeline3DWireframe.push_back(gApp->addPipelineWithSource<Pipeline3D>("stl_wireframe", wf3DFilenames));
-	pipeline3DWireframe.push_back(offscreen->addPipelineWithSource<Pipeline3D>("stl_wireframe", wf3DFilenames));
-	for (auto plPtr : pipeline3DWireframe) {
-		plPtr->setPolygonMode(VK_POLYGON_MODE_LINE);
-		plPtr->toggleVisiblity();
-	}
+	pipeline3DWireframe.add(gApp->addPipelineWithSource<Pipeline3D>("stl_wireframe", wf3DFilenames));
+	pipeline3DWireframe.add(offscreen->addPipelineWithSource<Pipeline3D>("stl_wireframe", wf3DFilenames));
+	//pipeline3DWireframe.toggleVisiblity();
+	pipeline3DWireframe.setPolygonMode(VK_POLYGON_MODE_LINE);
 
+	gApp->changed();
 }
 
 int main(int numArgs, char** args) {
