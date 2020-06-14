@@ -75,10 +75,10 @@ namespace VK {
 	using PipelinePtr = std::shared_ptr<PIPELINE_TYPE>;
 
 	template<class VERT_TYPE>
-	class PipelineSceneNode;
+	class SceneNode;
 
 	template<class VERT_TYPE>
-	using PipelineSceneNodePtr = std::shared_ptr<PipelineSceneNode<VERT_TYPE>>;
+	using SceneNodePtr = std::shared_ptr<SceneNode<VERT_TYPE>>;
 
 	class PipelineUi;
 	using PipelineUiPtr = std::shared_ptr<PipelineUi>;
@@ -94,8 +94,8 @@ namespace VK {
 	class SceneNodeXForm;
 	using SceneNodeXFormPtr = std::shared_ptr<SceneNodeXForm>;
 
-	class PipelineSceneNodeBase;
-	using SceneNodeBasePtr = std::shared_ptr<PipelineSceneNodeBase>;
+	class SceneNodeBase;
+	using SceneNodeBasePtr = std::shared_ptr<SceneNodeBase>;
 
 
 	class Model;

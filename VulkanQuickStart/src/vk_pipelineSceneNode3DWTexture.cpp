@@ -39,12 +39,12 @@ This file is part of the VulkanQuickStart Project.
 using namespace std;
 using namespace VK;
 
-PipelineSceneNode3DWSampler::PipelineSceneNode3DWSampler(const VulkanAppPtr& app)
-	: Pipeline3DWSampler::PipelineSceneNode(app)
+SceneNode3DWSampler::SceneNode3DWSampler(const VulkanAppPtr& app)
+	: Pipeline3DWSampler::SceneNode(app)
 	, _modelXForm(glm::mat4(1.0f))
 {}
 
-void PipelineSceneNode3DWSampler::updateUbo(UboType& ubo) const {
+void SceneNode3DWSampler::updateUbo(UniformBufferObject3D& ubo) const {
 	if (_modelXFormFunc)
 		ubo.modelView *= _modelXFormFunc(_modelXForm);
 	else

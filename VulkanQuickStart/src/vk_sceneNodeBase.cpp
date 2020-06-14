@@ -29,25 +29,25 @@ This file is part of the VulkanQuickStart Project.
 
 #include <vk_defines.h>
 
-#include <vk_pipelineSceneNodeBase.h>
+#include <vk_sceneNodeBase.h>
 #include <vk_pipelineBase.h>
 #include <vk_app.h>
 
 using namespace VK;
 
-PipelineSceneNodeBase::PipelineSceneNodeBase(const VulkanAppPtr& app)
+SceneNodeBase::SceneNodeBase(const VulkanAppPtr& app)
 	: _app(app)
 {}
 
-PipelineSceneNodeBase::~PipelineSceneNodeBase() {
+SceneNodeBase::~SceneNodeBase() {
 }
 
-void PipelineSceneNodeBase::toggleVisibility() {
+void SceneNodeBase::toggleVisibility() {
 	_visible = !_visible;
 	_app->changed();
 }
 
-void PipelineSceneNodeBase::setVisibility(bool visible) {
+void SceneNodeBase::setVisibility(bool visible) {
 	_visible = visible;
 	_app->changed();
 }

@@ -37,19 +37,20 @@ This file is part of the VulkanQuickStart Project.
 #define GLM_FORCE_DEPTH_ZERO_TO_ONE
 #include <glm/glm.hpp>
 
-#include <vk_pipelineSceneNode.h>
-#include <vk_pipeline3D.h>
+#include <tm_boundingBox.h>
+#include <vk_vertexTypes.h>
+#include <vk_sceneNode.h>
+#include <vk_uniformBuffers.h>
 
 namespace VK {
 
-	class PipelineSceneNode3D : public Pipeline3D::PipelineSceneNode {
+	class SceneNode3D : public SceneNode<Vertex3_PNCf> {
 	public:
-		using BoundingBox = Pipeline3D::BoundingBox;
-		using UboType = Pipeline3D::UboType;
+		using BoundingBox = CBoundingBox3Df;
 		using XformFuncType = std::function<glm::mat4(const glm::mat4& src)>;
 
-		PipelineSceneNode3D(const VulkanAppPtr& app);
-		virtual ~PipelineSceneNode3D();
+		SceneNode3D(const VulkanAppPtr& app);
+		virtual ~SceneNode3D();
 
 		virtual BoundingBox getBounds() const = 0;
 
@@ -60,29 +61,29 @@ namespace VK {
 		template<typename FUNC_TYPE>
 		void setModelTransformFunc(FUNC_TYPE func);
 
-		void updateUbo(UboType& ubo) const;
+		void updateUbo(UniformBufferObject3D& ubo) const;
 
 	private:
 		glm::mat4 _modelXForm;
 		XformFuncType _modelXFormFunc;
 	};
-	using SceneNode3DPtr = std::shared_ptr<PipelineSceneNode3D>;
-	using SceneNode3DConstPtr = std::shared_ptr<const PipelineSceneNode3D>;
+	using SceneNode3DPtr = std::shared_ptr<SceneNode3D>;
+	using SceneNode3DConstPtr = std::shared_ptr<const SceneNode3D>;
 
-	inline void PipelineSceneNode3D::setModelTransform(const glm::mat4& xform) {
+	inline void SceneNode3D::setModelTransform(const glm::mat4& xform) {
 		_modelXForm = xform;
 	}
 
-	inline const glm::mat4& PipelineSceneNode3D::getModelTransform() const {
+	inline const glm::mat4& SceneNode3D::getModelTransform() const {
 		return _modelXForm;
 	}
 
-	inline glm::mat4& PipelineSceneNode3D::getModelTransform() {
+	inline glm::mat4& SceneNode3D::getModelTransform() {
 		return _modelXForm;
 	}
 
 	template<typename FUNC_TYPE>
-	inline void PipelineSceneNode3D::setModelTransformFunc(FUNC_TYPE func) {
+	inline void SceneNode3D::setModelTransformFunc(FUNC_TYPE func) {
 		_modelXFormFunc = func;
 	}
 

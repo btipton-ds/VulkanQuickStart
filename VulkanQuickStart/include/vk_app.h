@@ -46,7 +46,7 @@ This file is part of the VulkanQuickStart Project.
 #include <vk_forwardDeclarations.h>
 #include "vk_deviceContext.h"
 #include "vk_image.h"
-#include <vk_pipelineSceneNode.h>
+#include <vk_sceneNode.h>
 #include <vk_pipelineSceneNode3D.h>
 #include <vk_pipelineSceneNode3DWSampler.h>
 #include <vk_pipeline3D.h>

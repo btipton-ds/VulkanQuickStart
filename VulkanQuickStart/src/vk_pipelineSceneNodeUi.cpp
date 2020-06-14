@@ -35,12 +35,12 @@ This file is part of the VulkanQuickStart Project.
 using namespace std;
 using namespace VK;
 
-PipelineSceneNodeUi::PipelineSceneNodeUi(const VulkanAppPtr& app)
-	: PipelineUi::PipelineSceneNode(app)
+SceneNodeUi::SceneNodeUi(const VulkanAppPtr& app)
+	: PipelineUi::SceneNode(app)
 {}
 
 #if 0
-void PipelineSceneNodeUi::updateUniformBuffer(size_t swapChainIndex) {
+void SceneNodeUi::updateUniformBuffer(size_t swapChainIndex) {
 	auto pipelineUi = dynamic_pointer_cast<PipelineUi> (_ownerPipeline);
 	auto ubo = pipelineUi->getUniformBuffer();
 	updateUniformBufferTempl(swapChainIndex, ubo);

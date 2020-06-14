@@ -87,7 +87,7 @@ Pipeline3D::BoundingBox Pipeline3D::getBounds() const {
 
 	for (auto& binding : _sceneNodeBindings) {
 		auto sceneNode = binding->getSceneNode();
-		SceneNode3DPtr node3D = dynamic_pointer_cast<PipelineSceneNode3D> (sceneNode);
+		SceneNode3DPtr node3D = dynamic_pointer_cast<SceneNode3D> (sceneNode);
 		BoundingBox modelBb = node3D->getBounds();
 		bb.merge(transform(modelBb, node3D->getModelTransform()));
 	}
@@ -95,7 +95,7 @@ Pipeline3D::BoundingBox Pipeline3D::getBounds() const {
 }
 
 void Pipeline3D::updateSceneNodeUbo(const SceneNodePtr& sceneNode, UniformBufferObject3D& ubo) const {
-	SceneNode3DPtr ptr = dynamic_pointer_cast<PipelineSceneNode3D>(sceneNode);
+	SceneNode3DPtr ptr = dynamic_pointer_cast<SceneNode3D>(sceneNode);
 	ptr->updateUbo(ubo);
 }
 

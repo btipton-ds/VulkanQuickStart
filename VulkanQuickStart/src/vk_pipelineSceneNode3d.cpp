@@ -38,15 +38,15 @@ This file is part of the VulkanQuickStart Project.
 using namespace std;
 using namespace VK;
 
-PipelineSceneNode3D::PipelineSceneNode3D(const VulkanAppPtr& app)
-	: Pipeline3D::PipelineSceneNode(app)
+SceneNode3D::SceneNode3D(const VulkanAppPtr& app)
+	: Pipeline3D::SceneNode(app)
 	, _modelXForm(glm::mat4(1.0f))
 {}
 
-PipelineSceneNode3D::~PipelineSceneNode3D() {
+SceneNode3D::~SceneNode3D() {
 }
 
-void PipelineSceneNode3D::updateUbo(UboType& ubo) const {
+void SceneNode3D::updateUbo(UniformBufferObject3D& ubo) const {
 	if (_modelXFormFunc)
 		ubo.modelView *= _modelXFormFunc(_modelXForm);
 	else

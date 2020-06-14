@@ -44,15 +44,12 @@ This file is part of the VulkanQuickStart Project.
 #include <glm/glm.hpp>
 
 #include <vk_forwardDeclarations.h>
-#include "vk_deviceContext.h"
-#include "vk_buffer.h"
-#include "vk_textureImage.h"
-#include "vk_vertexTypes.h"
-#include <vk_pipelineSceneNode3DWSampler.h>
-#include <vk_pipeline3D.h>
-
 #include <tm_boundingBox.h>
-
+#include <vk_deviceContext.h>
+#include <vk_buffer.h>
+#include <vk_textureImage.h>
+#include <vk_vertexTypes.h>
+#include <vk_pipelineSceneNode3DWSampler.h>
 
 namespace VK {
 
@@ -70,10 +67,9 @@ namespace VK {
 	class ModelObj;
 	using ModelObjPtr = std::shared_ptr<ModelObj>;
 
-	class ModelObj : public PipelineSceneNode3DWSampler {
+	class ModelObj : public SceneNode3DWSampler {
 	public:
 		using BoundingBox = CBoundingBox3D<float>;
-		using VertexType = Pipeline3DWSampler::VertexType;
 
 		/*
 		Tiny obj doesn't handle file names with spaces. It thinks material file names with spaces are multiple files. Remove the spaces.

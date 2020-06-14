@@ -32,7 +32,7 @@ This file is part of the VulkanQuickStart Project.
 #include <vk_defines.h>
 
 #include <vk_pipelineBase.h>
-#include <vk_pipelineSceneNode.h>
+#include <vk_sceneNode.h>
 #include <vk_sceneNodeBinding.h>
 
 namespace VK {
@@ -64,8 +64,8 @@ namespace VK {
 	class Pipeline : public PipelineUbo<UBO_TYPE> {
 	public:
 		using VertexType = VERT_TYPE;
-		using PipelineSceneNode = GCC_CLASS PipelineSceneNode<VERT_TYPE>;
-		using SceneNodePtr = std::shared_ptr<PipelineSceneNode>;
+		using SceneNode = GCC_CLASS SceneNode<VERT_TYPE>;
+		using SceneNodePtr = std::shared_ptr<SceneNode>;
 		using PipelinePtr = std::shared_ptr<Pipeline>;
 		using BindingPtr = SceneNodeToPipelineBindingPtr<VERT_TYPE, UBO_TYPE>;
 

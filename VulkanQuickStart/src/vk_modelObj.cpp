@@ -60,7 +60,7 @@ namespace std {
 
 
 ModelObj::ModelObj(const VulkanAppPtr& app, const std::string& path, const std::string& filename)
-	: PipelineSceneNode3DWSampler(app)
+	: SceneNode3DWSampler(app)
 	, _vertexBuffer(app->getDeviceContext())
 	, _indexBuffer(app->getDeviceContext())
 {

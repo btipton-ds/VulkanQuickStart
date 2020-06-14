@@ -60,7 +60,7 @@ This file is part of the VulkanQuickStart Project.
 #include "vk_vertexTypes.h"
 #include "vk_model.h"
 #include <vk_modelObj.h>
-#include <vk_pipelineSceneNode.h>
+#include <vk_sceneNode.h>
 #include <vk_pipeline3D.h>
 #include <vk_pipeline3DWithSampler.h>
 #include <vk_pipelineUi.h>

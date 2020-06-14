@@ -44,7 +44,7 @@ namespace VK::UI {
 	using namespace std;
 
 	Button::Button(const VulkanAppPtr& app)
-	: PipelineSceneNodeUi(app)
+	: SceneNodeUi(app)
 	, _vertexBuffer(app->getDeviceContext())
 	, _indexBuffer(app->getDeviceContext())
 	{
@@ -52,7 +52,7 @@ namespace VK::UI {
 	}
 
 	Button::Button(const VulkanAppPtr& app, const glm::vec4& backgroundColor, const std::string& label, const Rect& rect, const Accel& accel)
-		: PipelineSceneNodeUi(app)
+		: SceneNodeUi(app)
 		, _vertexBuffer(app->getDeviceContext())
 		, _indexBuffer(app->getDeviceContext())
 		, _backgroundColor(backgroundColor)

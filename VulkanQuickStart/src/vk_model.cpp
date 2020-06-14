@@ -71,7 +71,7 @@ namespace std {
 }
 
 Model::Model(const VulkanAppPtr& app, const TriMesh::CMeshPtr& meshPtr, const glm::vec3& color)
-	: PipelineSceneNode3D(app)
+	: SceneNode3D(app)
 	, _vertexBuffer(app->getDeviceContext())
 	, _indexBuffer(app->getDeviceContext())
 {
@@ -81,7 +81,7 @@ Model::Model(const VulkanAppPtr& app, const TriMesh::CMeshPtr& meshPtr, const gl
 }
 
 Model::Model(const VulkanAppPtr& app)
-	: PipelineSceneNode3D(app)
+	: SceneNode3D(app)
 	, _vertexBuffer(app->getDeviceContext())
 	, _indexBuffer(app->getDeviceContext())
 {

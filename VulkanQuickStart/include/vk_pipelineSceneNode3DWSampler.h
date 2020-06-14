@@ -37,18 +37,19 @@ This file is part of the VulkanQuickStart Project.
 #define GLM_FORCE_DEPTH_ZERO_TO_ONE
 #include <glm/glm.hpp>
 
-#include <vk_pipelineSceneNode.h>
-#include <vk_pipeline3DWithSampler.h>
+#include <vk_vertexTypes.h>
+#include <tm_boundingBox.h>
+#include <vk_sceneNode.h>
+#include <vk_uniformBuffers.h>
 
 namespace VK {
 
-	class PipelineSceneNode3DWSampler : public Pipeline3DWSampler::PipelineSceneNode {
+	class SceneNode3DWSampler : public SceneNode<Vertex3_PNCTf> {
 	public:
-		using BoundingBox = Pipeline3DWSampler::BoundingBox;
-		using UboType = Pipeline3DWSampler::UboType;
+		using BoundingBox = CBoundingBox3Df;
 		using XformFuncType = std::function<glm::mat4(const glm::mat4& src)>;
 
-		PipelineSceneNode3DWSampler(const VulkanAppPtr& app);
+		SceneNode3DWSampler(const VulkanAppPtr& app);
 
 		virtual BoundingBox getBounds() const = 0;
 
@@ -59,31 +60,31 @@ namespace VK {
 		template<typename FUNC_TYPE>
 		void setModelTransformFunc(FUNC_TYPE func);
 
-		void updateUbo(UboType& ubo) const;
+		void updateUbo(UniformBufferObject3D& ubo) const;
 
 	private:
 		glm::mat4 _modelXForm;
 		XformFuncType _modelXFormFunc;
 	};
 
-	using PipelineSceneNode3DWSamplerPtr = std::shared_ptr<PipelineSceneNode3DWSampler>;
+	using SceneNode3DWSamplerPtr = std::shared_ptr<SceneNode3DWSampler>;
 
-	using SceneNode3DWithTexturePtr = std::shared_ptr<PipelineSceneNode3DWSampler>;
+	using SceneNode3DWithTexturePtr = std::shared_ptr<SceneNode3DWSampler>;
 
-	inline void PipelineSceneNode3DWSampler::setModelTransform(const glm::mat4& xform) {
+	inline void SceneNode3DWSampler::setModelTransform(const glm::mat4& xform) {
 		_modelXForm = xform;
 	}
 
-	inline const glm::mat4& PipelineSceneNode3DWSampler::getModelTransform() const {
+	inline const glm::mat4& SceneNode3DWSampler::getModelTransform() const {
 		return _modelXForm;
 	}
 
-	inline glm::mat4& PipelineSceneNode3DWSampler::getModelTransform() {
+	inline glm::mat4& SceneNode3DWSampler::getModelTransform() {
 		return _modelXForm;
 	}
 
 	template<typename FUNC_TYPE>
-	inline void PipelineSceneNode3DWSampler::setModelTransformFunc(FUNC_TYPE func) {
+	inline void SceneNode3DWSampler::setModelTransformFunc(FUNC_TYPE func) {
 		_modelXFormFunc = func;
 	}
 }

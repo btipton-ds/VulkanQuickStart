@@ -31,57 +31,20 @@ This file is part of the VulkanQuickStart Project.
 
 #include <vk_defines.h>
 
-#include <memory>
-#include <vector>
-
-#define GLM_FORCE_RADIANS
-#define GLM_FORCE_DEPTH_ZERO_TO_ONE
-#include <glm/glm.hpp>
-
-#include <tm_boundingBox.h>
-#include <vulkan/vulkan_core.h>
-
-#include <vk_forwardDeclarations.h>
-#include <vk_buffer.h>
-#include <vk_textureImage.h>
+#include <vk_sceneNodeBase.h>
 
 namespace VK {
 
-	class PipelineSceneNodeBase {
+	template<class VERT_TYPE>
+	class SceneNode : public SceneNodeBase {
 	public:
-		PipelineSceneNodeBase(const VulkanAppPtr& app);
-		virtual ~PipelineSceneNodeBase();
+		using VertexType = VERT_TYPE;
 
-		void toggleVisibility();
-		void setVisibility(bool visible);
-		bool isVisible() const;
-		bool isReady() const;
-		void setReady(bool ready);
+		inline SceneNode(const VulkanAppPtr& app)
+			: SceneNodeBase(app)
+		{}
 
-		virtual void addCommands(VkCommandBuffer cmdBuff) const = 0;
-		virtual void buildImageInfoList(std::vector<VkDescriptorImageInfo>& imageInfoList) const = 0;
-
-		const VulkanAppPtr& getApp() const;
-
-	protected:
-		bool _ready = false;
-		bool _visible = true;
-		VulkanAppPtr _app;
 	};
 
-	inline bool PipelineSceneNodeBase::isVisible() const {
-		return _visible;
-	}
 
-	inline bool PipelineSceneNodeBase::isReady() const {
-		return _ready;
-	}
-
-	inline void PipelineSceneNodeBase::setReady(bool ready) {
-		_ready = ready;
-	}
-
-	inline const VulkanAppPtr& PipelineSceneNodeBase::getApp() const {
-		return _app;
-	}
 }

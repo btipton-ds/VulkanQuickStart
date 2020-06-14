@@ -32,20 +32,19 @@ This file is part of the VulkanQuickStart Project.
 #include <vk_defines.h>
 
 #include <vk_forwardDeclarations.h>
-#include <vk_pipelineSceneNode.h>
+#include <vk_sceneNode.h>
+#include <vk_vertexTypes.h>
 #include <vk_pipelineUi.h>
 
 namespace VK {
 
-	class PipelineSceneNodeUi : public PipelineUi::PipelineSceneNode {
+	class SceneNodeUi : public SceneNode<VertexUi> {
 	public:
-		using UboType = PipelineUi::UboType;
-
-		PipelineSceneNodeUi(const VulkanAppPtr& app);
+		SceneNodeUi(const VulkanAppPtr& app);
 
 		void addCommandsIdx(VkCommandBuffer cmdBuff, VkPipelineLayout pipelineLayout, size_t swapChainIdx);
 
 	};
 
-	using SceneNodeUiPtr = std::shared_ptr<PipelineSceneNodeUi>;
+	using SceneNodeUiPtr = std::shared_ptr<SceneNodeUi>;
 }

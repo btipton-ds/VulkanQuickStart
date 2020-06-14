@@ -49,16 +49,14 @@ This file is part of the VulkanQuickStart Project.
 #include "vk_textureImage.h"
 #include "vk_vertexTypes.h"
 #include <vk_pipelineSceneNode3D.h>
-#include <vk_pipeline3D.h>
 
 #include <tm_boundingBox.h>
 
 namespace VK {
 
-	class Model : public PipelineSceneNode3D {
+	class Model : public SceneNode3D {
 	public:
 		using BoundingBox = CBoundingBox3D<float>;
-		using VertexType = Pipeline3D::VertexType;
 
 		static inline ModelPtr create(const VulkanAppPtr& app, const TriMesh::CMeshPtr& meshPtr, const glm::vec3& color = glm::vec3(1, 1, 1)) {
 			return std::shared_ptr<Model>(new Model(app, meshPtr, color));

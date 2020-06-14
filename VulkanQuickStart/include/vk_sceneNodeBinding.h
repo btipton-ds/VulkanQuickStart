@@ -46,7 +46,7 @@ namespace VK {
 	public:
 		using UboType = UBO_TYPE;
 		using PipelineType = Pipeline<VERT_TYPE, UboType>;
-		using SceneNodeType = PipelineSceneNode<VERT_TYPE>;
+		using SceneNodeType = SceneNode<VERT_TYPE>;
 		using SceneNodeTypePtr = std::shared_ptr<SceneNodeType>;
 
 		SceneNodeToPipelineBinding(PipelineType* pipeline, const SceneNodeTypePtr& sceneNode);

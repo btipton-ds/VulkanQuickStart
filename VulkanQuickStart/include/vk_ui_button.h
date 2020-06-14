@@ -60,7 +60,7 @@ namespace VK {
 			int _modifers = 0;
 		};
 
-		class Button : public PipelineSceneNodeUi {
+		class Button : public SceneNodeUi {
 		public:
 			using VertexType = PipelineUi::VertexType;
 			enum ActionType {

@@ -47,6 +47,8 @@ This file is part of the VulkanQuickStart Project.
 #include <vk_ui_button.h>
 #include <vk_ui_window.h>
 #include <vk_pipelineGroup.h>
+#include <vk_pipeline3DWithSampler.h>
+#include <vk_pipeline3D.h>
 
 #include <triMesh.h>
 #include <readStl.h>

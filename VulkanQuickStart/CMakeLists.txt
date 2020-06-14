@@ -72,7 +72,7 @@ VulkanQuickStartLib
 "src/vk_pipelineBase.cpp"
 "src/vk_pipeline3D.cpp"
 "src/vk_pipelineUi.cpp"
-"src/vk_pipelineSceneNodeBase.cpp"
+"src/vk_sceneNodeBase.cpp"
 "src/vk_pipelineSceneNode3d.cpp"
 "src/vk_shaderPool.cpp"
 "src/vk_textureImage.cpp"
