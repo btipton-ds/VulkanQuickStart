@@ -44,9 +44,3 @@ SceneNodePNCT3f::SceneNodePNCT3f(const VulkanAppPtr& app)
 	, _modelXForm(glm::mat4(1.0f))
 {}
 
-void SceneNodePNCT3f::updateUbo(UniformBufferObject3D& ubo) const {
-	if (_modelXFormFunc)
-		ubo.modelView *= _modelXFormFunc(_modelXForm);
-	else
-		ubo.modelView *= _modelXForm;
-}

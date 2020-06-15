@@ -61,7 +61,13 @@ namespace VK {
 		template<typename FUNC_TYPE>
 		void setModelTransformFunc(FUNC_TYPE func);
 
-		void updateUbo(UniformBufferObject3D& ubo) const;
+		template<class UBO_TYPE>
+		inline void updateUbo(UBO_TYPE& ubo) const {
+			if (_modelXFormFunc)
+				ubo.modelView *= _modelXFormFunc(_modelXForm);
+			else
+				ubo.modelView *= _modelXForm;
+		}
 
 	private:
 		glm::mat4 _modelXForm;

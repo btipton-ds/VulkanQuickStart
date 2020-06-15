@@ -45,10 +45,3 @@ SceneNodePNC3f::SceneNodePNC3f(const VulkanAppPtr& app)
 
 SceneNodePNC3f::~SceneNodePNC3f() {
 }
-
-void SceneNodePNC3f::updateUbo(UniformBufferObject3D& ubo) const {
-	if (_modelXFormFunc)
-		ubo.modelView *= _modelXFormFunc(_modelXForm);
-	else
-		ubo.modelView *= _modelXForm;
-}
