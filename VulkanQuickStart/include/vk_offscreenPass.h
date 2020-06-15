@@ -35,89 +35,128 @@ This file is part of the VulkanQuickStart Project.
 
 #include <vk_forwardDeclarations.h>
 
-#include <vulkan/vulkan_core.h>
-#include <vk_pipelineUboGroup.h>
-#include <vk_uniformBuffers.h>
+#include <vk_offscreenPassBase.h>
 
 namespace VK {
 
-	class OffscreenPass {
+	template<class UBO_TYPE>
+	class OffscreenPass : public OffscreenPassBase {
 	public:
-		using UboType = UniformBufferObject3D;
-		using PipelineGroupType = PipelineUboGroup<UboType>;
-		using PipelineGroupTypePtr = PipelineUboGroupPtr<UboType>;
-		using PipelinePtr = PipelineGroupType::PipelinePtr;
-		using UpdateUboFunctionType = UpdateUboFunctionType<UboType>;
+		using UboType = UBO_TYPE;
+		using PipelineGroupType = PipelineUboGroup<UBO_TYPE>;
+		using PipelineGroupTypePtr = PipelineUboGroupPtr<UBO_TYPE>;
+		using PipelinePtr = typename PipelineGroupType::PipelinePtr;
+		using UpdateUboFunctionType = UpdateUboFunctionType<UBO_TYPE>;
+		using PointerType = std::shared_ptr<OffscreenPass>;
 
 		OffscreenPass(const VulkanAppPtr& app, VkFormat colorFormat);
 		~OffscreenPass();
 
-		void init(const VkExtent2D& extent);
-		void cleanup();
-
-		const ImagePtr& getColorImage() const;
-		VkRenderPass getRenderPass() const;
-		VkFramebuffer getFrameBuffer() const;
-		const VkRect2D& getRect() const;
-
-		const PipelineGroupTypePtr& getPipelines() const;
+		VkRenderPass getRenderPass() const override;
 
 		template<typename FUNC_TYPE>
-		inline void setUboUpdateFunction(FUNC_TYPE f) {
-			_updateUbo = f;
-		}
+		void setUboUpdateFunction(FUNC_TYPE f);
+		bool updateUbo() override;
 
-		inline bool updateUbo() {
-			if (_updateUbo) {
-				setUbo(_updateUbo(_rect.extent.width, _rect.extent.height));
-				return true;
-			}
-			return false;
-		}
-
-		void setUbo(const UboType& ubo);
+		void setUbo(const UBO_TYPE& ubo);
 		void setAntiAliasSamples(VkSampleCountFlagBits samples);
 
+		void cleanupSwapChain() override;
+		void build() override;
+
+		void draw(VkCommandBuffer cmdBuff) override;
 		template<class PIPELINE_TYPE>
-		VK::PipelinePtr<PIPELINE_TYPE> addPipelineWithSource(const std::string& shaderId, const std::vector<std::string>& filenames) {
-			VK::PipelinePtr<PIPELINE_TYPE> pipeline = _pipelines->addPipelineWithSource<PIPELINE_TYPE>(shaderId, _rect, filenames);
-			return pipeline;
-		}
+		VK::PipelinePtr<PIPELINE_TYPE> addPipelineWithSource(const std::string& shaderId, const std::vector<std::string>& filenames);
+
+	protected:
+		VkSampleCountFlagBits getAntiAliasSamples() const override;
+		inline void setRenderPass(VkRenderPass renderPass) override;
 
 	private:
-		VkRect2D _rect = { { 0, 0 }, {0, 0 } };
-		VkFramebuffer _frameBuffer = VK_NULL_HANDLE;
-		ImagePtr _color = VK_NULL_HANDLE, _depth = VK_NULL_HANDLE;
-		VkSampler _sampler = VK_NULL_HANDLE;
-		VkDescriptorImageInfo _descriptor{};
-		DeviceContextPtr _deviceContext;
-		VkFormat _colorFormat, _depthFormat;
 		UpdateUboFunctionType _updateUbo;
-
 		PipelineGroupTypePtr _pipelines;
 	};
 
-	inline const ImagePtr& OffscreenPass::getColorImage() const {
-		return _color;
+	using OffscreenPass3D = OffscreenPass<UniformBufferObject3D>;
+	using OffscreenPass3DPtr = typename OffscreenPass3D::PointerType;
+
+	template<class UBO_TYPE>
+	inline OffscreenPass<UBO_TYPE>::OffscreenPass(const VulkanAppPtr& app, VkFormat colorFormat)
+		: OffscreenPassBase(app, colorFormat)
+	{
+		_pipelines = make_shared<PipelineGroupType>(app, 1);
 	}
 
-	inline VkRenderPass OffscreenPass::getRenderPass() const {
+	template<class UBO_TYPE>
+	inline OffscreenPass<UBO_TYPE>::~OffscreenPass() {
+	}
+
+	template<class UBO_TYPE>
+	template<typename FUNC_TYPE>
+	inline void OffscreenPass<UBO_TYPE>::setUboUpdateFunction(FUNC_TYPE f) {
+		_updateUbo = f;
+	}
+
+	template<class UBO_TYPE>
+	inline bool OffscreenPass<UBO_TYPE>::updateUbo() {
+		if (_updateUbo) {
+			setUbo(_updateUbo(_rect.extent.width, _rect.extent.height));
+			return true;
+		}
+		return false;
+	}
+
+	template<class UBO_TYPE>
+	inline void OffscreenPass<UBO_TYPE>::setAntiAliasSamples(VkSampleCountFlagBits samples) {
+		_pipelines->setAntiAliasSamples(samples);
+	}
+
+	template<class UBO_TYPE>
+	inline void OffscreenPass<UBO_TYPE>::cleanupSwapChain() {
+		_pipelines->iterate([](const OffscreenPass::PipelinePtr& pl) {
+			pl->cleanupSwapChain();
+		});
+	}
+
+	template<class UBO_TYPE>
+	inline void OffscreenPass<UBO_TYPE>::build() {
+		_pipelines->iterate([](const OffscreenPass::PipelinePtr& pl) {
+			if (pl->isVisible())
+				pl->build();
+		});
+	}
+	template<class UBO_TYPE>
+	void OffscreenPass<UBO_TYPE>::draw(VkCommandBuffer cmdBuff) {
+		_pipelines->iterate([cmdBuff](const OffscreenPass::PipelinePtr& pl) {
+			if (pl->isVisible())
+				pl->draw(cmdBuff, 0);
+		});
+	}
+
+	template<class UBO_TYPE>
+	template<class PIPELINE_TYPE>
+	VK::PipelinePtr<PIPELINE_TYPE> OffscreenPass<UBO_TYPE>::addPipelineWithSource(const std::string& shaderId, const std::vector<std::string>& filenames) {
+		VK::PipelinePtr<PIPELINE_TYPE> pipeline = _pipelines->addPipelineWithSource<PIPELINE_TYPE>(shaderId, _rect, filenames);
+		return pipeline;
+	}
+
+	template<class UBO_TYPE>
+	inline void OffscreenPass<UBO_TYPE>::setUbo(const UBO_TYPE& ubo) {
+		_pipelines->setUbo(ubo, 0);
+	}
+
+	template<class UBO_TYPE>
+	inline VkRenderPass OffscreenPass<UBO_TYPE>::getRenderPass() const {
 		return _pipelines->getRenderPass();
 	}
 
-	inline VkFramebuffer OffscreenPass::getFrameBuffer() const {
-		return _frameBuffer;
+	template<class UBO_TYPE>
+	VkSampleCountFlagBits OffscreenPass<UBO_TYPE>::getAntiAliasSamples() const {
+		return _pipelines->getAntiAliasSamples();
 	}
 
-	inline const VkRect2D& OffscreenPass::getRect() const {
-		return _rect;
-	}
-
-	inline const typename OffscreenPass::PipelineGroupTypePtr& OffscreenPass::getPipelines() const {
-		return _pipelines;
-	}
-
-	inline void OffscreenPass::setAntiAliasSamples(VkSampleCountFlagBits samples) {
-		_pipelines->setAntiAliasSamples(samples);
+	template<class UBO_TYPE>
+	inline void OffscreenPass<UBO_TYPE>::setRenderPass(VkRenderPass renderPass) {
+		_pipelines->setRenderPass(renderPass);
 	}
 }

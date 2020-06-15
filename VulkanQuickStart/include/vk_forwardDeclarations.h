@@ -59,8 +59,8 @@ namespace VK {
 	class VulkanApp;
 	using VulkanAppPtr = std::shared_ptr<class VulkanApp>;
 
-	class OffscreenPass;
-	using OffscreenPassPtr = std::shared_ptr<class OffscreenPass>;
+	class OffscreenPassBase;
+	using OffscreenPassBasePtr = std::shared_ptr<class OffscreenPassBase>;
 
 	class ShaderPool;
 	using ShaderPoolPtr = std::shared_ptr<ShaderPool>;
@@ -98,8 +98,8 @@ namespace VK {
 	using SceneNodeBasePtr = std::shared_ptr<SceneNodeBase>;
 
 
-	class Model;
-	using ModePNC3flPtr = std::shared_ptr<Model>;
+	class ModelPNC3f;
+	using ModelPNC3fPtr = std::shared_ptr<ModelPNC3f>;
 
 	namespace UI {
 		class Window;

@@ -49,7 +49,7 @@ using namespace VK;
 
 namespace std {
 	struct compareFunc {
-		inline bool operator()(Model::VertexType const& lhs, Model::VertexType const& rhs) const {
+		inline bool operator()(ModelPNC3f::VertexType const& lhs, ModelPNC3f::VertexType const& rhs) const {
 			for (int i = 0; i < 3; i++) {
 				if (lhs.pos[i] < rhs.pos[i])
 					return true;
@@ -69,7 +69,7 @@ namespace std {
 	}
 }
 
-Model::Model(const VulkanAppPtr& app, const TriMesh::CMeshPtr& meshPtr, const glm::vec3& color)
+ModelPNC3f::ModelPNC3f(const VulkanAppPtr& app, const TriMesh::CMeshPtr& meshPtr, const glm::vec3& color)
 	: SceneNodePNC3f(app)
 	, _vertexBuffer(app->getDeviceContext())
 	, _indexBuffer(app->getDeviceContext())
@@ -79,14 +79,14 @@ Model::Model(const VulkanAppPtr& app, const TriMesh::CMeshPtr& meshPtr, const gl
 	createIndexBuffer();
 }
 
-Model::Model(const VulkanAppPtr& app)
+ModelPNC3f::ModelPNC3f(const VulkanAppPtr& app)
 	: SceneNodePNC3f(app)
 	, _vertexBuffer(app->getDeviceContext())
 	, _indexBuffer(app->getDeviceContext())
 {
 }
 
-void Model::addCommands(VkCommandBuffer cmdBuff) const {
+void ModelPNC3f::addCommands(VkCommandBuffer cmdBuff) const {
 	VkBuffer vertexBuffers[] = { getVertexBuffer() };
 	VkDeviceSize offsets[] = { 0 };
 	vkCmdBindVertexBuffers(cmdBuff, 0, 1, vertexBuffers, offsets);
@@ -98,10 +98,10 @@ void Model::addCommands(VkCommandBuffer cmdBuff) const {
 	vkCmdDrawIndexed(cmdBuff, numIndices(), 1, 0, 0, 0);
 }
 
-void Model::buildImageInfoList(std::vector<VkDescriptorImageInfo>& imageInfoList) const {
+void ModelPNC3f::buildImageInfoList(std::vector<VkDescriptorImageInfo>& imageInfoList) const {
 }
 
-Model::BoundingBox Model::getBounds() const {
+ModelPNC3f::BoundingBox ModelPNC3f::getBounds() const {
 	return _bounds;
 }
 
@@ -111,7 +111,7 @@ namespace {
 	}
 }
 
-void Model::loadModel(const TriMesh::CMeshPtr& meshPtr, const glm::vec3& color) {
+void ModelPNC3f::loadModel(const TriMesh::CMeshPtr& meshPtr, const glm::vec3& color) {
 	const float matchAngle = 30.0; // Degrees. Set angle > 90 for flat shading.
 	const float matchCos = cosf(static_cast<float> (matchAngle * EIGEN_PI / 180.0));
 	_bounds.clear();
@@ -179,11 +179,11 @@ void Model::loadModel(const TriMesh::CMeshPtr& meshPtr, const glm::vec3& color) 
 	}
 }
 
-void Model::createVertexBuffer() {
+void ModelPNC3f::createVertexBuffer() {
 	_vertexBuffer.create(_vertices, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
 }
 
-void Model::createIndexBuffer() {
+void ModelPNC3f::createIndexBuffer() {
 	_indexBuffer.create(_indices, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
 }
 

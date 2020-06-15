@@ -94,10 +94,10 @@ PipelineGroup<PipelinePNC3fPtr> pipeline3DWireframe;
 PipelineGroup<PipelinePNCT3fPtr> pipeline3DWSampler;
 
 VulkanAppPtr gApp;
-OffscreenPassPtr offscreen;
+OffscreenPass3DPtr offscreen;
 size_t offscreenIdx = stm1;
 
-ModePNC3flPtr vase, part;
+ModelPNC3fPtr vase, part;
 
 
 #if TEST_GUI
@@ -219,14 +219,14 @@ void addObj() {
 #endif
 }
 
-int readStl(const string& filename, ModePNC3flPtr& model) {
+int readStl(const string& filename, ModelPNC3fPtr& model) {
 	TriMesh::CMeshPtr meshPtr = std::make_shared<TriMesh::CMesh>();
 	CReadSTL readStl(meshPtr);
 	if (!readStl.read(modelPath, filename))
 		return 1;
 
 
-	model = Model::create(gApp, meshPtr);
+	model = ModelPNC3f::create(gApp, meshPtr);
 	pipeline3DShaded.addSceneNode(model);
 
 	return 0;
@@ -331,7 +331,7 @@ int main(int numArgs, char** args) {
 	gApp->setAntiAliasSamples(VK_SAMPLE_COUNT_4_BIT);
 
 	VkExtent2D offscreenExtent = { 2048, 2048 };
-	offscreen = make_shared<OffscreenPass>(gApp, VK_FORMAT_R8G8B8A8_UNORM);
+	offscreen = make_shared<OffscreenPass3D>(gApp, VK_FORMAT_R8G8B8A8_UNORM);
 	offscreen->setAntiAliasSamples(VK_SAMPLE_COUNT_1_BIT);
 	offscreen->init(offscreenExtent);
 	offscreenIdx = gApp->addOffscreen(offscreen);

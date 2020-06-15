@@ -31,7 +31,7 @@ This file is part of the VulkanQuickStart Project.
 
 #include <array>
 
-#include <vk_offscreenPass.h>
+#include <vk_offscreenPassBase.h>
 
 #include <vk_deviceContext.h>
 #include <vk_image.h>
@@ -41,24 +41,23 @@ This file is part of the VulkanQuickStart Project.
 using namespace std;
 using namespace VK;
 
-OffscreenPass::OffscreenPass(const VulkanAppPtr& app, VkFormat colorFormat)
+OffscreenPassBase::OffscreenPassBase(const VulkanAppPtr& app, VkFormat colorFormat)
 	: _deviceContext(app->getDeviceContext())
 	, _colorFormat(colorFormat)
 	, _depthFormat(app->findDepthFormat())
 {
-	_pipelines = make_shared<PipelineGroupType>(app, 1);
 }
 
-OffscreenPass::~OffscreenPass() {
+OffscreenPassBase::~OffscreenPassBase() {
 	cleanup();
 }
 
-void OffscreenPass::init(const VkExtent2D& extent) {
+void OffscreenPassBase::init(const VkExtent2D& extent) {
 
 	_rect = { {0, 0}, extent };
 	auto device = _deviceContext->_device;
 
-	VkSampleCountFlagBits antiAliasSampleBits = _pipelines->getAntiAliasSamples();
+	VkSampleCountFlagBits antiAliasSampleBits = getAntiAliasSamples();
 
 	// Find a suitable _depth format
 	VkFormat fbColorFormat = _colorFormat; // VK_FORMAT_R8G8B8A8_UNORM; // VK_FORMAT_R32G32B32A32_SFLOAT
@@ -151,7 +150,7 @@ void OffscreenPass::init(const VkExtent2D& extent) {
 
 	VkRenderPass renderPass;
 	VK_CHECK_RESULT(vkCreateRenderPass(device, &renderPassInfo, nullptr, &renderPass));
-	_pipelines->setRenderPass(renderPass);
+	setRenderPass(renderPass);
 
 	VkImageView attachments[2];
 	attachments[0] = _color->getImageView();
@@ -174,7 +173,7 @@ void OffscreenPass::init(const VkExtent2D& extent) {
 	_descriptor.sampler = _sampler;
 }
 
-void OffscreenPass::cleanup() {
+void OffscreenPassBase::cleanup() {
 	auto device = _deviceContext->_device;
 
 	if (_sampler)
@@ -185,8 +184,3 @@ void OffscreenPass::cleanup() {
 	_sampler = VK_NULL_HANDLE;
 	_frameBuffer = VK_NULL_HANDLE;
 }
-
-void OffscreenPass::setUbo(const UboType& ubo) {
-	_pipelines->setUbo(ubo, 0);
-}
-

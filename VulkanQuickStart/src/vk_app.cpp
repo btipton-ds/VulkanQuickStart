@@ -284,9 +284,7 @@ void VulkanApp::cleanupSwapChain() {
 	});
 
 	for (const auto& osp : _offscreenPasses) {
-		osp->getPipelines()->iterate([](const OffscreenPass::PipelinePtr& pl) {
-			pl->cleanupSwapChain();
-		});
+		osp->cleanupSwapChain();
 	}
 
 	if (_uiWindow)
@@ -301,7 +299,7 @@ void VulkanApp::cleanupSwapChain() {
 	vkDestroySwapchainKHR(_deviceContext->_device, _swapChain._vkSwapChain, nullptr);
 }
 
-size_t VulkanApp::addOffscreen(const OffscreenPassPtr& osp) {
+size_t VulkanApp::addOffscreen(const OffscreenPassBasePtr& osp) {
 	size_t result = _offscreenPasses.size();
 	_offscreenPasses.push_back(osp);
 	changed();
@@ -616,10 +614,7 @@ void VulkanApp::createGraphicsPipeline() {
 	});
 
 	for (const auto& osp : _offscreenPasses) {
-		osp->getPipelines()->iterate([](const OffscreenPass::PipelinePtr& pl) {
-			if (pl->isVisible())
-				pl->build();
-		});
+		osp->build();
 	}
 
 	if (_uiWindow)
@@ -793,7 +788,7 @@ void VulkanApp::createCommandBuffers() {
 		renderPassInfo.clearValueCount = static_cast<uint32_t>(clearValues.size());
 		renderPassInfo.pClearValues = clearValues.data();
 
-		for (const OffscreenPassPtr& osp : _offscreenPasses) {
+		for (const OffscreenPassBasePtr& osp : _offscreenPasses) {
 			drawCmdBufferLoop(osp, cmdBuff, beginInfo, renderPassInfo);
 		}
 
@@ -828,17 +823,14 @@ void VulkanApp::drawCmdBufferLoop(VkCommandBuffer cmdBuff, size_t swapChainIndex
 	vkCmdEndRenderPass(cmdBuff);
 }
 
-void VulkanApp::drawCmdBufferLoop(const OffscreenPassPtr& osp, VkCommandBuffer cmdBuff, VkCommandBufferBeginInfo& beginInfo, VkRenderPassBeginInfo renderPassInfo) {
+void VulkanApp::drawCmdBufferLoop(const OffscreenPassBasePtr& osp, VkCommandBuffer cmdBuff, VkCommandBufferBeginInfo& beginInfo, VkRenderPassBeginInfo renderPassInfo) {
 	renderPassInfo.renderPass = osp->getRenderPass();
 	renderPassInfo.framebuffer = osp->getFrameBuffer();
 	renderPassInfo.renderArea.extent = osp->getRect().extent;
 
 	vkCmdBeginRenderPass(cmdBuff, &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
 
-	osp->getPipelines()->iterate([&](const OffscreenPass::PipelinePtr& pipeline) {
-		if (pipeline->isVisible())
-			pipeline->draw(cmdBuff, 0);
-	});
+	osp->draw(cmdBuff);
 
 	vkCmdEndRenderPass(cmdBuff);
 }
@@ -924,7 +916,7 @@ void VulkanApp::updateUniformBuffer(uint32_t swapChainImageIndex) {
 			modelBounds.merge(ptr3DWTex->getBounds());
 	});
 
-	OffscreenPass::UboType ubo;
+	UniformBufferObject3D ubo;
 	if (_uboUpdater) {
 		ubo = _uboUpdater(_swapChain._extent.width, _swapChain._extent.height);
 	} else {
@@ -936,7 +928,7 @@ void VulkanApp::updateUniformBuffer(uint32_t swapChainImageIndex) {
 		_uiWindow->updateUniformBuffer(swapChainImageIndex);
 	}
 
-	for (const OffscreenPassPtr& osp : _offscreenPasses) {
+	for (const OffscreenPassBasePtr& osp : _offscreenPasses) {
 		if (!osp->updateUbo()) {
 			const auto& rect = osp->getRect();
 			if (_uboUpdater) {
@@ -945,7 +937,9 @@ void VulkanApp::updateUniformBuffer(uint32_t swapChainImageIndex) {
 			else {
 				updateUBO(rect.extent, modelBounds, ubo);
 			}
-			osp->setUbo(ubo);
+			OffscreenPass3D::PointerType ospSpecific = dynamic_pointer_cast<OffscreenPass3D>(osp);
+			if (ospSpecific)
+				ospSpecific->setUbo(ubo);
 		}
 	}
 }

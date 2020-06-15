@@ -89,7 +89,7 @@ namespace VK {
 		void setUiWindow(const UI::WindowPtr& uiWindow );
 
 		VkFormat findDepthFormat();
-		size_t addOffscreen(const OffscreenPassPtr& osp);
+		size_t addOffscreen(const OffscreenPassBasePtr& osp);
 
 		void changed();
 		size_t getRuntimeMillis() const;
@@ -169,7 +169,7 @@ namespace VK {
 		uint32_t findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties);
 		void createCommandBuffers();
 		void drawCmdBufferLoop(VkCommandBuffer cmdBuff, size_t swapChainIndex, VkCommandBufferBeginInfo& beginInfo, VkRenderPassBeginInfo renderPassInfo);
-		void drawCmdBufferLoop(const OffscreenPassPtr& osp, VkCommandBuffer cmdBuff, VkCommandBufferBeginInfo& beginInfo, VkRenderPassBeginInfo renderPassInfo);
+		void drawCmdBufferLoop(const OffscreenPassBasePtr& osp, VkCommandBuffer cmdBuff, VkCommandBufferBeginInfo& beginInfo, VkRenderPassBeginInfo renderPassInfo);
 		void createSyncObjects();
 		void updateUniformBuffer(uint32_t swapChainImageIndex);
 		void updateUBO(const VkExtent2D& extent, const BoundingBox& modelBounds, UboType& ubo) const;
@@ -214,7 +214,7 @@ namespace VK {
 		SwapChain _swapChain;
 
 		double _targetFrameDurationMillis = -1;
-		std::vector<OffscreenPassPtr> _offscreenPasses;
+		std::vector<OffscreenPassBasePtr> _offscreenPasses;
 		PipelineGroupTypePtr _pipelines;
 
 		std::vector<VkCommandBuffer> _commandBuffers;

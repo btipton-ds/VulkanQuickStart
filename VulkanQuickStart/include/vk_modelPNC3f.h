@@ -54,12 +54,12 @@ This file is part of the VulkanQuickStart Project.
 
 namespace VK {
 
-	class Model : public SceneNodePNC3f {
+	class ModelPNC3f : public SceneNodePNC3f {
 	public:
 		using BoundingBox = CBoundingBox3D<float>;
 
-		static inline ModePNC3flPtr create(const VulkanAppPtr& app, const TriMesh::CMeshPtr& meshPtr, const glm::vec3& color = glm::vec3(1, 1, 1)) {
-			return std::shared_ptr<Model>(new Model(app, meshPtr, color));
+		static inline ModelPNC3fPtr create(const VulkanAppPtr& app, const TriMesh::CMeshPtr& meshPtr, const glm::vec3& color = glm::vec3(1, 1, 1)) {
+			return std::shared_ptr<ModelPNC3f>(new ModelPNC3f(app, meshPtr, color));
 		}
 
 		void addCommands(VkCommandBuffer cmdBuff) const override;
@@ -87,8 +87,8 @@ namespace VK {
 		}
 
 	protected:
-		Model(const VulkanAppPtr& app);
-		Model(const VulkanAppPtr& app, const TriMesh::CMeshPtr& meshPtr, const glm::vec3& color);
+		ModelPNC3f(const VulkanAppPtr& app);
+		ModelPNC3f(const VulkanAppPtr& app, const TriMesh::CMeshPtr& meshPtr, const glm::vec3& color);
 
 		void loadModel(const TriMesh::CMeshPtr& meshPtr, const glm::vec3& color);
 
