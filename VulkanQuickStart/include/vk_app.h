@@ -77,6 +77,9 @@ namespace VK {
 		using UpdaterPtr = std::shared_ptr<Updater>;
 
 		static VulkanAppPtr create(const VkRect2D& rect);
+
+		void setClearColor(float red, float green, float blue, float alpha = 1.0f);
+
 	protected:
 		VulkanApp(const VkRect2D& rect);
 		void init();
@@ -207,6 +210,9 @@ namespace VK {
 		VkDebugUtilsMessengerEXT debugMessenger;
 
 		DeviceContextPtr _deviceContext;
+
+		VkClearColorValue _clearColor = { 0, 0, 0, 1 };
+		VkClearDepthStencilValue _depthStencil = { 1, 0 };
 		VkSampleCountFlagBits _maxMsaaSamples = VK_SAMPLE_COUNT_1_BIT;
 		VkSampleCountFlagBits _msaaSamples = VK_SAMPLE_COUNT_1_BIT;
 
@@ -221,6 +227,10 @@ namespace VK {
 
 		bool _framebufferResized = false;
 	};
+
+	inline void VulkanApp::setClearColor(float red, float green, float blue, float alpha) {
+		_clearColor = {red, green, blue, alpha};
+	}
 
 	inline VulkanAppPtr VulkanApp::getAppPtr() {
 		return shared_from_this();

@@ -329,10 +329,12 @@ int main(int numArgs, char** args) {
 	gApp = VulkanApp::create(frame);
 
 	gApp->setAntiAliasSamples(VK_SAMPLE_COUNT_4_BIT);
+	gApp->setClearColor(0.0f, 0.0f, 0.2f);
 
 	VkExtent2D offscreenExtent = { 2048, 2048 };
 	offscreen = make_shared<OffscreenPass3D>(gApp, VK_FORMAT_R8G8B8A8_UNORM);
 	offscreen->setAntiAliasSamples(VK_SAMPLE_COUNT_1_BIT);
+	offscreen->setClearColor(0.0f, 0.3f, 0.0f);
 	offscreen->init(offscreenExtent);
 	offscreenIdx = gApp->addOffscreen(offscreen);
 

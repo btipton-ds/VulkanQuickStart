@@ -53,6 +53,12 @@ namespace VK {
 		VkFramebuffer getFrameBuffer() const;
 		const VkRect2D& getRect() const;
 
+		const VkClearColorValue& getClearColor() const;
+		void setClearColor(float red, float green, float blue, float alpha = 1.0f);
+
+		const VkClearDepthStencilValue& getDepthStencil() const;
+		void setDepthStencil(const VkClearDepthStencilValue&);
+
 		virtual VkRenderPass getRenderPass() const = 0;
 		virtual bool updateUbo() = 0;
 		virtual void cleanupSwapChain() = 0;
@@ -64,6 +70,8 @@ namespace VK {
 		virtual void setRenderPass(VkRenderPass renderPass) = 0;
 
 		VkRect2D _rect = { { 0, 0 }, {0, 0 } };
+		VkClearColorValue _clearColor = { 0, 0, 0, 1 };
+		VkClearDepthStencilValue _depthStencil = { 1, 0 };
 		VkFramebuffer _frameBuffer = VK_NULL_HANDLE;
 		ImagePtr _color = VK_NULL_HANDLE, _depth = VK_NULL_HANDLE;
 		VkSampler _sampler = VK_NULL_HANDLE;
@@ -83,6 +91,22 @@ namespace VK {
 
 	inline const VkRect2D& OffscreenPassBase::getRect() const {
 		return _rect;
+	}
+
+	inline const VkClearColorValue& OffscreenPassBase::getClearColor() const {
+		return _clearColor;
+	}
+
+	inline const VkClearDepthStencilValue& OffscreenPassBase::getDepthStencil() const {
+		return _depthStencil;
+	}
+
+	inline void OffscreenPassBase::setClearColor(float red, float green, float blue, float alpha) {
+		_clearColor = { red, green, blue, alpha };
+	}
+
+	inline void OffscreenPassBase::setDepthStencil(const VkClearDepthStencilValue& value) {
+		_depthStencil = value;
 	}
 
 }
