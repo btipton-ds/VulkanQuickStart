@@ -674,9 +674,10 @@ void VulkanApp::createDepthResources() {
 }
 
 VkFormat VulkanApp::findSupportedFormat(const std::vector<VkFormat>& candidates, VkImageTiling tiling, VkFormatFeatureFlags features) {
+	auto pDevice = _deviceContext->_physicalDevice;
 	for (VkFormat format : candidates) {
 		VkFormatProperties props;
-		vkGetPhysicalDeviceFormatProperties(_deviceContext->_physicalDevice, format, &props);
+		vkGetPhysicalDeviceFormatProperties(pDevice, format, &props);
 
 		if (tiling == VK_IMAGE_TILING_LINEAR && (props.linearTilingFeatures & features) == features) {
 			return format;
@@ -687,6 +688,27 @@ VkFormat VulkanApp::findSupportedFormat(const std::vector<VkFormat>& candidates,
 	}
 
 	throw std::runtime_error("failed to find supported format!");
+}
+
+vector<VulkanApp::FormatPairRec> VulkanApp::findSupportedFormats(const vector<VkFormat>& candidates, VkFormatFeatureFlags features) {
+	auto pDevice = _deviceContext->_physicalDevice;
+	vector<FormatPairRec> result;
+	for (VkFormat format : candidates) {
+		FormatPairRec pair;
+		pair._format = format;
+		VkFormatProperties props;
+		vkGetPhysicalDeviceFormatProperties(pDevice, format, &props);
+
+		if ((props.linearTilingFeatures & features) == features) {
+			pair._tiling = VK_IMAGE_TILING_LINEAR;
+			result.push_back(pair);
+		}
+		else if ((props.optimalTilingFeatures & features) == features) {
+			pair._tiling = VK_IMAGE_TILING_OPTIMAL;
+			result.push_back(pair);
+		}
+	}
+	return result;
 }
 
 VkFormat VulkanApp::findDepthFormat() {

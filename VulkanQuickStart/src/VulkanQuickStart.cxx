@@ -331,8 +331,12 @@ int main(int numArgs, char** args) {
 	gApp->setAntiAliasSamples(VK_SAMPLE_COUNT_4_BIT);
 	gApp->setClearColor(0.0f, 0.0f, 0.2f);
 
+	auto formats = gApp->findSupportedFormats({ VK_FORMAT_R8G8B8A8_UNORM, VK_FORMAT_R8G8B8A8_UINT, VK_FORMAT_B8G8R8A8_UNORM }, VK_FORMAT_FEATURE_COLOR_ATTACHMENT_BIT);
+	if (formats.empty()) {
+		throw runtime_error("Format not supported");
+	}
 	VkExtent2D offscreenExtent = { 2048, 2048 };
-	offscreen = make_shared<OffscreenPass3D>(gApp, VK_FORMAT_R8G8B8A8_UNORM);
+	offscreen = make_shared<OffscreenPass3D>(gApp, formats.front()._format);
 	offscreen->setAntiAliasSamples(VK_SAMPLE_COUNT_1_BIT);
 	offscreen->setClearColor(0.0f, 0.3f, 0.0f);
 	offscreen->init(offscreenExtent);

@@ -128,6 +128,13 @@ namespace VK {
 
 		const VkRect2D& getFrameRect() const;
 
+		VkFormat findSupportedFormat(const std::vector<VkFormat>& candidates, VkImageTiling tiling, VkFormatFeatureFlags features);
+		struct FormatPairRec {
+			VkFormat _format;
+			VkImageTiling _tiling;
+		};
+		std::vector<FormatPairRec> findSupportedFormats(const std::vector<VkFormat>& candidates, VkFormatFeatureFlags features);
+
 		template<typename FUNC_TYPE>
 		void setUboUpdateFunction(FUNC_TYPE f) {
 			_uboUpdater = f;
@@ -164,7 +171,6 @@ namespace VK {
 		void createCommandPool();
 		void createColorResources();
 		void createDepthResources();
-		VkFormat findSupportedFormat(const std::vector<VkFormat>& candidates, VkImageTiling tiling, VkFormatFeatureFlags features);
 		bool hasStencilComponent(VkFormat format);
 		VkSampleCountFlagBits getMaxUsableSampleCount();
 
