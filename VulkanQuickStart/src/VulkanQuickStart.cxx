@@ -31,7 +31,7 @@ This file is part of the VulkanQuickStart Project.
 //
 
 #include <vk_defines.h>
-
+#include <sys/stat.h>
 #include <fstream>
 
 #include "vk_app.h"
@@ -62,7 +62,23 @@ using namespace std;
 #define ORBIT 0 // Test the user defined world transform option
 
 
-const std::string modelPath = "../../../../resources/models/";
+bool dirExists(const string& dir) {
+	struct stat sb;
+
+	return stat(dir.c_str(), &sb) == 0 && (sb.st_mode & _S_IFDIR) == _S_IFDIR;
+}
+
+string getPath() {
+	string dir = "../../../resources/models/";
+	for (int i = 0; i < 4; i++) {
+		if (dirExists(dir))
+			return dir;
+		dir = "../" + dir;
+	}
+	throw runtime_error("Could not find model directory");
+}
+
+const std::string modelPath = getPath();
 
 #if TEST_OBJ
 const std::string pottedPlantPath = modelPath + "IndoorPotPlant/";
