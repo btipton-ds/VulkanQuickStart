@@ -122,10 +122,10 @@ foreach(GLSL ${GLSL_SOURCE_FILES})
 endforeach(GLSL)
 
 add_custom_target(
-    Shaders 
+    VkShaders 
     DEPENDS ${SPIRV_BINARY_FILES}
     )
 
-add_dependencies(VulkanQuickStart Shaders)
+add_dependencies(VulkanQuickStart VkShaders)
 
 # TODO: Add tests and install targets if needed.
