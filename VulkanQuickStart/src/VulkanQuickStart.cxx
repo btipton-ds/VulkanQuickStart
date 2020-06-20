@@ -56,7 +56,7 @@ This file is part of the VulkanQuickStart Project.
 using namespace VK;
 using namespace std;
 
-#define TEST_OBJ 0 // TODO. Recent driver changes cause this option to crash due to insufficient resources.
+#define TEST_OBJ 1 // TODO. Recent driver changes cause this option to crash due to insufficient resources.
 #define TEST_STL 1
 #define TEST_GUI 1
 #define ORBIT 0 // Test the user defined world transform option
