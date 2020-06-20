@@ -59,6 +59,8 @@ namespace VK {
 		const VkClearDepthStencilValue& getDepthStencil() const;
 		void setDepthStencil(const VkClearDepthStencilValue&);
 
+		const VkDescriptorImageInfo& getDescriptorInfo() const;
+
 		virtual VkRenderPass getRenderPass() const = 0;
 		virtual bool updateUbo() = 0;
 		virtual void cleanupSwapChain() = 0;
@@ -109,4 +111,7 @@ namespace VK {
 		_depthStencil = value;
 	}
 
+	inline const VkDescriptorImageInfo& OffscreenPassBase::getDescriptorInfo() const {
+		return _descriptor;
+	}
 }

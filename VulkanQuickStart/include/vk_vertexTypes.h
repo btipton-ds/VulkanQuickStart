@@ -43,32 +43,35 @@ This file is part of the VulkanQuickStart Project.
 
 namespace VK {
 
-	struct Vertex2Cf {
+	struct Vertex2_PTf {
 		glm::vec2 pos;
-		glm::vec3 color;
+		glm::vec2 texCoord;
 
 		static inline VkVertexInputBindingDescription getBindingDescription() {
 			VkVertexInputBindingDescription bindingDescription = {};
 			bindingDescription.binding = 0;
-			bindingDescription.stride = sizeof(Vertex2Cf);
+			bindingDescription.stride = sizeof(Vertex2_PTf);
 			bindingDescription.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
 
 			return bindingDescription;
 		}
 
-		static inline std::array<VkVertexInputAttributeDescription, 2> getAttributeDescriptions() {
-			std::array<VkVertexInputAttributeDescription, 2> attributeDescriptions = {};
+		static inline std::vector<VkVertexInputAttributeDescription> getAttributeDescriptions() {
+			std::vector<VkVertexInputAttributeDescription> attributeDescriptions;
 
-			attributeDescriptions[0].binding = 0;
-			attributeDescriptions[0].location = 0;
-			attributeDescriptions[0].format = VK_FORMAT_R32G32_SFLOAT;
-			attributeDescriptions[0].offset = offsetof(Vertex2Cf, pos);
+			attributeDescriptions.resize(2);
 
-			attributeDescriptions[1].binding = 0;
-			attributeDescriptions[1].location = 1;
-			attributeDescriptions[1].format = VK_FORMAT_R32G32B32_SFLOAT;
-			attributeDescriptions[1].offset = offsetof(Vertex2Cf, color);
+			size_t idx = 0;
+			attributeDescriptions[idx].binding = 0;
+			attributeDescriptions[idx].location = (uint32_t)idx;
+			attributeDescriptions[idx].format = VK_FORMAT_R32G32_SFLOAT;
+			attributeDescriptions[idx].offset = offsetof(Vertex2_PTf, pos);
 
+			idx++;
+			attributeDescriptions[idx].binding = 0;
+			attributeDescriptions[idx].location = (uint32_t)idx;
+			attributeDescriptions[idx].format = VK_FORMAT_R32G32_SFLOAT;
+			attributeDescriptions[idx].offset = offsetof(Vertex2_PTf, texCoord);
 			return attributeDescriptions;
 		}
 

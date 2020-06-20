@@ -577,6 +577,10 @@ void Image::saveImage(const std::string& filename, const VkSubresourceLayout& vk
 	}
 }
 
+void Image::saveImageJpg(const std::string& filename, int width, int height, int numChannels, const char* data) {
+	stbi_write_jpg(filename.c_str(), width, height, numChannels, data, 75);
+}
+
 void Image::saveImage(const std::string& filename) const {
 	size_t bufSize = processImage(0,
 		[](const char* p, const VkSubresourceLayout& vkLayout, bool colorSwizzle) {

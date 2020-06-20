@@ -47,6 +47,7 @@ namespace VK {
 		size_t imageSize() const;
 
 		static VkImageView createImageView(const DeviceContextPtr& context, VkImage image, VkFormat format, VkImageAspectFlags aspectFlags, uint32_t mipLevels);
+		static void saveImageJpg(const std::string& filename, int width, int height, int numChannels, const char* data);
 
 		template<typename FUNC_TYPE>
 		size_t processImage(size_t bufSize, FUNC_TYPE func) const {
@@ -88,6 +89,8 @@ namespace VK {
 		const VkImageCreateInfo& getImageInfo() const;
 		VkImage getVkImage() const;
 
+		const DeviceContextPtr& getContext() const;
+
 	protected:
 		void saveImage(const std::string& filename, const VkSubresourceLayout& vkLayout, bool colorSwizzle, const char* pix) const;
 
@@ -117,6 +120,10 @@ namespace VK {
 
 	inline VkFormat Image::getFormat() const {
 		return _imageInfo.format;
+	}
+
+	inline const DeviceContextPtr& Image::getContext() const {
+		return _context;
 	}
 
 }

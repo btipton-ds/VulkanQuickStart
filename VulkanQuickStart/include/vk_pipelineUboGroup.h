@@ -61,6 +61,7 @@ namespace VK {
 
 		const UboType& getUbo() const;
 		void setUbo(const UboType& ubo, uint32_t swapChainImageIndex);
+		void updateUbos(uint32_t swapChainImageIndex);
 
 		template<typename FUNC_TYPE>
 		void iterate(FUNC_TYPE func);
@@ -118,6 +119,11 @@ namespace VK {
 	template<class UBO_TYPE>
 	void PipelineUboGroup<UBO_TYPE>::setUbo(const UboType& ubo, uint32_t swapChainImageIndex) {
 		_ubo = ubo;
+		updateUbos(swapChainImageIndex);
+	}
+
+	template<class UBO_TYPE>
+	void PipelineUboGroup<UBO_TYPE>::updateUbos(uint32_t swapChainImageIndex) {
 		iterate([&](const PipelinePtr& pipeline) {
 			if (pipeline->isVisible() && pipeline->numSceneNodes() > 0) {
 				pipeline->updateUniformBuffers(swapChainImageIndex);

@@ -102,6 +102,8 @@ namespace VK {
 		if (_updateUbo) {
 			setUbo(_updateUbo(_rect.extent.width, _rect.extent.height));
 			return true;
+		} else {
+			_pipelines->updateUbos(0);
 		}
 		return false;
 	}
