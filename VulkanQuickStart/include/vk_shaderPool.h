@@ -45,16 +45,23 @@ namespace VK {
 
 	class ShaderPool {
 	public:
-		struct ShaderRec {
-			std::vector<VkShaderModule> _shaderModules;
+		struct Shader {
+			~Shader();
 
-			void add(const std::string& filename, const VkShaderModule& shaderModule);
+			VkShaderStageFlagBits _stage = VK_SHADER_STAGE_VERTEX_BIT;
+			VkDevice _device = VK_NULL_HANDLE;
+			VkShaderModule _module = VK_NULL_HANDLE;
+		};
+		using ShaderPtr = std::shared_ptr<Shader>;
+		struct ShaderRec {
+			std::vector<ShaderPtr> _shaders;
+
+			void add(VkDevice device, VkShaderStageFlagBits stage, VkShaderModule shaderModule);
 		};
 
 		using ShaderRecPtr = std::shared_ptr<ShaderRec>;
 
 		ShaderPool(DeviceContext* dc);
-		~ShaderPool();
 
 		ShaderRecPtr addShader(const std::string& shaderId, const std::vector<std::string>& filenames);
 		void addShader(const std::string& shaderId, const ShaderRecPtr& shader);

@@ -38,24 +38,24 @@ This file is part of the VulkanQuickStart Project.
 using namespace std;
 using namespace VK;
 
-void ShaderPool::ShaderRec::add(const std::string& filename, const VkShaderModule& shaderModule) {
-	_shaderModules.push_back(shaderModule);
+ShaderPool::Shader::~Shader() {
+	if (_module != VK_NULL_HANDLE)
+		vkDestroyShaderModule(_device, _module, nullptr);
+
+	_module = VK_NULL_HANDLE;
+}
+
+void ShaderPool::ShaderRec::add(VkDevice device, VkShaderStageFlagBits stage, VkShaderModule shaderModule) {
+	ShaderPtr shader = make_shared<Shader>();
+	shader->_device = device;
+	shader->_stage = stage;
+	shader->_module = shaderModule;
+	_shaders.push_back(shader);
 }
 
 ShaderPool::ShaderPool(DeviceContext* dc) 
 	: _dc(dc)
 {
-}
-
-ShaderPool::~ShaderPool() {
-	for (auto& iter : _shaderRecs) {
-		auto& shaderStages = iter.second->_shaderModules;
-		for (auto& shaderModule : shaderStages) {
-			vkDestroyShaderModule(_dc->_device, shaderModule, nullptr);
-		}
-		shaderStages.clear();
-	}
-	_shaderRecs.clear();
 }
 
 ShaderPool::ShaderRecPtr ShaderPool::addShader(const std::string& shaderId, const std::vector<std::string>& filenames) {
@@ -67,7 +67,18 @@ ShaderPool::ShaderRecPtr ShaderPool::addShader(const std::string& shaderId, cons
 	ShaderRecPtr shader = make_shared<ShaderRec>();
 	for (const auto& filename : filenames) {
 		auto vertCode = readFile(filename);
-		shader->add(filename, createShaderModule(vertCode));
+
+		VkShaderStageFlagBits stage = VK_SHADER_STAGE_VERTEX_BIT;
+		if (filename.find("vert") != string::npos)
+			stage = VK_SHADER_STAGE_VERTEX_BIT;
+		else if (filename.find("frag") != string::npos)
+			stage = VK_SHADER_STAGE_FRAGMENT_BIT;
+		else if (filename.find("comp") != string::npos)
+			stage = VK_SHADER_STAGE_COMPUTE_BIT;
+		else
+			throw runtime_error("unexptected shader filename pattern");
+
+		shader->add(_dc->_device, stage, createShaderModule(vertCode));
 	}
 
 	addShader(shaderId, shader);
@@ -89,11 +100,6 @@ ShaderPool::ShaderRecPtr ShaderPool::getShader(const string& shaderId) const {
 void ShaderPool::removeShader(const string& shaderId) {
 	auto iter = _shaderRecs.find(shaderId);
 	if (iter != _shaderRecs.end()) {
-		auto& shaderStages = iter->second->_shaderModules;
-		for (auto& shaderModule : shaderStages) {
-			vkDestroyShaderModule(_dc->_device, shaderModule, nullptr);
-		}
-		shaderStages.clear();
 		_shaderRecs.erase(shaderId);
 	}
 }

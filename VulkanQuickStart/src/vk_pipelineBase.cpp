@@ -192,13 +192,13 @@ void PipelineBase::build() {
 inline void PipelineBase::setShaderStages(vector<VkPipelineShaderStageCreateInfo>& shaderStages) {
 	string shaderId = getShaderId();
 	ShaderPool& shaders = _dc->getShaderPool();
-	auto shader = shaders.getShader(shaderId);
-	for (size_t i = 0; i < shader->_shaderModules.size(); i++) {
-		const auto& shaderModule = shader->_shaderModules[i];
+	auto shaderRec = shaders.getShader(shaderId);
+	for (size_t i = 0; i < shaderRec->_shaders.size(); i++) {
+		const auto& shader = shaderRec->_shaders[i];
 		VkPipelineShaderStageCreateInfo shaderStageInfo = {};
 		shaderStageInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
-		shaderStageInfo.stage = (i == 0) ? VK_SHADER_STAGE_VERTEX_BIT : VK_SHADER_STAGE_FRAGMENT_BIT; // TODO, add a method which sets the shader type in the pool
-		shaderStageInfo.module = shaderModule;
+		shaderStageInfo.stage = shader->_stage;
+		shaderStageInfo.module = shader->_module;
 		shaderStageInfo.pName = "main"; // This is the name of the shader entry point. NOT a user provided name of the shader.
 		shaderStages.push_back(shaderStageInfo);
 	}
