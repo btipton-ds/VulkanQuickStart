@@ -51,17 +51,8 @@ ImageCopier::ImageCopier(const DeviceContextPtr& context, const Image& srcImage,
 
 	createVkImage();
 
-	// Create memory to back up the image
-	VkMemoryRequirements memRequirements = {};
-	vkGetImageMemoryRequirements(_device, _dstImage, &memRequirements);
-	VkMemoryAllocateInfo memAllocInfo(vks::initializers::memoryAllocateInfo());
-	memAllocInfo.allocationSize = memRequirements.size;
-	// Memory must be host visible to copy from
-	memAllocInfo.memoryTypeIndex = _context->getMemoryType(memRequirements.memoryTypeBits, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
-	VK_CHECK_RESULT(vkAllocateMemory(_device, &memAllocInfo, nullptr, &_dstImageMemory));
-	VK_CHECK_RESULT(vkBindImageMemory(_device, _dstImage, _dstImageMemory, 0));
-
 	copyImages();
+
 
 	// Get layout of the image (including row pitch)
 	_subResource = { VK_IMAGE_ASPECT_COLOR_BIT, 0, 0 };
@@ -71,26 +62,22 @@ ImageCopier::ImageCopier(const DeviceContextPtr& context, const Image& srcImage,
 
 ImageCopier::~ImageCopier() {
 	// Clean up resources
-	vkUnmapMemory(_device, _dstImageMemory);
-	vkFreeMemory(_device, _dstImageMemory, nullptr);
-	vkDestroyImage(_device, _dstImage, nullptr);
+	if (_dstImageMemory != VK_NULL_HANDLE) {
+		vkFreeMemory(_device, _dstImageMemory, nullptr);
+	}
+	if (_dstImage != VK_NULL_HANDLE)
+		vkDestroyImage(_device, _dstImage, nullptr);
+	
 }
 
 const char* ImageCopier::getPersistentCopy() const {
-	const char* tempPtr = getVolitileCopy();
+	MappedMemory mem(*this);
+	const char* tempPtr = mem.getData();
 
 	char* p = new char[_bufSize];
 	memcpy(p, tempPtr, _bufSize);
 
 	return p;
-}
-
-const char* ImageCopier::getVolitileCopy() const {
-	// Map image memory so we can start copying from it
-	char* tempPtr;
-	vkMapMemory(_device, _dstImageMemory, 0, VK_WHOLE_SIZE, 0, (void**)&tempPtr);
-	tempPtr += _subResourceLayout.offset;
-	return tempPtr;
 }
 
 void ImageCopier::copyImages() {
@@ -121,6 +108,7 @@ void ImageCopier::copyImages() {
 }
 
 void ImageCopier::lockImages(VkCommandBuffer copyCmd) {
+	VkImageLayout srcLayout = _srcImage.getLayout();
 	vks::tools::insertImageMemoryBarrier(
 		copyCmd,
 		_dstImage,
@@ -137,7 +125,7 @@ void ImageCopier::lockImages(VkCommandBuffer copyCmd) {
 		_srcImage.getVkImage(),
 		VK_ACCESS_MEMORY_READ_BIT,
 		VK_ACCESS_TRANSFER_READ_BIT,
-		VK_IMAGE_LAYOUT_PRESENT_SRC_KHR,
+		srcLayout,
 		VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
 		VK_PIPELINE_STAGE_TRANSFER_BIT,
 		VK_PIPELINE_STAGE_TRANSFER_BIT,
@@ -162,7 +150,7 @@ void ImageCopier::unlockImages(VkCommandBuffer copyCmd) {
 		VK_ACCESS_TRANSFER_READ_BIT,
 		VK_ACCESS_MEMORY_READ_BIT,
 		VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
-		VK_IMAGE_LAYOUT_PRESENT_SRC_KHR,
+		_srcImage.getLayout(),
 		VK_PIPELINE_STAGE_TRANSFER_BIT,
 		VK_PIPELINE_STAGE_TRANSFER_BIT,
 		VkImageSubresourceRange{ VK_IMAGE_ASPECT_COLOR_BIT, 0, 1, 0, 1 });
@@ -177,6 +165,16 @@ void ImageCopier::createVkImage() {
 	imageCreateCI.usage = VK_IMAGE_USAGE_TRANSFER_DST_BIT;
 
 	VK_CHECK_RESULT(vkCreateImage(_device, &imageCreateCI, nullptr, &_dstImage));
+
+	// Create memory to back up the image
+	VkMemoryRequirements memRequirements = {};
+	vkGetImageMemoryRequirements(_device, _dstImage, &memRequirements);
+	VkMemoryAllocateInfo memAllocInfo(vks::initializers::memoryAllocateInfo());
+	memAllocInfo.allocationSize = memRequirements.size;
+	// Memory must be host visible to copy from
+	memAllocInfo.memoryTypeIndex = _context->getMemoryType(memRequirements.memoryTypeBits, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
+	VK_CHECK_RESULT(vkAllocateMemory(_device, &memAllocInfo, nullptr, &_dstImageMemory));
+	VK_CHECK_RESULT(vkBindImageMemory(_device, _dstImage, _dstImageMemory, 0));
 
 }
 
@@ -226,7 +224,7 @@ void ImageCopier::blitImage(VkCommandBuffer copyCmd) {
 
 void ImageCopier::copyImage(VkCommandBuffer copyCmd) {
 	// Otherwise use image copy (requires us to manually flip components)
-	VkImageCopy imageCopyRegion{};
+	VkImageCopy imageCopyRegion = {};
 	imageCopyRegion.srcSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
 	imageCopyRegion.srcSubresource.layerCount = 1;
 	imageCopyRegion.dstSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;

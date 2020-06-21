@@ -207,11 +207,17 @@ void ComputeStep::buildComputeCommandBuffer() {
 	vkEndCommandBuffer(_cmdBuf);
 }
 
+void ComputeStep::waitForFence() const {
+	VkDevice device = _dc->_device;
+	vkWaitForFences(device, 1, &_fence, VK_TRUE, UINT64_MAX);
+}
+
 void ComputeStep::submitCommands() {
 	VkDevice device = _dc->_device;
-	// Submit compute commands
-	// Use a _fence to ensure that compute command buffer has finished executin before using it again
-	vkWaitForFences(device, 1, &_fence, VK_TRUE, UINT64_MAX);
+
+	waitForFence();
+	if (_prior)
+		_prior->waitForFence();
 	vkResetFences(device, 1, &_fence);
 
 	VkSubmitInfo computeSubmitInfo = {};

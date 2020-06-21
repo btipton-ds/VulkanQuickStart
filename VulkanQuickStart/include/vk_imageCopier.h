@@ -40,13 +40,26 @@ namespace VK {
 
 	class ImageCopier {
 	public:
+		struct MappedMemory {
+			MappedMemory(const ImageCopier& copier);
+			~MappedMemory();
+			const char* getData() const;
+
+		private:
+			VkDevice _device;
+			VkDeviceMemory _memory;
+			const char* _data;
+		};
+
 		ImageCopier(const DeviceContextPtr& context, const Image& srcImage, size_t bufSize);
 		~ImageCopier();
 		const char* getPersistentCopy() const;
-		const char* getVolitileCopy() const;
 		bool getColorSwizzle() const;
 		VkImageSubresource getSubResource() const;
 		VkSubresourceLayout getSubResourceLayout() const;
+
+		VkDevice getDevice() const;
+		VkDeviceMemory getDstImageMemory() const;
 
 	private:
 		void copyImages();
@@ -60,15 +73,15 @@ namespace VK {
 		void copyImage(VkCommandBuffer copyCmd);
 
 		DeviceContextPtr _context;
-		VkDevice _device;
+		VkDevice _device = VK_NULL_HANDLE;
 		const Image& _srcImage;
 		VkExtent3D _extent;
 		VkFormat _format;
 		bool _colorSwizzle = false;
 		VkDeviceSize _rowPitch;
 		size_t _bufSize;
-		VkImage _dstImage;
-		VkDeviceMemory _dstImageMemory;
+		VkImage _dstImage = VK_NULL_HANDLE;
+		VkDeviceMemory _dstImageMemory = VK_NULL_HANDLE;
 		VkImageSubresource _subResource;
 		VkSubresourceLayout _subResourceLayout;
 
@@ -85,6 +98,31 @@ namespace VK {
 
 	inline VkSubresourceLayout ImageCopier::getSubResourceLayout() const {
 		return _subResourceLayout;
+	}
+
+	inline VkDevice ImageCopier::getDevice() const {
+		return _device;
+	}
+
+	inline VkDeviceMemory ImageCopier::getDstImageMemory() const {
+		return _dstImageMemory;
+	}
+
+	inline ImageCopier::MappedMemory::MappedMemory(const ImageCopier& copier)
+		: _device(copier.getDevice())
+		, _memory(copier.getDstImageMemory())
+	{
+		vkMapMemory(_device, _memory, 0, VK_WHOLE_SIZE, 0, (void**)&_data);
+		_data += copier.getSubResourceLayout().offset;
+	}
+
+	inline ImageCopier::MappedMemory::~MappedMemory() {
+		if (_memory != VK_NULL_HANDLE)
+			vkUnmapMemory(_device, _memory);
+	}
+
+	inline const char* ImageCopier::MappedMemory::getData() const {
+		return _data;
 	}
 
 }

@@ -56,8 +56,9 @@ namespace VK {
 				return newBufSize;
 
 			ImageCopier copier(_context, *this, bufSize);
+			ImageCopier::MappedMemory mem(copier);
 
-			func(copier.getVolitileCopy(), copier.getSubResourceLayout(), copier.getColorSwizzle());
+			func(mem.getData(), copier.getSubResourceLayout(), copier.getColorSwizzle());
 
 			return bufSize;
 		}
@@ -90,6 +91,8 @@ namespace VK {
 		VkImage getVkImage() const;
 
 		const DeviceContextPtr& getContext() const;
+
+		VkImageLayout getLayout() const;
 
 	protected:
 		void saveImage(const std::string& filename, const VkSubresourceLayout& vkLayout, bool colorSwizzle, const char* pix) const;
@@ -125,6 +128,10 @@ namespace VK {
 
 	inline const DeviceContextPtr& Image::getContext() const {
 		return _context;
+	}
+
+	inline VkImageLayout Image::getLayout() const {
+		return _imageLayout;
 	}
 
 }

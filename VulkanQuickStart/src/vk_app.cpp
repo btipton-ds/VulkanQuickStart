@@ -1034,13 +1034,7 @@ void VulkanApp::drawFrame() {
 	submitInfo.pSignalSemaphores = signalSemaphores;
 
 	_deviceContext->submitQueue(1, &submitInfo);
-/*
-	vkResetFences(_device, 1, &_inFlightFences[_currentFrame]);
 
-	if (vkQueueSubmit(_graphicsQueue, size, submitInfoArr, _inFlightFences[_currentFrame]) != VK_SUCCESS) {
-		throw std::runtime_error("failed to submit draw command buffer!");
-	}
-*/
 	submitComputeCommands();
 
 	VkPresentInfoKHR presentInfo = {};

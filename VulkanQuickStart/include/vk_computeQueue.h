@@ -45,6 +45,8 @@ namespace VK {
 			ComputeStepPtr p = std::shared_ptr<ComputeStep>(new ComputeStep(dc, srcImage, dstImage, shaderId));
 			return p;
 		}
+
+		void setPriorStep(const ComputeStepPtr& prior);
 		void submitCommands();
 
 		const TextureImagePtr& getResultImage() const;
@@ -58,9 +60,11 @@ namespace VK {
 		void createUniformBuffers();
 		void buildComputeCommandBuffer();
 		void createCompute();
+		void waitForFence() const;
 
 		DeviceContextPtr _dc;
 
+		ComputeStepPtr _prior;
 		TextureImagePtr _srcImage, _dstImage;
 		std::string _shaderId;
 
@@ -77,6 +81,10 @@ namespace VK {
 		int32_t _pipelineIndex = 0;
 		uint32_t _queueFamilyIndex = 0;
 	};
+
+	inline void ComputeStep::setPriorStep(const ComputeStepPtr& prior) {
+		_prior = prior;
+	}
 
 	inline const TextureImagePtr& ComputeStep::getResultImage() const {
 		return _dstImage;
