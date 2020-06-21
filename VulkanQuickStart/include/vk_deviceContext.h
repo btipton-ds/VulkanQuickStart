@@ -47,7 +47,7 @@ namespace VK {
 		void destroy();
 
 		void createSyncObjects();
-		void waitForFences();
+		void waitForInFlightFence();
 		VkSemaphore getImageAvailableSemaphore() const;
 		VkSemaphore getRenderFinishedSemaphore() const;
 		void submitQueue(uint32_t size, const VkSubmitInfo* submitInfoArr);
@@ -78,7 +78,7 @@ namespace VK {
 		ShaderPoolPtr _shaderPool;
 	};
 
-	inline void DeviceContext::waitForFences() {
+	inline void DeviceContext::waitForInFlightFence() {
 		vkWaitForFences(_device, 1, &_inFlightFences[_currentFrame], VK_TRUE, std::numeric_limits<uint64_t>::max());
 	}
 

@@ -49,7 +49,7 @@ namespace VK {
 		void init(const VkExtent2D& extent);
 		void cleanup();
 
-		const ImagePtr& getColorImage() const;
+		const TextureImagePtr& getColorImage() const;
 		VkFramebuffer getFrameBuffer() const;
 		const VkRect2D& getRect() const;
 
@@ -75,15 +75,16 @@ namespace VK {
 		VkClearColorValue _clearColor = { 0, 0, 0, 1 };
 		VkClearDepthStencilValue _depthStencil = { 1, 0 };
 		VkFramebuffer _frameBuffer = VK_NULL_HANDLE;
-		ImagePtr _color = VK_NULL_HANDLE, _depth = VK_NULL_HANDLE;
+		TextureImagePtr _color = VK_NULL_HANDLE;
+		ImagePtr _depth = VK_NULL_HANDLE;
 		VkSampler _sampler = VK_NULL_HANDLE;
-		VkDescriptorImageInfo _descriptor{};
+		VkDescriptorImageInfo _descriptor = {};
 		DeviceContextPtr _deviceContext;
 		VkFormat _colorFormat, _depthFormat;
 
 	};
 
-	inline const ImagePtr& OffscreenPassBase::getColorImage() const {
+	inline const TextureImagePtr& OffscreenPassBase::getColorImage() const {
 		return _color;
 	}
 

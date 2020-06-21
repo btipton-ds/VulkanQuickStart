@@ -101,11 +101,11 @@ namespace VK {
 	}
 
 	template<class PIPELINE_TYPE>
-	inline typename PIPELINE_TYPE::PipelinePtr createPipelineWithSource(const PipelineUboGroupBasePtr& plGroup, const std::string& shaderId, const VkRect2D& rect, const std::string& vertShaderFilename, const std::string& fragShaderFilename) {
+	inline typename PIPELINE_TYPE::PipelinePtr createPipelineWithSource(const PipelineUboGroupBasePtr& plGroup, const std::string& shaderId, const VkRect2D& rect, const std::vector<std::string>& filenames) {
 		auto pipeline = createPipeline<PIPELINE_TYPE>(plGroup, shaderId, rect);
 		auto& shaders = plGroup->getApp()->getDeviceContext()->getShaderPool();
 		if (!shaders.getShader(shaderId))
-			shaders.addShader(shaderId, { vertShaderFilename , fragShaderFilename });
+			shaders.addShader(shaderId, filenames);
 		return pipeline;
 	}
 

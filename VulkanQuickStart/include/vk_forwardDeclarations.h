@@ -97,9 +97,11 @@ namespace VK {
 	class SceneNodeBase;
 	using SceneNodeBasePtr = std::shared_ptr<SceneNodeBase>;
 
-
 	class ModelPNC3f;
 	using ModelPNC3fPtr = std::shared_ptr<ModelPNC3f>;
+
+	class ComputeStep;
+	using ComputeStepPtr = std::shared_ptr<ComputeStep>;
 
 	namespace UI {
 		class Window;

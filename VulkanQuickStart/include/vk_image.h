@@ -74,7 +74,7 @@ namespace VK {
 
 		void set(VkImage image, VkDeviceMemory memory, VkImageView view);
 
-		void create(VkFormat format, VkImageUsageFlags flagBits, uint32_t width, uint32_t height, VkSampleCountFlagBits samples);
+		void create(VkFormat format, VkImageUsageFlags usageFlags, uint32_t width, uint32_t height, VkSampleCountFlagBits samples);
 
 		void createImage(uint32_t width, uint32_t height, uint32_t mipLevels, VkSampleCountFlagBits numSamples,
 			VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage, VkMemoryPropertyFlags properties);
@@ -99,6 +99,7 @@ namespace VK {
 		VkImage _image = VK_NULL_HANDLE;
 		VkDeviceMemory _memory = VK_NULL_HANDLE;
 		VkImageView _view = VK_NULL_HANDLE;
+		VkImageLayout _imageLayout = VK_IMAGE_LAYOUT_GENERAL;
 	};
 
 	inline size_t Image::imageSize() const {

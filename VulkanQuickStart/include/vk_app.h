@@ -92,13 +92,14 @@ namespace VK {
 		void setUiWindow(const UI::WindowPtr& uiWindow );
 
 		VkFormat findDepthFormat();
-		size_t addOffscreen(const OffscreenPassBasePtr& osp);
 
 		void changed();
 		size_t getRuntimeMillis() const;
 
 		template<class PIPELINE_TYPE>
 		VK::PipelinePtr<PIPELINE_TYPE> addPipelineWithSource(const std::string& shaderId, const std::vector<std::string>& filenames);
+		size_t addOffscreen(const OffscreenPassBasePtr& osp);
+		size_t addComputeStep(const ComputeStepPtr& step);
 
 		const DeviceContextPtr& getDeviceContext() const;
 
@@ -184,6 +185,8 @@ namespace VK {
 		void updateUBO(const VkExtent2D& extent, const BoundingBox& modelBounds, UboType& ubo) const;
 		void reportFPS();
 		void drawFrame();
+		void submitComputeCommands();
+
 		VkShaderModule createShaderModule(const std::vector<char>& code);
 		VkSurfaceFormatKHR chooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& availableFormats);
 		VkPresentModeKHR chooseSwapPresentMode(const std::vector<VkPresentModeKHR>& availablePresentModes);
@@ -228,6 +231,7 @@ namespace VK {
 		double _targetFrameDurationMillis = -1;
 		std::vector<OffscreenPassBasePtr> _offscreenPasses;
 		PipelineGroupTypePtr _pipelines;
+		std::vector<ComputeStepPtr> _computeSteps;
 
 		std::vector<VkCommandBuffer> _commandBuffers;
 

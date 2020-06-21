@@ -44,7 +44,9 @@ namespace VK {
 
 	class TextureImage : public Image {
 	public:
-		TextureImage(const DeviceContextPtr& context);
+		static TextureImagePtr newPtr(const DeviceContextPtr& context, VkFormat format, VkImageUsageFlags flagBits, uint32_t width,
+			uint32_t height, VkSampleCountFlagBits samples);
+
 		TextureImage(const TextureImage& src) = default;
 		~TextureImage();
 		void destroy();
@@ -62,7 +64,10 @@ namespace VK {
 		void createTextureSampler();
 		const VkSamplerCreateInfo& getSamplerInfo() const;
 
+		VkDescriptorImageInfo getDescriptor() const;
+
 	private:
+		TextureImage(const DeviceContextPtr& context);
 		void init(const std::string& filename);
 		void init(size_t width, size_t height, const unsigned char* pixelsRGBA);
 		void initImage(uint32_t width, uint32_t height, VkSampleCountFlagBits numSamples, VkFormat format, VkImageTiling tiling,
@@ -70,8 +75,16 @@ namespace VK {
 
 		VkSamplerCreateInfo _samplerInfo;
 		uint32_t mipLevels_ = 0;
-		VkSampler textureSampler_ = VK_NULL_HANDLE;
+		VkSampler _sampler = VK_NULL_HANDLE;
 	};
+
+	inline TextureImagePtr TextureImage::newPtr(const DeviceContextPtr& context, VkFormat format, VkImageUsageFlags flagBits, uint32_t width,
+		uint32_t height, VkSampleCountFlagBits samples) {
+		TextureImagePtr ptr = std::shared_ptr<TextureImage>(new TextureImage(context));
+		ptr->Image::create(format, flagBits, width, height, samples);
+		ptr->createTextureSampler();
+		return ptr;
+	}
 
 	inline const VkSamplerCreateInfo& TextureImage::getSamplerInfo() const {
 		return _samplerInfo;
@@ -82,7 +95,7 @@ namespace VK {
 	{}
 
 	inline VkSampler TextureImage::getSampler() const {
-		return textureSampler_;
+		return _sampler;
 	}
 
 	inline TextureImagePtr TextureImage::create(const DeviceContextPtr& context, const std::string& filename) {
@@ -101,6 +114,15 @@ namespace VK {
 		VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage, VkMemoryPropertyFlags properties) {
 		TextureImagePtr result(new TextureImage(context));
 		result->initImage(width, height, numSamples, format, tiling, usage, properties);
+		return result;
+	}
+
+	inline VkDescriptorImageInfo TextureImage::getDescriptor() const {
+		VkDescriptorImageInfo result = {};
+		result.imageView = _view;
+		result.sampler = _sampler;
+		result.imageLayout = _imageLayout;
+
 		return result;
 	}
 

@@ -62,10 +62,9 @@ void OffscreenPassBase::init(const VkExtent2D& extent) {
 	// Find a suitable _depth format
 	VkFormat fbColorFormat = _colorFormat; // VK_FORMAT_R8G8B8A8_UNORM; // VK_FORMAT_R32G32B32A32_SFLOAT
 
-	_color = make_shared<Image>(_deviceContext);
-	uint32_t colorUsageBits = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT | 
-		VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT;
-	_color->create(fbColorFormat, colorUsageBits, _rect.extent.width, _rect.extent.height, antiAliasSampleBits);
+	uint32_t colorUsageBits = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT |
+		VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_STORAGE_BIT;
+	_color = TextureImage::newPtr(_deviceContext, fbColorFormat, colorUsageBits, _rect.extent.width, _rect.extent.height, antiAliasSampleBits);
 
 	// Create _sampler to sample from the attachment in the fragment shader
 	VkSamplerCreateInfo samplerInfo = {};

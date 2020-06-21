@@ -49,12 +49,12 @@ TextureImage::~TextureImage() {
 }
 
 void TextureImage::destroy() {
-	if (textureSampler_ != VK_NULL_HANDLE) {
-		vkDestroySampler(_context->_device, textureSampler_, nullptr);
-		textureSampler_ = VK_NULL_HANDLE;
+	if (_sampler != VK_NULL_HANDLE) {
+		vkDestroySampler(_context->_device, _sampler, nullptr);
+		_sampler = VK_NULL_HANDLE;
 		Image::destroy();
 	}
-	if (textureSampler_ != VK_NULL_HANDLE) {
+	if (_sampler != VK_NULL_HANDLE) {
 		cout << "textureSampler leak\n";
 	}
 }
@@ -264,7 +264,7 @@ void TextureImage::createTextureSampler() {
 	_samplerInfo.maxLod = static_cast<float>(mipLevels_);
 	_samplerInfo.mipLodBias = 0;
 
-	if (vkCreateSampler(_context->_device, &_samplerInfo, nullptr, &textureSampler_) != VK_SUCCESS) {
+	if (vkCreateSampler(_context->_device, &_samplerInfo, nullptr, &_sampler) != VK_SUCCESS) {
 		throw runtime_error("failed to create texture sampler!");
 	}
 }

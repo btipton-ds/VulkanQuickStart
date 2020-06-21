@@ -39,7 +39,6 @@ This file is part of the VulkanQuickStart Project.
 #include <cstring>
 #include <cstdlib>
 #include <array>
-#include <optional>
 #include <set>
 #include <unordered_map>
 #include <algorithm>
@@ -66,7 +65,8 @@ This file is part of the VulkanQuickStart Project.
 #include <vk_pipelineUi.h>
 #include <vk_pipelineUboGroup.h>
 #include <vk_ui_window.h>
-#include "vk_app.h"
+#include <vk_computeQueue.h>
+#include <vk_app.h>
 
 using namespace std;
 using namespace VK;
@@ -156,11 +156,12 @@ void DestroyDebugUtilsMessengerEXT(VkInstance instance, VkDebugUtilsMessengerEXT
 }
 
 struct VulkanApp::QueueFamilyIndices {
-	std::optional<uint32_t> graphicsFamily;
-	std::optional<uint32_t> presentFamily;
+	uint32_t graphicsFamily = 0xffffffff;
+	uint32_t presentFamily = 0xffffffff;
+	uint32_t computeFamily = 0xffffffff;
 
 	bool isComplete() {
-		return graphicsFamily.has_value() && presentFamily.has_value();
+		return graphicsFamily != 0xffffffff && presentFamily != 0xffffffff && computeFamily != 0xffffffff;
 	}
 };
 
@@ -306,6 +307,13 @@ size_t VulkanApp::addOffscreen(const OffscreenPassBasePtr& osp) {
 	return result;
 }
 
+size_t VulkanApp::addComputeStep(const ComputeStepPtr& step) {
+	size_t result = _computeSteps.size();
+	_computeSteps.push_back(step);
+	changed();
+	return result;
+}
+
 void VulkanApp::cleanup() {
 	for (const auto& osp : _offscreenPasses)
 		osp->cleanup();
@@ -420,7 +428,7 @@ void VulkanApp::createLogicalDevice() {
 	QueueFamilyIndices indices = findQueueFamilies(_deviceContext->_physicalDevice);
 
 	std::vector<VkDeviceQueueCreateInfo> queueCreateInfos;
-	std::set<uint32_t> uniqueQueueFamilies = { indices.graphicsFamily.value(), indices.presentFamily.value() };
+	std::set<uint32_t> uniqueQueueFamilies = { indices.graphicsFamily, indices.presentFamily, indices.computeFamily };
 
 	float queuePriority = 1.0f;
 	for (uint32_t queueFamily : uniqueQueueFamilies) {
@@ -458,8 +466,8 @@ void VulkanApp::createLogicalDevice() {
 		throw std::runtime_error("failed to create logical device!");
 	}
 
-	vkGetDeviceQueue(_deviceContext->_device, indices.graphicsFamily.value(), 0, &_deviceContext->_graphicsQueue);
-	vkGetDeviceQueue(_deviceContext->_device, indices.presentFamily.value(), 0, &presentQueue);
+	vkGetDeviceQueue(_deviceContext->_device, indices.graphicsFamily, 0, &_deviceContext->_graphicsQueue);
+	vkGetDeviceQueue(_deviceContext->_device, indices.presentFamily, 0, &presentQueue);
 
 	vkGetPhysicalDeviceMemoryProperties(_deviceContext->_physicalDevice, &_deviceContext->_memoryProperties);
 }
@@ -488,7 +496,7 @@ void VulkanApp::createSwapChain() {
 	createInfo.imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT; // VK_IMAGE_USAGE_TRANSFER_SRC_BIT is required to read back the image.
 
 	QueueFamilyIndices indices = findQueueFamilies(_deviceContext->_physicalDevice);
-	uint32_t queueFamilyIndices[] = { indices.graphicsFamily.value(), indices.presentFamily.value() };
+	uint32_t queueFamilyIndices[] = { indices.graphicsFamily, indices.presentFamily };
 
 	if (indices.graphicsFamily != indices.presentFamily) {
 		createInfo.imageSharingMode = VK_SHARING_MODE_CONCURRENT;
@@ -654,7 +662,7 @@ void VulkanApp::createCommandPool() {
 
 	VkCommandPoolCreateInfo poolInfo = {};
 	poolInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
-	poolInfo.queueFamilyIndex = queueFamilyIndices.graphicsFamily.value();
+	poolInfo.queueFamilyIndex = queueFamilyIndices.graphicsFamily;
 
 	if (vkCreateCommandPool(_deviceContext->_device, &poolInfo, nullptr, &_deviceContext->_commandPool) != VK_SUCCESS) {
 		throw std::runtime_error("failed to create graphics command pool!");
@@ -980,7 +988,7 @@ void VulkanApp::drawFrame() {
 	if (numSceneNodes <= 0)
 		return;
 
-	_deviceContext->waitForFences();
+	_deviceContext->waitForInFlightFence();
 
 	VkSemaphore semaphore = _deviceContext->getImageAvailableSemaphore();
 	VkResult result = vkAcquireNextImageKHR(_deviceContext->_device, _swapChain._vkSwapChain, std::numeric_limits<uint64_t>::max(),
@@ -1026,6 +1034,14 @@ void VulkanApp::drawFrame() {
 	submitInfo.pSignalSemaphores = signalSemaphores;
 
 	_deviceContext->submitQueue(1, &submitInfo);
+/*
+	vkResetFences(_device, 1, &_inFlightFences[_currentFrame]);
+
+	if (vkQueueSubmit(_graphicsQueue, size, submitInfoArr, _inFlightFences[_currentFrame]) != VK_SUCCESS) {
+		throw std::runtime_error("failed to submit draw command buffer!");
+	}
+*/
+	submitComputeCommands();
 
 	VkPresentInfoKHR presentInfo = {};
 	presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
@@ -1050,6 +1066,11 @@ void VulkanApp::drawFrame() {
 	}
 
 	_deviceContext->nextFrame();
+}
+
+void VulkanApp::submitComputeCommands() {
+	for (const auto& step : _computeSteps)
+		step->submitCommands();
 }
 
 VkShaderModule VulkanApp::createShaderModule(const std::vector<char>& code) {
@@ -1193,6 +1214,12 @@ VulkanApp::QueueFamilyIndices VulkanApp::findQueueFamilies(VkPhysicalDevice devi
 		if (queueFamily.queueCount > 0 && presentSupport) {
 			indices.presentFamily = i;
 		}
+
+		if (queueFamily.queueCount > 0 && (queueFamily.queueFlags & VK_QUEUE_COMPUTE_BIT) && ((queueFamily.queueFlags & VK_QUEUE_GRAPHICS_BIT) == 0))
+		{
+			indices.computeFamily = i;
+		}
+
 
 		if (indices.isComplete()) {
 			break;
