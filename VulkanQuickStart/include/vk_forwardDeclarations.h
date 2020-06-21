@@ -103,6 +103,12 @@ namespace VK {
 	class ComputeStep;
 	using ComputeStepPtr = std::shared_ptr<ComputeStep>;
 
+	class PipelinePNC3f;
+	using PipelinePNC3fPtr = std::shared_ptr<PipelinePNC3f>;
+
+	class PipelinePNCT3f;
+	using PipelinePNCT3fPtr = std::shared_ptr<class PipelinePNCT3f>;
+
 	namespace UI {
 		class Window;
 		using WindowPtr = std::shared_ptr<Window>;

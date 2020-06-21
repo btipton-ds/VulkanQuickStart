@@ -37,8 +37,6 @@ This file is part of the VulkanQuickStart Project.
 #include <vk_vertexTypes.h>
 
 namespace VK {
-	class PipelinePNCT3f;
-	using PipelinePNCT3fPtr = std::shared_ptr<class PipelinePNCT3f>;
 
 	class PipelinePNCT3f : public Pipeline<Vertex3_PNCTf, UniformBufferObject3D> {
 	public:
