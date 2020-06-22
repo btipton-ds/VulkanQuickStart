@@ -31,7 +31,7 @@ This file is part of the VulkanQuickStart Project.
 
 #include <vulkan/vulkan_core.h>
 
-#include <vk_computeQueue.h>
+#include <vk_computeStep.h>
 #include <vk_deviceContext.h>
 #include <vk_initializers.h>
 #include <vk_textureImage.h>
@@ -41,16 +41,19 @@ This file is part of the VulkanQuickStart Project.
 using namespace std;
 using namespace VK;
 
-ComputeStep::ComputeStep(const DeviceContextPtr& dc, const TextureImagePtr& srcImage, const TextureImagePtr& dstImage, const std::string& shaderId)
+ComputeStepBase::ComputeStepBase(const DeviceContextPtr& dc, const TextureImagePtr& srcImage, const TextureImagePtr& dstImage, const std::string& shaderId, size_t uboSize)
 	: _dc(dc)
 	, _srcImage(srcImage)
 	, _dstImage(dstImage)
 	, _shaderId(shaderId)
-{
-	build();
+	, _uboSize(uboSize)
+{}
+
+void ComputeStepBase::updateUbo() {
+	// Base class does nothing
 }
 
-void ComputeStep::build()
+void ComputeStepBase::build()
 {
 	createUniformBuffers();
 	createDescriptorPool();
@@ -60,11 +63,16 @@ void ComputeStep::build()
 	//prepared = true;
 }
 
-void ComputeStep::createUniformBuffers() {
-	// TODO - empty stub
+void ComputeStepBase::createUniformBuffers() {
+	if (_uboSize > 0) {
+		_uboBuf = make_shared<Buffer>(_dc);
+
+		_uboBuf->create(_uboSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
+			VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
+	}
 }
 
-void ComputeStep::createComputeQueue()
+void ComputeStepBase::createComputeQueue()
 {
 	auto device = _dc->_device;
 	auto pDevice = _dc->_physicalDevice;
@@ -109,18 +117,29 @@ void ComputeStep::createComputeQueue()
 	vkGetDeviceQueue(device, _queueFamilyIndex, 0, &_queue);
 }
 
-void ComputeStep::createCompute() {
+void ComputeStepBase::createCompute() {
 	VkDevice device = _dc->_device;
 
 	// Create compute pipeline
 	// Compute pipelines are created separate from graphics pipelines even if they use the same queue
 
-	std::vector<VkDescriptorSetLayoutBinding> setLayoutBindings = {
-		// Binding 0: Input image (read-only)
-		initializers::descriptorSetLayoutBinding(VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, VK_SHADER_STAGE_COMPUTE_BIT, 0),
-		// Binding 1: Output image (write)
-		initializers::descriptorSetLayoutBinding(VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, VK_SHADER_STAGE_COMPUTE_BIT, 1),
-	};
+	VkDescriptorSetLayoutBinding uboLayoutBinding = {};
+	uboLayoutBinding.binding = 0;
+	uboLayoutBinding.descriptorCount = 1;
+	uboLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+	uboLayoutBinding.pImmutableSamplers = nullptr;
+	uboLayoutBinding.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
+
+
+	std::vector<VkDescriptorSetLayoutBinding> setLayoutBindings;
+	uint32_t bindingIdx = 0;
+
+	setLayoutBindings.push_back(initializers::descriptorSetLayoutBinding(VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, VK_SHADER_STAGE_COMPUTE_BIT, bindingIdx++));
+	setLayoutBindings.push_back(initializers::descriptorSetLayoutBinding(VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, VK_SHADER_STAGE_COMPUTE_BIT, bindingIdx++));
+
+	// Last binding: UBO, if present
+	if (_uboBuf)
+		setLayoutBindings.push_back(initializers::descriptorSetLayoutBinding(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_COMPUTE_BIT, bindingIdx++));
 
 	VkDescriptorSetLayoutCreateInfo descriptorLayout = initializers::descriptorSetLayoutCreateInfo(setLayoutBindings);
 	VK_CHECK_RESULT(vkCreateDescriptorSetLayout(device, &descriptorLayout, nullptr, &_descriptorSetLayout));
@@ -134,10 +153,21 @@ void ComputeStep::createCompute() {
 		initializers::descriptorSetAllocateInfo(_descriptorPool, &_descriptorSetLayout, 1);
 
 	VK_CHECK_RESULT(vkAllocateDescriptorSets(device, &allocInfo, &_descriptorSet));
-	std::vector<VkWriteDescriptorSet> computeWriteDescriptorSets = {
-		initializers::writeDescriptorSet(_descriptorSet, VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, 0, &_srcImage->getDescriptor()),
-		initializers::writeDescriptorSet(_descriptorSet, VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, 1, &_dstImage->getDescriptor())
-	};
+	std::vector<VkWriteDescriptorSet> computeWriteDescriptorSets;
+	VkDescriptorBufferInfo bufferInfo = {};
+	bindingIdx = 0;
+
+	computeWriteDescriptorSets.push_back(initializers::writeDescriptorSet(_descriptorSet, VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, bindingIdx++, &_srcImage->getDescriptor()));
+	computeWriteDescriptorSets.push_back(initializers::writeDescriptorSet(_descriptorSet, VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, bindingIdx++, &_dstImage->getDescriptor()));
+
+	if (_uboBuf) {
+		bufferInfo.buffer = *_uboBuf;
+		bufferInfo.offset = 0;
+		bufferInfo.range = _uboBuf->getSize();
+
+		computeWriteDescriptorSets.push_back(initializers::writeDescriptorSet(_descriptorSet, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, bindingIdx++, &bufferInfo));
+	}
+
 	vkUpdateDescriptorSets(device, (uint32_t)computeWriteDescriptorSets.size(), computeWriteDescriptorSets.data(), 0, NULL);
 
 	// Create compute shader pipelines
@@ -179,17 +209,18 @@ void ComputeStep::createCompute() {
 
 }
 
-void ComputeStep::createDescriptorPool() {
+void ComputeStepBase::createDescriptorPool() {
 	VkDevice device = _dc->_device;
-	std::vector<VkDescriptorPoolSize> poolSizes = {
-		// Compute pipelines uses a storage image for image reads and writes
-		initializers::descriptorPoolSize(VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, 2),
-	};
+	std::vector<VkDescriptorPoolSize> poolSizes;
+	poolSizes.push_back(initializers::descriptorPoolSize(VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, 2));
+	if (_uboSize > 0)
+		poolSizes.push_back(initializers::descriptorPoolSize(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1));
+
 	VkDescriptorPoolCreateInfo descriptorPoolInfo = initializers::descriptorPoolCreateInfo(poolSizes);
 	VK_CHECK_RESULT(vkCreateDescriptorPool(device, &descriptorPoolInfo, nullptr, &_descriptorPool));
 }
 
-void ComputeStep::buildComputeCommandBuffer() {
+void ComputeStepBase::buildComputeCommandBuffer() {
 	// Flush the queue if we're rebuilding the command buffer after a pipeline change to ensure it's not currently in use
 	vkQueueWaitIdle(_queue);
 
@@ -202,17 +233,19 @@ void ComputeStep::buildComputeCommandBuffer() {
 	vkCmdBindDescriptorSets(_cmdBuf, VK_PIPELINE_BIND_POINT_COMPUTE, _pipelineLayout, 0, 1, &_descriptorSet, 0, 0);
 
 	const VkExtent3D& extent = _dstImage->getImageInfo().extent;
-	vkCmdDispatch(_cmdBuf, extent.width / 16, extent.height / 16, 1);
+	uint32_t nw = extent.width / _localDim;
+	uint32_t nh = extent.height / _localDim;
+	vkCmdDispatch(_cmdBuf, nw, nh, 1);
 
 	vkEndCommandBuffer(_cmdBuf);
 }
 
-void ComputeStep::waitForFence() const {
+void ComputeStepBase::waitForFence() const {
 	VkDevice device = _dc->_device;
 	vkWaitForFences(device, 1, &_fence, VK_TRUE, UINT64_MAX);
 }
 
-void ComputeStep::submitCommands() {
+void ComputeStepBase::submitCommands() {
 	VkDevice device = _dc->_device;
 
 	waitForFence();

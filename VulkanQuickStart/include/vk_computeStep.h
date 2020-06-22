@@ -38,23 +38,27 @@ This file is part of the VulkanQuickStart Project.
 
 namespace VK {
 
-	class ComputeStep {
+	class ComputeStepBase {
 		// Uses a compute shader t process one image to another
 	public:
-		static ComputeStepPtr newPtr(const DeviceContextPtr& dc, const TextureImagePtr& srcImage, const TextureImagePtr& dstImage, const std::string& shaderId) {
-			ComputeStepPtr p = std::shared_ptr<ComputeStep>(new ComputeStep(dc, srcImage, dstImage, shaderId));
+		static ComputeStepBasePtr newPtr(const DeviceContextPtr& dc, const TextureImagePtr& srcImage, const TextureImagePtr& dstImage, const std::string& shaderId, size_t uboSize = 0) {
+			ComputeStepBasePtr p = std::shared_ptr<ComputeStepBase>(new ComputeStepBase(dc, srcImage, dstImage, shaderId, uboSize));
 			return p;
 		}
 
-		void setPriorStep(const ComputeStepPtr& prior);
+		void setLocalDim(int localDim);
+		void setPriorStep(const ComputeStepBasePtr& prior);
+
+		void build();
 		void submitCommands();
 
 		const TextureImagePtr& getResultImage() const;
 
-	private:
-		ComputeStep(const DeviceContextPtr& dc, const TextureImagePtr& srcImage, const TextureImagePtr& dstImage, const std::string& shaderId);
+		virtual void updateUbo();
 
-		void build();
+	protected:
+		ComputeStepBase(const DeviceContextPtr& dc, const TextureImagePtr& srcImage, const TextureImagePtr& dstImage, const std::string& shaderId, size_t uboSize);
+
 		void createComputeQueue();
 		void createDescriptorPool();
 		void createUniformBuffers();
@@ -62,13 +66,18 @@ namespace VK {
 		void createCompute();
 		void waitForFence() const;
 
+		uint32_t _queueFamilyIndex = 0;
+		size_t _uboSize = 0;
+
 		DeviceContextPtr _dc;
 
-		ComputeStepPtr _prior;
+		ComputeStepBasePtr _prior;
 		TextureImagePtr _srcImage, _dstImage;
 		std::string _shaderId;
+		BufferPtr _uboBuf;
 
 		VkQueue _queue = VK_NULL_HANDLE;
+		int _localDim = 16;
 		VkCommandBuffer _cmdBuf = VK_NULL_HANDLE;
 		VkFence _fence = VK_NULL_HANDLE;
 
@@ -78,15 +87,43 @@ namespace VK {
 		VkDescriptorSet _descriptorSet = VK_NULL_HANDLE;
 		VkPipelineLayout _pipelineLayout = VK_NULL_HANDLE;
 		VkPipeline _pipeline = VK_NULL_HANDLE;
-		int32_t _pipelineIndex = 0;
-		uint32_t _queueFamilyIndex = 0;
 	};
 
-	inline void ComputeStep::setPriorStep(const ComputeStepPtr& prior) {
+	inline void ComputeStepBase::setLocalDim(int localDim) {
+		_localDim = localDim;
+	}
+
+	inline void ComputeStepBase::setPriorStep(const ComputeStepBasePtr& prior) {
 		_prior = prior;
 	}
 
-	inline const TextureImagePtr& ComputeStep::getResultImage() const {
+	inline const TextureImagePtr& ComputeStepBase::getResultImage() const {
 		return _dstImage;
 	}
+
+	template<class UBO_TYPE>
+	class ComputeStep : public ComputeStepBase {
+	public:
+		using UboType = UBO_TYPE;
+		using PointerType = std::shared_ptr<ComputeStep<UBO_TYPE>>;
+		inline static std::shared_ptr<ComputeStep<UBO_TYPE>> newPtr(const DeviceContextPtr& dc, const TextureImagePtr& srcImage,
+			const TextureImagePtr& dstImage, const std::string& shaderId, const UBO_TYPE* ubo) {
+			auto p = std::shared_ptr<ComputeStep<UBO_TYPE>>(new ComputeStep<UBO_TYPE>(dc, srcImage, dstImage, shaderId, ubo));
+			return p;
+		}
+
+		void updateUbo() override {
+			_uboBuf->update(*_ubo);
+		}
+
+	private:
+		inline ComputeStep(const DeviceContextPtr& dc, const TextureImagePtr& srcImage, const TextureImagePtr& dstImage, const std::string& shaderId, const UBO_TYPE* ubo)
+			: ComputeStepBase(dc, srcImage, dstImage, shaderId, sizeof(UboType))
+			, _ubo(ubo)
+		{
+		}
+
+		const UboType* _ubo;
+	};
+
 }

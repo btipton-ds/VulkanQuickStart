@@ -50,17 +50,13 @@ namespace VK {
 		static void saveImageJpg(const std::string& filename, int width, int height, int numChannels, const char* data);
 
 		template<typename FUNC_TYPE>
-		size_t processImage(size_t bufSize, FUNC_TYPE func) const {
-			size_t newBufSize = imageSize();
-			if (bufSize != newBufSize)
-				return newBufSize;
+		void processImage(FUNC_TYPE func) const {
+			size_t bufSize = imageSize();
 
 			ImageCopier copier(_context, *this, bufSize);
 			ImageCopier::MappedMemory mem(copier);
 
 			func(mem.getData(), copier.getSubResourceLayout(), copier.getColorSwizzle());
-
-			return bufSize;
 		}
 
 		void saveImage(const std::string& filename) const;

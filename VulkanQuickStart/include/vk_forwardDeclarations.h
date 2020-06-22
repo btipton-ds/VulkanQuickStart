@@ -100,8 +100,8 @@ namespace VK {
 	class ModelPNC3f;
 	using ModelPNC3fPtr = std::shared_ptr<ModelPNC3f>;
 
-	class ComputeStep;
-	using ComputeStepPtr = std::shared_ptr<ComputeStep>;
+	class ComputeStepBase;
+	using ComputeStepBasePtr = std::shared_ptr<ComputeStepBase>;
 
 	class PipelinePNC3f;
 	using PipelinePNC3fPtr = std::shared_ptr<PipelinePNC3f>;

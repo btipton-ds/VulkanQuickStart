@@ -107,7 +107,7 @@ void Image::create(VkFormat format, VkImageUsageFlags usageFlags, uint32_t width
 	VkImageLayout layout;
 	if (usageFlags & VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT)
 		layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
-	else if (usageFlags & (VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT))
+	else if (usageFlags & (VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_STORAGE_BIT))
 		layout = VK_IMAGE_LAYOUT_GENERAL;
 	else
 		layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
@@ -599,15 +599,9 @@ void Image::saveImageJpg(const std::string& filename, int width, int height, int
 }
 
 void Image::saveImage(const std::string& filename) const {
-	size_t bufSize = processImage(0,
-		[](const char* p, const VkSubresourceLayout& vkLayout, bool colorSwizzle) {
-	});
-	if (bufSize != stm1) {
-		bufSize = processImage(bufSize,
-			[&](const char* p, const VkSubresourceLayout& vkLayout, bool colorSwizzle) {
-			saveImage(filename, vkLayout, colorSwizzle, p);
-		});
-	}
+	processImage([&](const char* p, const VkSubresourceLayout& vkLayout, bool colorSwizzle) {
+		saveImage(filename, vkLayout, colorSwizzle, p);
+	});	
 }
 
 size_t Image::getImageData(const char*& data, size_t bufSize) const {

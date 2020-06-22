@@ -65,7 +65,7 @@ This file is part of the VulkanQuickStart Project.
 #include <vk_pipelineUi.h>
 #include <vk_pipelineUboGroup.h>
 #include <vk_ui_window.h>
-#include <vk_computeQueue.h>
+#include <vk_computeStep.h>
 #include <vk_app.h>
 
 using namespace std;
@@ -307,7 +307,7 @@ size_t VulkanApp::addOffscreen(const OffscreenPassBasePtr& osp) {
 	return result;
 }
 
-size_t VulkanApp::addComputeStep(const ComputeStepPtr& step) {
+size_t VulkanApp::addComputeStep(const ComputeStepBasePtr& step) {
 	size_t result = _computeSteps.size();
 	_computeSteps.push_back(step);
 	changed();
@@ -975,6 +975,10 @@ void VulkanApp::updateUniformBuffer(uint32_t swapChainImageIndex) {
 			if (ospSpecific)
 				ospSpecific->setUbo(ubo);
 		}
+	}
+
+	for (const auto& step : _computeSteps) {
+		step->updateUbo();
 	}
 }
 
