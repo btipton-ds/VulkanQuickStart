@@ -63,27 +63,32 @@ find_package(Vulkan)
 
 add_library (
 VulkanQuickStartLib
+"vk_base/VulkanTools.cpp"
 "src/vk_app.cpp"
 "src/vk_buffer.cpp"
+"src/vk_computeStep.cpp" 
 "src/vk_deviceContext.cpp"
 "src/vk_image.cpp"
+"src/vk_imageCopier.cpp" 
 "src/vk_modelPNC3f.cpp"  
 "src/vk_modelPNCT3f.cpp"
+"src/vk_offscreenPassBase.cpp"  
 "src/vk_pipelineBase.cpp"
+
 "src/vk_pipelinePNC3f.cpp"
 "src/vk_pipelineUi.cpp"
+"src/vk_pipelinePNCT3f.cpp"
+"src/vk_pipelineUboGroup.cpp" 
 "src/vk_sceneNodeBase.cpp"
 "src/vk_sceneNodePNC3f.cpp"
+"src/vk_sceneNodePNCT3f.cpp"
+"src/vk_sceneNodeUi.cpp"
 "src/vk_shaderPool.cpp"
 "src/vk_textureImage.cpp"
+"src/vk_vertexTypes.cpp" 
 "src/vk_ui_button.cpp" 
 "src/vk_ui_window.cpp"
-"src/vk_sceneNodePNCT3f.cpp"
-"src/vk_pipelinePNCT3f.cpp"
-"src/vk_sceneNodeUi.cpp"
-"vk_base/VulkanTools.cpp"
-"src/vk_imageCopier.cpp" 
-"src/vk_offscreenPassBase.cpp"  "src/vk_pipelineUboGroup.cpp" "src/vk_computeStep.cpp")
+ "src/vk_sceneNodeImageProc.cpp")
 
 target_compile_features(VulkanQuickStartLib PRIVATE cxx_std_17)
 

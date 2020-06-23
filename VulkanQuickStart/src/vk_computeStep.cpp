@@ -123,14 +123,6 @@ void ComputeStepBase::createCompute() {
 	// Create compute pipeline
 	// Compute pipelines are created separate from graphics pipelines even if they use the same queue
 
-	VkDescriptorSetLayoutBinding uboLayoutBinding = {};
-	uboLayoutBinding.binding = 0;
-	uboLayoutBinding.descriptorCount = 1;
-	uboLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-	uboLayoutBinding.pImmutableSamplers = nullptr;
-	uboLayoutBinding.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
-
-
 	std::vector<VkDescriptorSetLayoutBinding> setLayoutBindings;
 	uint32_t bindingIdx = 0;
 

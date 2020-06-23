@@ -77,9 +77,6 @@ namespace VK {
 	template<class VERT_TYPE>
 	class SceneNode;
 
-	template<class VERT_TYPE>
-	using SceneNodePtr = std::shared_ptr<SceneNode<VERT_TYPE>>;
-
 	class PipelineUi;
 	using PipelineUiPtr = std::shared_ptr<PipelineUi>;
 

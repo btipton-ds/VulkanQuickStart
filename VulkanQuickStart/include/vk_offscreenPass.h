@@ -59,6 +59,7 @@ namespace VK {
 		bool updateUbo() override;
 
 		void setUbo(const UBO_TYPE& ubo);
+		const UBO_TYPE& getUbo() const;
 		void setAntiAliasSamples(VkSampleCountFlagBits samples);
 
 		void cleanupSwapChain() override;
@@ -145,6 +146,11 @@ namespace VK {
 	template<class UBO_TYPE>
 	inline void OffscreenPass<UBO_TYPE>::setUbo(const UBO_TYPE& ubo) {
 		_pipelines->setUbo(ubo, 0);
+	}
+
+	template<class UBO_TYPE>
+	const UBO_TYPE& OffscreenPass<UBO_TYPE>::getUbo() const {
+		return _pipelines->getUbo();
 	}
 
 	template<class UBO_TYPE>

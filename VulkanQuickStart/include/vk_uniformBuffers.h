@@ -62,5 +62,13 @@ namespace VK {
 		alignas(16) glm::vec3 lightDir[2];
 	};
 
+	struct UBOImageProc {
+		unsigned int _dstWidth = 0;
+		unsigned int _dstHeight = 0;
+
+		unsigned int _srcWidth = 0;
+		unsigned int _srcHeight = 0;
+	};
+
 }
 

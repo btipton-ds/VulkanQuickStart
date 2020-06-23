@@ -91,7 +91,6 @@ namespace VK {
 		}
 
 		std::vector<BindingPtr> _sceneNodeBindings;
-		//		SceneNodeList _sceneNodeBindings;
 	};
 
 	template<class PIPELINE_TYPE>

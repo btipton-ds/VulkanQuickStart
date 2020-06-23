@@ -43,69 +43,26 @@ This file is part of the VulkanQuickStart Project.
 
 namespace VK {
 
+	struct Vertex2_Pf {
+		glm::vec2 pos;
+		static VkVertexInputBindingDescription getBindingDescription();
+		static std::vector<VkVertexInputAttributeDescription> getAttributeDescriptions();
+	};
+
 	struct Vertex2_PTf {
 		glm::vec2 pos;
 		glm::vec2 texCoord;
 
-		static inline VkVertexInputBindingDescription getBindingDescription() {
-			VkVertexInputBindingDescription bindingDescription = {};
-			bindingDescription.binding = 0;
-			bindingDescription.stride = sizeof(Vertex2_PTf);
-			bindingDescription.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
-
-			return bindingDescription;
-		}
-
-		static inline std::vector<VkVertexInputAttributeDescription> getAttributeDescriptions() {
-			std::vector<VkVertexInputAttributeDescription> attributeDescriptions;
-
-			attributeDescriptions.resize(2);
-
-			size_t idx = 0;
-			attributeDescriptions[idx].binding = 0;
-			attributeDescriptions[idx].location = (uint32_t)idx;
-			attributeDescriptions[idx].format = VK_FORMAT_R32G32_SFLOAT;
-			attributeDescriptions[idx].offset = offsetof(Vertex2_PTf, pos);
-
-			idx++;
-			attributeDescriptions[idx].binding = 0;
-			attributeDescriptions[idx].location = (uint32_t)idx;
-			attributeDescriptions[idx].format = VK_FORMAT_R32G32_SFLOAT;
-			attributeDescriptions[idx].offset = offsetof(Vertex2_PTf, texCoord);
-			return attributeDescriptions;
-		}
-
+		static VkVertexInputBindingDescription getBindingDescription();
+		static std::vector<VkVertexInputAttributeDescription> getAttributeDescriptions();
 	};
 
 	struct Vertex2Cd {
 		glm::f64vec2 pos;
 		glm::vec3 color;
 
-		static inline VkVertexInputBindingDescription getBindingDescription() {
-			VkVertexInputBindingDescription bindingDescription = {};
-			bindingDescription.binding = 0;
-			bindingDescription.stride = sizeof(Vertex2Cd);
-			bindingDescription.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
-
-			return bindingDescription;
-		}
-
-		static inline std::array<VkVertexInputAttributeDescription, 2> getAttributeDescriptions() {
-			std::array<VkVertexInputAttributeDescription, 2> attributeDescriptions = {};
-
-			attributeDescriptions[0].binding = 0;
-			attributeDescriptions[0].location = 0;
-			attributeDescriptions[0].format = VK_FORMAT_R64G64_SFLOAT;
-			attributeDescriptions[0].offset = offsetof(Vertex2Cd, pos);
-
-			attributeDescriptions[1].binding = 0;
-			attributeDescriptions[1].location = 1;
-			attributeDescriptions[1].format = VK_FORMAT_R32G32B32_SFLOAT;
-			attributeDescriptions[1].offset = offsetof(Vertex2Cd, color);
-
-			return attributeDescriptions;
-		}
-
+		static VkVertexInputBindingDescription getBindingDescription();
+		static std::array<VkVertexInputAttributeDescription, 2> getAttributeDescriptions();
 	};
 
 	struct Vertex3_PNCf {
@@ -113,42 +70,9 @@ namespace VK {
 		glm::vec3 norm;
 		glm::vec3 color;
 
-		static VkVertexInputBindingDescription getBindingDescription() {
-			VkVertexInputBindingDescription bindingDescription = {};
-			bindingDescription.binding = 0;
-			bindingDescription.stride = sizeof(Vertex3_PNCf);
-			bindingDescription.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
-
-			return bindingDescription;
-		}
-
-		static std::vector<VkVertexInputAttributeDescription> getAttributeDescriptions() {
-			std::vector<VkVertexInputAttributeDescription> attributeDescriptions;
-			attributeDescriptions.resize(3);
-
-			attributeDescriptions[0].binding = 0;
-			attributeDescriptions[0].location = 0;
-			attributeDescriptions[0].format = VK_FORMAT_R32G32B32_SFLOAT;
-			attributeDescriptions[0].offset = offsetof(Vertex3_PNCf, pos);
-
-			attributeDescriptions[1].binding = 0;
-			attributeDescriptions[1].location = 1;
-			attributeDescriptions[1].format = VK_FORMAT_R32G32B32_SFLOAT;
-			attributeDescriptions[1].offset = offsetof(Vertex3_PNCf, norm);
-
-			attributeDescriptions[2].binding = 0;
-			attributeDescriptions[2].location = 2;
-			attributeDescriptions[2].format = VK_FORMAT_R32G32B32_SFLOAT;
-			attributeDescriptions[2].offset = offsetof(Vertex3_PNCf, color);
-
-			return attributeDescriptions;
-		}
-
-		bool operator==(const Vertex3_PNCf& other) const {
-			return pos == other.pos &&
-				norm == other.norm &&
-				color == other.color;
-		}
+		static VkVertexInputBindingDescription getBindingDescription();
+		static std::vector<VkVertexInputAttributeDescription> getAttributeDescriptions();
+		bool operator==(const Vertex3_PNCf& other) const;
 	};
 
 	struct Vertex3_PNCTf {
@@ -158,58 +82,8 @@ namespace VK {
 		glm::vec2 texCoord;
 		int texId; // negative value means no texture bound
 
-		static VkVertexInputBindingDescription getBindingDescription() {
-			VkVertexInputBindingDescription bindingDescription = {};
-			bindingDescription.binding = 0;
-			bindingDescription.stride = sizeof(Vertex3_PNCTf);
-			bindingDescription.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
-
-			return bindingDescription;
-		}
-
-		static std::vector<VkVertexInputAttributeDescription> getAttributeDescriptions() {
-			std::vector<VkVertexInputAttributeDescription> attributeDescriptions;
-			attributeDescriptions.resize(5);
-
-			uint32_t idx = 0;
-			attributeDescriptions[idx].binding = 0;
-			attributeDescriptions[idx].location = idx;
-			attributeDescriptions[idx].format = VK_FORMAT_R32G32B32_SFLOAT;
-			attributeDescriptions[idx].offset = offsetof(Vertex3_PNCTf, pos);
-
-			idx++;
-			attributeDescriptions[idx].binding = 0;
-			attributeDescriptions[idx].location = idx;
-			attributeDescriptions[idx].format = VK_FORMAT_R32G32B32_SFLOAT;
-			attributeDescriptions[idx].offset = offsetof(Vertex3_PNCTf, norm);
-
-			idx++;
-			attributeDescriptions[idx].binding = 0;
-			attributeDescriptions[idx].location = idx;
-			attributeDescriptions[idx].format = VK_FORMAT_R32G32B32_SFLOAT;
-			attributeDescriptions[idx].offset = offsetof(Vertex3_PNCTf, color);
-
-			idx++;
-			attributeDescriptions[idx].binding = 0;
-			attributeDescriptions[idx].location = idx;
-			attributeDescriptions[idx].format = VK_FORMAT_R32G32_SFLOAT;
-			attributeDescriptions[idx].offset = offsetof(Vertex3_PNCTf, texCoord);
-
-			idx++;
-			attributeDescriptions[idx].binding = 0;
-			attributeDescriptions[idx].location = idx;
-			attributeDescriptions[idx].format = VK_FORMAT_R32_SINT;
-			attributeDescriptions[idx].offset = offsetof(Vertex3_PNCTf, texId);
-
-			return attributeDescriptions;
-		}
-
-		bool operator==(const Vertex3_PNCTf& other) const {
-			return pos == other.pos && 
-				norm == other.norm &&
-				color == other.color &&
-				texCoord == other.texCoord &&
-				texId == other.texId;
-		}
+		static VkVertexInputBindingDescription getBindingDescription();
+		static std::vector<VkVertexInputAttributeDescription> getAttributeDescriptions();
+		bool operator==(const Vertex3_PNCTf& other) const;
 	};
 }
