@@ -66,6 +66,7 @@ This file is part of the VulkanQuickStart Project.
 #include <vk_pipelineUboGroup.h>
 #include <vk_ui_window.h>
 #include <vk_computeStep.h>
+#include <vk_postDrawTask.h>
 #include <vk_app.h>
 
 using namespace std;
@@ -217,6 +218,12 @@ void VulkanApp::initVulkan() {
 }
 
 void VulkanApp::recreateSwapChain() {
+	if (_uiWindow)
+		_uiWindowChangeNumber = _uiWindow->getChangeNumber();
+	_lastChangeNumber = _changeNumber;
+	_framebufferResized = false;
+	_pipelines->resized(_frameRect);
+
 	int width = 0, height = 0;
 	while (width == 0 || height == 0) {
 		glfwGetFramebufferSize(_window, &width, &height);
@@ -314,6 +321,13 @@ size_t VulkanApp::addComputeStep(const ComputeStepBasePtr& step) {
 	return result;
 }
 
+size_t VulkanApp::addPostDrawTask(const PostDrawTaskPtr& task) {
+	size_t result = _postDrawTasks.size();
+	_postDrawTasks.push_back(task);
+	changed();
+	return result;
+}
+
 void VulkanApp::cleanup() {
 	for (const auto& osp : _offscreenPasses)
 		osp->cleanup();
@@ -321,13 +335,13 @@ void VulkanApp::cleanup() {
 	cleanupSwapChain();
 
 	if (enableValidationLayers) {
-		DestroyDebugUtilsMessengerEXT(instance, debugMessenger, nullptr);
+		DestroyDebugUtilsMessengerEXT(_instance, _debugMessenger, nullptr);
 	}
 
 	_deviceContext->destroy();
 
-	vkDestroySurfaceKHR(instance, surface, nullptr);
-	vkDestroyInstance(instance, nullptr);
+	vkDestroySurfaceKHR(_instance, _surface, nullptr);
+	vkDestroyInstance(_instance, nullptr);
 
 	glfwDestroyWindow(_window);
 
@@ -369,7 +383,7 @@ void VulkanApp::createInstance() {
 		createInfo.pNext = nullptr;
 	}
 
-	if (vkCreateInstance(&createInfo, nullptr, &instance) != VK_SUCCESS) {
+	if (vkCreateInstance(&createInfo, nullptr, &_instance) != VK_SUCCESS) {
 		throw std::runtime_error("failed to create instance!");
 	}
 }
@@ -388,27 +402,27 @@ void VulkanApp::setupDebugMessenger() {
 	VkDebugUtilsMessengerCreateInfoEXT createInfo;
 	populateDebugMessengerCreateInfo(createInfo);
 
-	if (CreateDebugUtilsMessengerEXT(instance, &createInfo, nullptr, &debugMessenger) != VK_SUCCESS) {
+	if (CreateDebugUtilsMessengerEXT(_instance, &createInfo, nullptr, &_debugMessenger) != VK_SUCCESS) {
 		throw std::runtime_error("failed to set up debug messenger!");
 	}
 }
 
 void VulkanApp::createSurface() {
-	if (glfwCreateWindowSurface(instance, _window, nullptr, &surface) != VK_SUCCESS) {
+	if (glfwCreateWindowSurface(_instance, _window, nullptr, &_surface) != VK_SUCCESS) {
 		throw std::runtime_error("failed to create window surface!");
 	}
 }
 
 void VulkanApp::pickPhysicalDevice() {
 	uint32_t deviceCount = 0;
-	vkEnumeratePhysicalDevices(instance, &deviceCount, nullptr);
+	vkEnumeratePhysicalDevices(_instance, &deviceCount, nullptr);
 
 	if (deviceCount == 0) {
 		throw std::runtime_error("failed to find GPUs with Vulkan support!");
 	}
 
 	std::vector<VkPhysicalDevice> devices(deviceCount);
-	vkEnumeratePhysicalDevices(instance, &deviceCount, devices.data());
+	vkEnumeratePhysicalDevices(_instance, &deviceCount, devices.data());
 
 	for (const auto& device : devices) {
 		if (isDeviceSuitable(device)) {
@@ -467,7 +481,7 @@ void VulkanApp::createLogicalDevice() {
 	}
 
 	vkGetDeviceQueue(_deviceContext->_device, indices.graphicsFamily, 0, &_deviceContext->_graphicsQueue);
-	vkGetDeviceQueue(_deviceContext->_device, indices.presentFamily, 0, &presentQueue);
+	vkGetDeviceQueue(_deviceContext->_device, indices.presentFamily, 0, &_presentQueue);
 
 	vkGetPhysicalDeviceMemoryProperties(_deviceContext->_physicalDevice, &_deviceContext->_memoryProperties);
 }
@@ -486,7 +500,7 @@ void VulkanApp::createSwapChain() {
 
 	VkSwapchainCreateInfoKHR createInfo = {};
 	createInfo.sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
-	createInfo.surface = surface;
+	createInfo.surface = _surface;
 
 	createInfo.minImageCount = imageCount;
 	createInfo.imageFormat = surfaceFormat.format;
@@ -982,7 +996,23 @@ void VulkanApp::updateUniformBuffer(uint32_t swapChainImageIndex) {
 	}
 }
 
+inline bool VulkanApp::recreateSwapChainIfNeeded(VkResult result) {
+	// TODO, per scene node change numbers.
+	bool needToRecreate = false;
+
+	if (_uiWindow)
+		needToRecreate = _uiWindow->getChangeNumber() != _uiWindowChangeNumber || needToRecreate;
+
+	needToRecreate = (result == VK_ERROR_OUT_OF_DATE_KHR || _changeNumber > _lastChangeNumber) || _framebufferResized;
+
+	if (needToRecreate) {
+		recreateSwapChain();
+	}
+	return needToRecreate;
+}
+
 void VulkanApp::drawFrame() {
+	// TODO Cache this state on _pipelines so we stop doing the loop
 	size_t numSceneNodes = 0;
 	_pipelines->iterate([&](const PipelinePtr& pipeline) {
 		// TODO, add update buffers call here.
@@ -998,21 +1028,7 @@ void VulkanApp::drawFrame() {
 	VkResult result = vkAcquireNextImageKHR(_deviceContext->_device, _swapChain._vkSwapChain, std::numeric_limits<uint64_t>::max(),
 		semaphore, VK_NULL_HANDLE, &_swapChainIndex);
 
-	bool needToRecreate = false;
-
-	if (_uiWindow)
-		needToRecreate = _uiWindow->getChangeNumber() != _uiWindowChangeNumber || needToRecreate;
-
-	needToRecreate = (result == VK_ERROR_OUT_OF_DATE_KHR || _changeNumber > _lastChangeNumber) || _framebufferResized;
-
-	// TODO, per scene node change numbers.
-	if (needToRecreate) {
-		if (_uiWindow)
-			_uiWindowChangeNumber = _uiWindow->getChangeNumber();
-		_lastChangeNumber = _changeNumber;
-		_framebufferResized = false;
-		_pipelines->resized(_frameRect);
-		recreateSwapChain();
+	if (recreateSwapChainIfNeeded(result)) {
 		return;
 	}
 	else if (result != VK_SUCCESS && result != VK_SUBOPTIMAL_KHR) {
@@ -1020,7 +1036,21 @@ void VulkanApp::drawFrame() {
 	}
 
 	updateUniformBuffer(_swapChainIndex);
+	submitGraphicsQueue();
+	submitComputeCommands();
+	presentQueueKHR();
 
+	doPostDrawTasks();
+
+	_deviceContext->nextFrame();
+}
+
+void VulkanApp::submitGraphicsQueue() {
+	_deviceContext->submitGraphicsQueue(_commandBuffers[_swapChainIndex]);
+}
+
+void VulkanApp::presentQueueKHR() {
+	VkSemaphore semaphore = _deviceContext->getImageAvailableSemaphore();
 	VkSubmitInfo submitInfo = {};
 	submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
 
@@ -1033,19 +1063,15 @@ void VulkanApp::drawFrame() {
 	submitInfo.commandBufferCount = 1;
 	submitInfo.pCommandBuffers = &_commandBuffers[_swapChainIndex];
 
-	VkSemaphore signalSemaphores[] = { _deviceContext->getRenderFinishedSemaphore() };
+	VkSemaphore signalSemaphores = _deviceContext->getRenderFinishedSemaphore();
 	submitInfo.signalSemaphoreCount = 1;
-	submitInfo.pSignalSemaphores = signalSemaphores;
-
-	_deviceContext->submitQueue(1, &submitInfo);
-
-	submitComputeCommands();
+	submitInfo.pSignalSemaphores = &signalSemaphores;
 
 	VkPresentInfoKHR presentInfo = {};
 	presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
 
 	presentInfo.waitSemaphoreCount = 1;
-	presentInfo.pWaitSemaphores = signalSemaphores;
+	presentInfo.pWaitSemaphores = &signalSemaphores;
 
 	VkSwapchainKHR swapChains[] = { _swapChain._vkSwapChain };
 	presentInfo.swapchainCount = 1;
@@ -1053,7 +1079,7 @@ void VulkanApp::drawFrame() {
 
 	presentInfo.pImageIndices = &_swapChainIndex;
 
-	result = vkQueuePresentKHR(presentQueue, &presentInfo);
+	VkResult result = vkQueuePresentKHR(_presentQueue, &presentInfo);
 
 	if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR || _changeNumber > _lastChangeNumber) {
 		_lastChangeNumber = _changeNumber;
@@ -1062,8 +1088,11 @@ void VulkanApp::drawFrame() {
 	else if (result != VK_SUCCESS) {
 		throw std::runtime_error("failed to present swap chain image!");
 	}
+}
 
-	_deviceContext->nextFrame();
+void VulkanApp::doPostDrawTasks() const {
+	for (const auto& task : _postDrawTasks)
+		task->doPostDrawTask(); // Has an overly specific name because it may be used as a mix in base class
 }
 
 void VulkanApp::submitComputeCommands() {
@@ -1137,22 +1166,22 @@ VkExtent2D VulkanApp::getWindowExtent(const VkSurfaceCapabilitiesKHR& capabiliti
 VulkanApp::SwapChainSupportDetails VulkanApp::querySwapChainSupport(VkPhysicalDevice device) {
 	SwapChainSupportDetails details;
 
-	vkGetPhysicalDeviceSurfaceCapabilitiesKHR(device, surface, &details.capabilities);
+	vkGetPhysicalDeviceSurfaceCapabilitiesKHR(device, _surface, &details.capabilities);
 
 	uint32_t formatCount;
-	vkGetPhysicalDeviceSurfaceFormatsKHR(device, surface, &formatCount, nullptr);
+	vkGetPhysicalDeviceSurfaceFormatsKHR(device, _surface, &formatCount, nullptr);
 
 	if (formatCount != 0) {
 		details.formats.resize(formatCount);
-		vkGetPhysicalDeviceSurfaceFormatsKHR(device, surface, &formatCount, details.formats.data());
+		vkGetPhysicalDeviceSurfaceFormatsKHR(device, _surface, &formatCount, details.formats.data());
 	}
 
 	uint32_t presentModeCount;
-	vkGetPhysicalDeviceSurfacePresentModesKHR(device, surface, &presentModeCount, nullptr);
+	vkGetPhysicalDeviceSurfacePresentModesKHR(device, _surface, &presentModeCount, nullptr);
 
 	if (presentModeCount != 0) {
 		details.presentModes.resize(presentModeCount);
-		vkGetPhysicalDeviceSurfacePresentModesKHR(device, surface, &presentModeCount, details.presentModes.data());
+		vkGetPhysicalDeviceSurfacePresentModesKHR(device, _surface, &presentModeCount, details.presentModes.data());
 	}
 
 	return details;
@@ -1207,7 +1236,7 @@ VulkanApp::QueueFamilyIndices VulkanApp::findQueueFamilies(VkPhysicalDevice devi
 		}
 
 		VkBool32 presentSupport = false;
-		vkGetPhysicalDeviceSurfaceSupportKHR(device, i, surface, &presentSupport);
+		vkGetPhysicalDeviceSurfaceSupportKHR(device, i, _surface, &presentSupport);
 
 		if (queueFamily.queueCount > 0 && presentSupport) {
 			indices.presentFamily = i;

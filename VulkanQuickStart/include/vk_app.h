@@ -73,7 +73,6 @@ namespace VK {
 		public:
 			virtual void updateVkApp() = 0;
 		};
-
 		using UpdaterPtr = std::shared_ptr<Updater>;
 
 		static VulkanAppPtr create(const VkRect2D& rect);
@@ -100,6 +99,7 @@ namespace VK {
 		VK::PipelinePtr<PIPELINE_TYPE> addPipelineWithSource(const std::string& shaderId, const std::vector<std::string>& filenames);
 		size_t addOffscreen(const OffscreenPassBasePtr& osp);
 		size_t addComputeStep(const ComputeStepBasePtr& step);
+		size_t addPostDrawTask(const PostDrawTaskPtr& task);
 
 		const DeviceContextPtr& getDeviceContext() const;
 
@@ -185,7 +185,11 @@ namespace VK {
 		void updateUBO(const VkExtent2D& extent, const BoundingBox& modelBounds, UboType& ubo) const;
 		void reportFPS();
 		void drawFrame();
+		void submitGraphicsQueue();
 		void submitComputeCommands();
+		void presentQueueKHR();
+		bool recreateSwapChainIfNeeded(VkResult result) ;
+		void doPostDrawTasks() const;
 
 		VkShaderModule createShaderModule(const std::vector<char>& code);
 		VkSurfaceFormatKHR chooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& availableFormats);
@@ -211,12 +215,12 @@ namespace VK {
 		
 		glm::mat4 _modelToWorld;
 		double _modelScale = 1.0;
-		VkSurfaceKHR surface;
+		VkSurfaceKHR _surface;
 		size_t _changeNumber = 0, _lastChangeNumber = 0, _uiWindowChangeNumber = 0;
 		uint32_t _swapChainIndex;
 
-		VkInstance instance;
-		VkDebugUtilsMessengerEXT debugMessenger;
+		VkInstance _instance;
+		VkDebugUtilsMessengerEXT _debugMessenger;
 
 		DeviceContextPtr _deviceContext;
 
@@ -225,11 +229,12 @@ namespace VK {
 		VkSampleCountFlagBits _maxMsaaSamples = VK_SAMPLE_COUNT_1_BIT;
 		VkSampleCountFlagBits _msaaSamples = VK_SAMPLE_COUNT_1_BIT;
 
-		VkQueue presentQueue;
+		VkQueue _presentQueue;
 		SwapChain _swapChain;
 
 		double _targetFrameDurationMillis = -1;
 		std::vector<OffscreenPassBasePtr> _offscreenPasses;
+		std::vector<PostDrawTaskPtr> _postDrawTasks;
 		PipelineGroupTypePtr _pipelines;
 		std::vector<ComputeStepBasePtr> _computeSteps;
 

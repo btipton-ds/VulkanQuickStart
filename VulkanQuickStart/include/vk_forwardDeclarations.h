@@ -56,6 +56,9 @@ namespace VK {
 	class TextureImage;
 	using TextureImagePtr = std::shared_ptr<TextureImage>;
 
+	class PostDrawTask;
+	using PostDrawTaskPtr = std::shared_ptr<PostDrawTask>;
+
 	class VulkanApp;
 	using VulkanAppPtr = std::shared_ptr<class VulkanApp>;
 

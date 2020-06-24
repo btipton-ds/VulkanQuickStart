@@ -50,7 +50,7 @@ namespace VK {
 		void waitForInFlightFence();
 		VkSemaphore getImageAvailableSemaphore() const;
 		VkSemaphore getRenderFinishedSemaphore() const;
-		void submitQueue(uint32_t size, const VkSubmitInfo* submitInfoArr);
+		void submitGraphicsQueue(VkCommandBuffer cmdBuf);
 		void nextFrame();
 
 		uint32_t findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties) const;

@@ -71,10 +71,26 @@ void DeviceContext::createSyncObjects() {
 	}
 }
 
-void DeviceContext::submitQueue(uint32_t size, const VkSubmitInfo* submitInfoArr) {
+void DeviceContext::submitGraphicsQueue(VkCommandBuffer cmdBuf) {
+	VkSemaphore semaphore = _imageAvailableSemaphores[_currentFrame];
+	VkSubmitInfo submitInfo = {};
+	submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+
+	VkPipelineStageFlags waitStages= VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+	submitInfo.waitSemaphoreCount = 1;
+	submitInfo.pWaitSemaphores = &semaphore;
+	submitInfo.pWaitDstStageMask = &waitStages;
+
+	submitInfo.commandBufferCount = 1;
+	submitInfo.pCommandBuffers = &cmdBuf;
+
+	VkSemaphore signalSemaphores = _renderFinishedSemaphores[_currentFrame];
+	submitInfo.signalSemaphoreCount = 1;
+	submitInfo.pSignalSemaphores = &signalSemaphores;
+
 	vkResetFences(_device, 1, &_inFlightFences[_currentFrame]);
 
-	if (vkQueueSubmit(_graphicsQueue, size, submitInfoArr, _inFlightFences[_currentFrame]) != VK_SUCCESS) {
+	if (vkQueueSubmit(_graphicsQueue, 1, &submitInfo, _inFlightFences[_currentFrame]) != VK_SUCCESS) {
 		throw std::runtime_error("failed to submit draw command buffer!");
 	}
 }
