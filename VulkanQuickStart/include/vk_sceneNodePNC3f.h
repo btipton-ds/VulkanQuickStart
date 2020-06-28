@@ -41,13 +41,13 @@ This file is part of the VulkanQuickStart Project.
 #include <vk_vertexTypes.h>
 #include <vk_sceneNode.h>
 #include <vk_uniformBuffers.h>
+#include <vk_transformFunc.h>
 
 namespace VK {
 
 	class SceneNodePNC3f : public SceneNode<Vertex3_PNCf> {
 	public:
 		using BoundingBox = CBoundingBox3Df;
-		using XformFuncType = std::function<glm::mat4(const glm::mat4& src)>;
 
 		SceneNodePNC3f(const VulkanAppPtr& app);
 		virtual ~SceneNodePNC3f();
@@ -58,20 +58,20 @@ namespace VK {
 		const glm::mat4& getModelTransform() const;
 		glm::mat4& getModelTransform();
 
-		template<typename FUNC_TYPE>
-		void setModelTransformFunc(FUNC_TYPE func);
+		void setModelTransformFunc(const TransformFuncPtr& func);
 
 		template<class UBO_TYPE>
 		inline void updateUbo(UBO_TYPE& ubo) const {
-			if (_modelXFormFunc)
-				ubo.modelView *= _modelXFormFunc(_modelXForm);
+			glm::mat4 xform = glm::identity<glm::mat4>();
+			if (_modelXFormFunc && _modelXFormFunc->update(xform))
+				ubo.modelView *= _modelXForm * xform;
 			else
 				ubo.modelView *= _modelXForm;
 		}
 
 	private:
 		glm::mat4 _modelXForm;
-		XformFuncType _modelXFormFunc;
+		TransformFuncPtr _modelXFormFunc;
 	};
 	using SceneNodePNC3fPtr = std::shared_ptr<SceneNodePNC3f>;
 	using SceneNodePNC3fConstPtr = std::shared_ptr<const SceneNodePNC3f>;
@@ -88,8 +88,7 @@ namespace VK {
 		return _modelXForm;
 	}
 
-	template<typename FUNC_TYPE>
-	inline void SceneNodePNC3f::setModelTransformFunc(FUNC_TYPE func) {
+	inline void SceneNodePNC3f::setModelTransformFunc(const TransformFuncPtr& func) {
 		_modelXFormFunc = func;
 	}
 

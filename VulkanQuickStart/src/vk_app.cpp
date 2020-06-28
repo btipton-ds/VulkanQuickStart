@@ -965,9 +965,7 @@ void VulkanApp::updateUniformBuffer(uint32_t swapChainImageIndex) {
 	});
 
 	UniformBufferObject3D ubo;
-	if (_uboUpdater) {
-		ubo = _uboUpdater(_swapChain._extent.width, _swapChain._extent.height);
-	} else {
+	if (!_uboUpdater || !_uboUpdater(_swapChain._extent.width, _swapChain._extent.height, ubo)) {
 		updateUBO(_swapChain._extent, modelBounds, ubo);
 	}
 	_pipelines->setUbo(ubo, swapChainImageIndex);
@@ -979,10 +977,7 @@ void VulkanApp::updateUniformBuffer(uint32_t swapChainImageIndex) {
 	for (const OffscreenPassBasePtr& osp : _offscreenPasses) {
 		if (!osp->updateUbo()) {
 			const auto& rect = osp->getRect();
-			if (_uboUpdater) {
-				ubo = _uboUpdater(rect.extent.width, rect.extent.height);
-			}
-			else {
+			if (!_uboUpdater || !_uboUpdater(rect.extent.width, rect.extent.height, ubo)) {
 				updateUBO(rect.extent, modelBounds, ubo);
 			}
 			OffscreenPass3D::PointerType ospSpecific = dynamic_pointer_cast<OffscreenPass3D>(osp);

@@ -47,7 +47,6 @@ namespace VK {
 	class SceneNodePNCT3f : public SceneNode<Vertex3_PNCTf> {
 	public:
 		using BoundingBox = CBoundingBox3Df;
-		using XformFuncType = std::function<glm::mat4(const glm::mat4& src)>;
 
 		SceneNodePNCT3f(const VulkanAppPtr& app);
 
@@ -62,15 +61,16 @@ namespace VK {
 
 		template<class UBO_TYPE>
 		inline void updateUbo(UBO_TYPE& ubo) const {
-			if (_modelXFormFunc)
-				ubo.modelView *= _modelXFormFunc(_modelXForm);
+			glm::mat4 xform = glm::identity<glm::mat4>();
+			if (_modelXFormFunc && _modelXFormFunc->update(xform))
+				ubo.modelView *= _modelXForm * xform;
 			else
 				ubo.modelView *= _modelXForm;
 		}
 
 	private:
 		glm::mat4 _modelXForm;
-		XformFuncType _modelXFormFunc;
+		TransformFuncPtr _modelXFormFunc;
 	};
 
 	using SceneNodePNCT3fPtr = std::shared_ptr<SceneNodePNCT3f>;

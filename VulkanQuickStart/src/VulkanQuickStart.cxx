@@ -49,6 +49,7 @@ This file is part of the VulkanQuickStart Project.
 #include <vk_pipelineGroup.h>
 #include <vk_pipelinePNCT3f.h>
 #include <vk_pipelinePNC3f.h>
+#include <vk_transformFunc.h>
 
 #include <triMesh.h>
 #include <readStl.h>
@@ -192,6 +193,26 @@ void buildUi(UI::WindowPtr& gui) {
 }
 #endif
 
+namespace {
+	class UpdateFunc : public VK::TransformFunc {
+	public:
+		UpdateFunc(double rpm, const glm::vec3& axis)
+			: _rpm(rpm)
+			, _axis(axis)
+		{}
+		bool update(glm::mat4& xform) override {
+			double revs = gApp->getRuntimeMillis() / 1000.0 * (_rpm / 60.0);
+			while (revs > 1)
+				revs -= 1;
+
+			xform *= glm::rotate(glm::mat4(1.0f), (float)(2 * EIGEN_PI * revs), _axis);
+			return true;
+		}
+	private:
+		double _rpm;
+		glm::vec3 _axis;
+	};
+}
 void addObj() {
 #if TEST_OBJ
 	glm::mat4 xform;
@@ -201,31 +222,15 @@ void addObj() {
 
 	xform = glm::rotate(glm::mat4(1.0f), glm::radians(90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
 	plant->setModelTransform(xform);
-	plant->setModelTransformFunc([&](const glm::mat4& src)->glm::mat4 {
-		double revs = gApp->getRuntimeMillis() / 1000.0 * (15.0 / 60.0);
-		while (revs > 1)
-			revs -= 1;
-
-		glm::mat4 xform(src);
-		xform *= glm::rotate(glm::mat4(1.0f), (float)(2 * EIGEN_PI * revs), glm::vec3(0.0f, 1.0f, 0.0f));
-
-		return xform;
-	});
+	auto xformFunc = make_shared<UpdateFunc>(15, glm::vec3(0.0f, 1.0f, 0.0f));
+	plant->setModelTransformFunc(xformFunc);
 
 	dna = ModelPNCT3f::create(gApp, dnaPath, dnaFilename);
 	pipeline3DWSampler.addSceneNode(dna);
 	xform = glm::translate(glm::mat4(1.0f), glm::vec3(0, 10, 0));
 	dna->setModelTransform(xform);
-	dna->setModelTransformFunc([&](const glm::mat4& src)->glm::mat4 {
-		double revs = gApp->getRuntimeMillis() / 1000.0 * (15.0 / 120.0);
-		while (revs > 1)
-			revs -= 1;
-
-		glm::mat4 xform(src);
-		xform *= glm::rotate(glm::mat4(1.0f), (float)(2 * EIGEN_PI * revs), glm::vec3(0.0f, 0.0f, 1.0f));
-
-		return xform;
-	});
+	xformFunc = make_shared<UpdateFunc>(15, glm::vec3(0.0f, 0.0f, 1.0f));
+	dna->setModelTransformFunc(xformFunc);
 
 	apricot = ModelPNCT3f::create(gApp, apricotPath, apricotFilename);
 	pipeline3DWSampler.addSceneNode(apricot);
@@ -263,17 +268,7 @@ int addStl() {
 	xform *= glm::scale(glm::mat4(1.0f), glm::vec3(.25f, .25f, .25f));
 	vase->setModelTransform(xform);
 
-	auto xformFunc = [&](const glm::mat4& src)->glm::mat4 {
-		double revs = gApp->getRuntimeMillis() / 1000.0 * (15.0 / 30.0);
-		while (revs > 1)
-			revs -= 1;
-
-		glm::mat4 xform(src);
-		xform *= glm::rotate(glm::mat4(1.0f), (float)(2 * EIGEN_PI * revs), glm::vec3(0.0f, 0.0f, 1.0f));
-		return xform;
-	};
-
-	vase->setModelTransformFunc(xformFunc);
+	vase->setModelTransformFunc(make_shared<UpdateFunc>(15, glm::vec3(0.0f, 0.0f, 1.0f)));
 
 #endif
 	return 0;

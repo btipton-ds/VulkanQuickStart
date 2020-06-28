@@ -1,5 +1,6 @@
 #pragma once
 
+
 /*
 
 This file is part of the VulkanQuickStart Project.
@@ -31,44 +32,11 @@ This file is part of the VulkanQuickStart Project.
 
 #include <vk_defines.h>
 
-#include <functional>
-
-#define GLM_FORCE_RADIANS
-#define GLM_FORCE_DEPTH_ZERO_TO_ONE
-#include <glm/glm.hpp>
-
 namespace VK {
 
-	template<typename UBO_TYPE>
-	using UpdateUboFunctionType = std::function<bool(uint32_t width, uint32_t height, UBO_TYPE& ubo)>;
-
-	struct UniformBufferObject3D {
-		alignas(16) float ambient;
-
-		alignas(16) glm::mat4 modelView;
-		alignas(16) glm::mat4 proj;
-		alignas(16) int numLights;
-		alignas(16) glm::vec3 lightDir[2];
-	};
-
-	struct UBO3DVert {
-		alignas(16) glm::mat4 modelView;
-		alignas(16) glm::mat4 proj;
-	};
-
-	struct UBO3DFrag {
-		alignas(16) float ambient;
-		alignas(16) int numLights;
-		alignas(16) glm::vec3 lightDir[2];
-	};
-
-	struct UBOImageProc {
-		unsigned int _dstWidth = 0;
-		unsigned int _dstHeight = 0;
-
-		unsigned int _srcWidth = 0;
-		unsigned int _srcHeight = 0;
+	class TransformFunc {
+	public:
+		virtual bool update(glm::mat4& xform) = 0;
 	};
 
 }
-

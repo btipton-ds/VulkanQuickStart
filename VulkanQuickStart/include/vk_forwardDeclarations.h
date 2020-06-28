@@ -60,10 +60,10 @@ namespace VK {
 	using PostDrawTaskPtr = std::shared_ptr<PostDrawTask>;
 
 	class VulkanApp;
-	using VulkanAppPtr = std::shared_ptr<class VulkanApp>;
+	using VulkanAppPtr = std::shared_ptr<VulkanApp>;
 
 	class OffscreenPassBase;
-	using OffscreenPassBasePtr = std::shared_ptr<class OffscreenPassBase>;
+	using OffscreenPassBasePtr = std::shared_ptr<OffscreenPassBase>;
 
 	class ShaderPool;
 	using ShaderPoolPtr = std::shared_ptr<ShaderPool>;
@@ -107,7 +107,10 @@ namespace VK {
 	using PipelinePNC3fPtr = std::shared_ptr<PipelinePNC3f>;
 
 	class PipelinePNCT3f;
-	using PipelinePNCT3fPtr = std::shared_ptr<class PipelinePNCT3f>;
+	using PipelinePNCT3fPtr = std::shared_ptr<PipelinePNCT3f>;
+
+	class TransformFunc;
+	using TransformFuncPtr = std::shared_ptr<TransformFunc>;
 
 	namespace UI {
 		class Window;

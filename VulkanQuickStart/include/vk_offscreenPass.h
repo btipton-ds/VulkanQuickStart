@@ -100,8 +100,9 @@ namespace VK {
 
 	template<class UBO_TYPE>
 	inline bool OffscreenPass<UBO_TYPE>::updateUbo() {
-		if (_updateUbo) {
-			setUbo(_updateUbo(_rect.extent.width, _rect.extent.height));
+		UBO_TYPE ubo;
+		if (_updateUbo && _updateUbo(_rect.extent.width, _rect.extent.height, ubo)) {
+			setUbo(ubo);
 			return true;
 		} else {
 			_pipelines->updateUbos(0);
