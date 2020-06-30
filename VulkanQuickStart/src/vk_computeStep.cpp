@@ -31,6 +31,7 @@ This file is part of the VulkanQuickStart Project.
 
 #include <vulkan/vulkan_core.h>
 
+#include <vk_logger.h>
 #include <vk_computeStep.h>
 #include <vk_deviceContext.h>
 #include <vk_initializers.h>
@@ -134,17 +135,17 @@ void ComputeStepBase::createCompute() {
 		setLayoutBindings.push_back(initializers::descriptorSetLayoutBinding(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_COMPUTE_BIT, bindingIdx++));
 
 	VkDescriptorSetLayoutCreateInfo descriptorLayout = initializers::descriptorSetLayoutCreateInfo(setLayoutBindings);
-	VK_CHECK_RESULT(vkCreateDescriptorSetLayout(device, &descriptorLayout, nullptr, &_descriptorSetLayout));
+	VK_CHK(vkCreateDescriptorSetLayout(device, &descriptorLayout, nullptr, &_descriptorSetLayout));
 
 	VkPipelineLayoutCreateInfo pPipelineLayoutCreateInfo =
 		initializers::pipelineLayoutCreateInfo(&_descriptorSetLayout, 1);
 
-	VK_CHECK_RESULT(vkCreatePipelineLayout(device, &pPipelineLayoutCreateInfo, nullptr, &_pipelineLayout));
+	VK_CHK(vkCreatePipelineLayout(device, &pPipelineLayoutCreateInfo, nullptr, &_pipelineLayout));
 
 	VkDescriptorSetAllocateInfo allocInfo =
 		initializers::descriptorSetAllocateInfo(_descriptorPool, &_descriptorSetLayout, 1);
 
-	VK_CHECK_RESULT(vkAllocateDescriptorSets(device, &allocInfo, &_descriptorSet));
+	VK_CHK(vkAllocateDescriptorSets(device, &allocInfo, &_descriptorSet));
 	std::vector<VkWriteDescriptorSet> computeWriteDescriptorSets;
 	VkDescriptorBufferInfo bufferInfo = {};
 	bindingIdx = 0;
@@ -177,14 +178,14 @@ void ComputeStepBase::createCompute() {
 	computePipelineCreateInfo.stage.module = shaderRec->_module;
 	computePipelineCreateInfo.stage.pName = "main";
 
-	VK_CHECK_RESULT(vkCreateComputePipelines(device, VK_NULL_HANDLE, 1, &computePipelineCreateInfo, nullptr, &_pipeline));
+	VK_CHK(vkCreateComputePipelines(device, VK_NULL_HANDLE, 1, &computePipelineCreateInfo, nullptr, &_pipeline));
 
 	// Separate command pool as queue family for compute may be different than graphics
 	VkCommandPoolCreateInfo cmdPoolInfo = {};
 	cmdPoolInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
 	cmdPoolInfo.queueFamilyIndex = _queueFamilyIndex;
 	cmdPoolInfo.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
-	VK_CHECK_RESULT(vkCreateCommandPool(device, &cmdPoolInfo, nullptr, &_commandPool));
+	VK_CHK(vkCreateCommandPool(device, &cmdPoolInfo, nullptr, &_commandPool));
 
 	// Create a command buffer for compute operations
 	VkCommandBufferAllocateInfo cmdBufAllocateInfo =
@@ -193,11 +194,11 @@ void ComputeStepBase::createCompute() {
 			VK_COMMAND_BUFFER_LEVEL_PRIMARY,
 			1);
 
-	VK_CHECK_RESULT(vkAllocateCommandBuffers(device, &cmdBufAllocateInfo, &_cmdBuf));
+	VK_CHK(vkAllocateCommandBuffers(device, &cmdBufAllocateInfo, &_cmdBuf));
 
 	// Fence for compute CB sync
 	VkFenceCreateInfo fenceCreateInfo = initializers::fenceCreateInfo(VK_FENCE_CREATE_SIGNALED_BIT);
-	VK_CHECK_RESULT(vkCreateFence(device, &fenceCreateInfo, nullptr, &_fence));
+	VK_CHK(vkCreateFence(device, &fenceCreateInfo, nullptr, &_fence));
 
 }
 
@@ -209,7 +210,7 @@ void ComputeStepBase::createDescriptorPool() {
 		poolSizes.push_back(initializers::descriptorPoolSize(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1));
 
 	VkDescriptorPoolCreateInfo descriptorPoolInfo = initializers::descriptorPoolCreateInfo(poolSizes);
-	VK_CHECK_RESULT(vkCreateDescriptorPool(device, &descriptorPoolInfo, nullptr, &_descriptorPool));
+	VK_CHK(vkCreateDescriptorPool(device, &descriptorPoolInfo, nullptr, &_descriptorPool));
 }
 
 void ComputeStepBase::buildComputeCommandBuffer() {
@@ -219,7 +220,7 @@ void ComputeStepBase::buildComputeCommandBuffer() {
 	VkCommandBufferBeginInfo cmdBufInfo = {};
 	cmdBufInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
 
-	VK_CHECK_RESULT(vkBeginCommandBuffer(_cmdBuf, &cmdBufInfo));
+	VK_CHK(vkBeginCommandBuffer(_cmdBuf, &cmdBufInfo));
 
 	vkCmdBindPipeline(_cmdBuf, VK_PIPELINE_BIND_POINT_COMPUTE, _pipeline);
 	vkCmdBindDescriptorSets(_cmdBuf, VK_PIPELINE_BIND_POINT_COMPUTE, _pipelineLayout, 0, 1, &_descriptorSet, 0, 0);
@@ -250,5 +251,5 @@ void ComputeStepBase::submitCommands() {
 	computeSubmitInfo.commandBufferCount = 1;
 	computeSubmitInfo.pCommandBuffers = &_cmdBuf;
 
-	VK_CHECK_RESULT(vkQueueSubmit(_queue, 1, &computeSubmitInfo, _fence));
+	VK_CHK(vkQueueSubmit(_queue, 1, &computeSubmitInfo, _fence));
 }

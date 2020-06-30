@@ -46,6 +46,7 @@ This file is part of the VulkanQuickStart Project.
 
 #include <vector> // Need to include to expose size_t
 #include <stdexcept>
+#include <vulkan/vulkan_core.h>
 
 constexpr size_t K_BYTE = 1024;
 constexpr size_t M_BYTE = 1024 * K_BYTE;
@@ -69,8 +70,3 @@ constexpr size_t DEV_MAX_BUF_SIZE = 512 * M_BYTE;
 #define stm1 0xffffffffffffffff
 #endif
 
-template<typename T>
-inline void VK_CHECK_RESULT(T err) {
-	if (err != VK_SUCCESS) 
-		throw std::runtime_error("Error");
-}

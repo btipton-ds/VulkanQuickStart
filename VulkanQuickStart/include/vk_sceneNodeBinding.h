@@ -35,6 +35,8 @@ This file is part of the VulkanQuickStart Project.
 #include <exception>
 
 #include <vulkan/vulkan_core.h>
+
+#include <vk_logger.h>
 #include <vk_forwardDeclarations.h>
 #include <vk_buffer.h>
 #include <vk_deviceContext.h>
@@ -93,7 +95,7 @@ namespace VK {
 	{
 		_numBuffers = _pipeline->getPipelineGroup()->getNumBuffers();
 		if (_numBuffers == 0)
-			throw std::runtime_error("_numBuffers == 0");
+			THROW("_numBuffers == 0");
 	}
 
 	template<class VERT_TYPE, class UBO_TYPE>
@@ -159,7 +161,7 @@ namespace VK {
 		poolInfo.maxSets = static_cast<uint32_t>(_numBuffers);
 
 		if (vkCreateDescriptorPool(device, &poolInfo, nullptr, &_descriptorPool) != VK_SUCCESS) {
-			throw std::runtime_error("failed to create descriptor pool!");
+			THROW("failed to create descriptor pool!");
 		}
 	}
 
@@ -193,7 +195,7 @@ namespace VK {
 		allocInfo.pSetLayouts = layouts.data();
 
 		if (vkAllocateDescriptorSets(device, &allocInfo, _descriptorSets.data()) != VK_SUCCESS) {
-			throw std::runtime_error("failed to allocate descriptor sets!");
+			THROW("failed to allocate descriptor sets!");
 		}
 
 		for (size_t i = 0; i < _numBuffers; i++) {

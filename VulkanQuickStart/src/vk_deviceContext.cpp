@@ -31,6 +31,7 @@ This file is part of the VulkanQuickStart Project.
 
 #include <iostream>
 
+#include <vk_logger.h>
 #include <vk_buffer.h>
 #include <vk_image.h>
 #include <vk_textureImage.h>
@@ -66,7 +67,7 @@ void DeviceContext::createSyncObjects() {
 		if (vkCreateSemaphore(_device, &semaphoreInfo, nullptr, &_imageAvailableSemaphores[i]) != VK_SUCCESS ||
 			vkCreateSemaphore(_device, &semaphoreInfo, nullptr, &_renderFinishedSemaphores[i]) != VK_SUCCESS ||
 			vkCreateFence(_device, &fenceInfo, nullptr, &_inFlightFences[i]) != VK_SUCCESS) {
-			throw std::runtime_error("failed to create synchronization objects for a frame!");
+			THROW("failed to create synchronization objects for a frame!");
 		}
 	}
 }
@@ -91,7 +92,7 @@ void DeviceContext::submitGraphicsQueue(VkCommandBuffer cmdBuf) {
 	vkResetFences(_device, 1, &_inFlightFences[_currentFrame]);
 
 	if (vkQueueSubmit(_graphicsQueue, 1, &submitInfo, _inFlightFences[_currentFrame]) != VK_SUCCESS) {
-		throw std::runtime_error("failed to submit draw command buffer!");
+		THROW("failed to submit draw command buffer!");
 	}
 }
 
@@ -199,7 +200,7 @@ uint32_t DeviceContext::getMemoryType(uint32_t typeBits, VkMemoryPropertyFlags p
 	}
 	else
 	{
-		throw std::runtime_error("Could not find a matching memory type");
+		THROW("Could not find a matching memory type");
 	}
 }
 

@@ -29,6 +29,7 @@ This file is part of the VulkanQuickStart Project.
 
 #include <vk_defines.h>
 
+#include <vk_logger.h>
 #include <vk_pipelinePNC3f.h>
 
 #include <stdexcept>
@@ -114,7 +115,7 @@ void PipelinePNC3f::createDescriptorSetLayout() {
 	layoutInfo.pBindings = bindings.data();
 
 	if (vkCreateDescriptorSetLayout(_dc->_device, &layoutInfo, nullptr, &_descriptorSetLayout) != VK_SUCCESS) {
-		throw std::runtime_error("failed to create descriptor set layout!");
+		THROW("failed to create descriptor set layout!");
 	}
 }
 

@@ -35,6 +35,7 @@ This file is part of the VulkanQuickStart Project.
 #include <ft2build.h>
 #include FT_FREETYPE_H
 
+#include <vk_logger.h>
 #include <vk_ui_button.h>
 #include <vk_ui_window.h>
 #include <vk_app.h>
@@ -197,20 +198,20 @@ namespace VK::UI {
 		FT_Library ftLib;
 		FT_Error err = FT_Init_FreeType(&ftLib);
 		if (err)
-			throw std::runtime_error("Failed to initialize FreeType.");
+			THROW("Failed to initialize FreeType.");
 
 		FT_Face face;
 		err = FT_New_Face(ftLib, fontFilename.c_str(), 0, &face);
 		if (err == FT_Err_Unknown_File_Format)
-			throw std::runtime_error("Unknown font format.");
+			THROW("Unknown font format.")
 		else if (err)
-			throw std::runtime_error("Failed to read font file.");
+			THROW("Failed to read font file.");
 
 		unsigned int dpi = getApp()->getUiWindow()->getPixelDPI();
 
 		err = FT_Set_Char_Size(face, 0, (FT_F26Dot6)(_fontSizePoints * 64 * IMG_SCALE + 0.5), dpi, dpi);
 		if (err)
-			throw std::runtime_error("Failed to set char size for font.");
+			THROW("Failed to set char size for font.");
 
 		FT_Int pen_x = 0;
 		FT_Int pen_y = (FT_Int)height - frameWidth - (1 * IMG_SCALE) - (-face->descender >> 6);
@@ -220,10 +221,10 @@ namespace VK::UI {
 			auto& slot = face->glyph;
 			err = FT_Load_Glyph(face, glyph_index, FT_LOAD_DEFAULT);
 			if (err)
-				throw std::runtime_error("Failed load glyph.");
+				THROW("Failed load glyph.");
 			err = FT_Render_Glyph(face->glyph, FT_RENDER_MODE_NORMAL);
 			if (err)
-				throw std::runtime_error("Failed render glyph.");
+				THROW("Failed render glyph.");
 
 			drawGlyphBitmap(*this, slot->bitmap,
 				pen_x + slot->bitmap_left,

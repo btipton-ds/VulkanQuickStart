@@ -36,6 +36,7 @@ This file is part of the VulkanQuickStart Project.
 #include <fstream>
 #include <array>
 
+#include <vk_logger.h>
 #include <vk_deviceContext.h>
 #include <vk_buffer.h>
 #include <vk_vertexTypes.h>
@@ -185,7 +186,7 @@ void PipelineBase::build() {
 	multisampling.rasterizationSamples = _plGroup->getAntiAliasSamples();
 	pipelineInfo.renderPass = _plGroup->getRenderPass();
 	if (vkCreateGraphicsPipelines(device, VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &_graphicsPipeline) != VK_SUCCESS) {
-		throw std::runtime_error("failed to create graphics pipeline!");
+		THROW("failed to create graphics pipeline!");
 	}
 }
 
@@ -295,6 +296,6 @@ inline void PipelineBase::createPipelineLayout() {
 	pipelineLayoutInfo.pSetLayouts = &_descriptorSetLayout;
 
 	if (vkCreatePipelineLayout(_dc->_device, &pipelineLayoutInfo, nullptr, &_pipelineLayout) != VK_SUCCESS) {
-		throw std::runtime_error("failed to create pipeline layout!");
+		THROW("failed to create pipeline layout!");
 	}
 }

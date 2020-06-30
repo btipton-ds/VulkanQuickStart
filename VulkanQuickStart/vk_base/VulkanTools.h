@@ -38,7 +38,7 @@
 
 // Macro to check and display Vulkan return results
 #if defined(__ANDROID__)
-#define VK_CHECK_RESULT(f)																				\
+#define VKCHK(f)																				\
 {																										\
 	VkResult res = (f);																					\
 	if (res != VK_SUCCESS)																				\
@@ -48,7 +48,7 @@
 	}																									\
 }
 #else
-#define VK_CHECK_RESULT(f)																				\
+#define VKCHK(f)																				\
 {																										\
 	VkResult res = (f);																					\
 	if (res != VK_SUCCESS)																				\

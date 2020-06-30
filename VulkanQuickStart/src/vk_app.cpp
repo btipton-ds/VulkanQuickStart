@@ -52,6 +52,7 @@ This file is part of the VulkanQuickStart Project.
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
+#include <vk_logger.h>
 #include "vk_deviceContext.h"
 #include "vk_buffer.h"
 #include "vk_image.h"
@@ -350,7 +351,7 @@ void VulkanApp::cleanup() {
 
 void VulkanApp::createInstance() {
 	if (enableValidationLayers && !checkValidationLayerSupport()) {
-		throw std::runtime_error("validation layers requested, but not available!");
+		THROW("validation layers requested, but not available!");
 	}
 
 	VkApplicationInfo appInfo = {};
@@ -384,7 +385,7 @@ void VulkanApp::createInstance() {
 	}
 
 	if (vkCreateInstance(&createInfo, nullptr, &_instance) != VK_SUCCESS) {
-		throw std::runtime_error("failed to create instance!");
+		THROW("failed to create instance!");
 	}
 }
 
@@ -403,13 +404,13 @@ void VulkanApp::setupDebugMessenger() {
 	populateDebugMessengerCreateInfo(createInfo);
 
 	if (CreateDebugUtilsMessengerEXT(_instance, &createInfo, nullptr, &_debugMessenger) != VK_SUCCESS) {
-		throw std::runtime_error("failed to set up debug messenger!");
+		THROW("failed to set up debug messenger!");
 	}
 }
 
 void VulkanApp::createSurface() {
 	if (glfwCreateWindowSurface(_instance, _window, nullptr, &_surface) != VK_SUCCESS) {
-		throw std::runtime_error("failed to create window surface!");
+		THROW("failed to create window surface!");
 	}
 }
 
@@ -418,7 +419,7 @@ void VulkanApp::pickPhysicalDevice() {
 	vkEnumeratePhysicalDevices(_instance, &deviceCount, nullptr);
 
 	if (deviceCount == 0) {
-		throw std::runtime_error("failed to find GPUs with Vulkan support!");
+		THROW("failed to find GPUs with Vulkan support!");
 	}
 
 	std::vector<VkPhysicalDevice> devices(deviceCount);
@@ -433,7 +434,7 @@ void VulkanApp::pickPhysicalDevice() {
 	}
 
 	if (_deviceContext->_physicalDevice == VK_NULL_HANDLE) {
-		throw std::runtime_error("failed to find a suitable GPU!");
+		THROW("failed to find a suitable GPU!");
 	}
 }
 
@@ -477,7 +478,7 @@ void VulkanApp::createLogicalDevice() {
 	}
 
 	if (vkCreateDevice(_deviceContext->_physicalDevice, &createInfo, nullptr, &_deviceContext->_device) != VK_SUCCESS) {
-		throw std::runtime_error("failed to create logical device!");
+		THROW("failed to create logical device!");
 	}
 
 	vkGetDeviceQueue(_deviceContext->_device, indices.graphicsFamily, 0, &_deviceContext->_graphicsQueue);
@@ -527,7 +528,7 @@ void VulkanApp::createSwapChain() {
 	createInfo.clipped = VK_TRUE;
 
 	if (vkCreateSwapchainKHR(_deviceContext->_device, &createInfo, nullptr, &_swapChain._vkSwapChain) != VK_SUCCESS) {
-		throw std::runtime_error("failed to create swap chain!");
+		THROW("failed to create swap chain!");
 	}
 
 	vkGetSwapchainImagesKHR(_deviceContext->_device, _swapChain._vkSwapChain, &imageCount, nullptr);
@@ -622,7 +623,7 @@ void VulkanApp::createRenderPass() {
 
 	VkRenderPass renderPass;
 	if (vkCreateRenderPass(_deviceContext->_device, &renderPassInfo, nullptr, &renderPass) != VK_SUCCESS) {
-		throw std::runtime_error("failed to create render pass!");
+		THROW("failed to create render pass!");
 	}
 	_pipelines->setRenderPass(renderPass);
 	if (_uiWindow)
@@ -666,7 +667,7 @@ void VulkanApp::createFramebuffers() {
 		framebufferInfo.layers = 1;
 
 		if (vkCreateFramebuffer(_deviceContext->_device, &framebufferInfo, nullptr, &_swapChain._vkFrameBuffers[i]) != VK_SUCCESS) {
-			throw std::runtime_error("failed to create framebuffer!");
+			THROW("failed to create framebuffer!");
 		}
 	}
 }
@@ -679,7 +680,7 @@ void VulkanApp::createCommandPool() {
 	poolInfo.queueFamilyIndex = queueFamilyIndices.graphicsFamily;
 
 	if (vkCreateCommandPool(_deviceContext->_device, &poolInfo, nullptr, &_deviceContext->_commandPool) != VK_SUCCESS) {
-		throw std::runtime_error("failed to create graphics command pool!");
+		THROW("failed to create graphics command pool!");
 	}
 }
 
@@ -709,7 +710,7 @@ VkFormat VulkanApp::findSupportedFormat(const std::vector<VkFormat>& candidates,
 		}
 	}
 
-	throw std::runtime_error("failed to find supported format!");
+	THROW("failed to find supported format!");
 }
 
 vector<VulkanApp::FormatPairRec> VulkanApp::findSupportedFormats(const vector<VkFormat>& candidates, VkFormatFeatureFlags features) {
@@ -768,7 +769,7 @@ void VulkanApp::createBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemo
 	bufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
 
 	if (vkCreateBuffer(_deviceContext->_device, &bufferInfo, nullptr, &buffer) != VK_SUCCESS) {
-		throw std::runtime_error("failed to create buffer!");
+		THROW("failed to create buffer!");
 	}
 
 	VkMemoryRequirements memRequirements;
@@ -780,7 +781,7 @@ void VulkanApp::createBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemo
 	allocInfo.memoryTypeIndex = findMemoryType(memRequirements.memoryTypeBits, properties);
 
 	if (vkAllocateMemory(_deviceContext->_device, &allocInfo, nullptr, &bufferMemory) != VK_SUCCESS) {
-		throw std::runtime_error("failed to allocate buffer memory!");
+		THROW("failed to allocate buffer memory!");
 	}
 
 	vkBindBufferMemory(_deviceContext->_device, buffer, bufferMemory, 0);
@@ -796,7 +797,7 @@ uint32_t VulkanApp::findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags pr
 		}
 	}
 
-	throw std::runtime_error("failed to find suitable memory type!");
+	THROW("failed to find suitable memory type!");
 }
 
 void VulkanApp::createCommandBuffers() {
@@ -809,7 +810,7 @@ void VulkanApp::createCommandBuffers() {
 	allocInfo.commandBufferCount = (uint32_t)_commandBuffers.size();
 
 	if (vkAllocateCommandBuffers(_deviceContext->_device, &allocInfo, _commandBuffers.data()) != VK_SUCCESS) {
-		throw std::runtime_error("failed to allocate command buffers!");
+		THROW("failed to allocate command buffers!");
 	}
 
 	VkCommandBufferBeginInfo beginInfo = {};
@@ -820,7 +821,7 @@ void VulkanApp::createCommandBuffers() {
 		VkCommandBuffer& cmdBuff = _commandBuffers[swapChainIndex];
 
 		if (vkBeginCommandBuffer(cmdBuff, &beginInfo) != VK_SUCCESS) {
-			throw std::runtime_error("failed to begin recording command buffer!");
+			THROW("failed to begin recording command buffer!");
 		}
 
 		VkRenderPassBeginInfo renderPassInfo = {};
@@ -843,7 +844,7 @@ void VulkanApp::createCommandBuffers() {
 		drawCmdBufferLoop(cmdBuff, swapChainIndex, beginInfo, renderPassInfo);
 
 		if (vkEndCommandBuffer(cmdBuff) != VK_SUCCESS) {
-			throw std::runtime_error("failed to record command buffer!");
+			THROW("failed to record command buffer!");
 		}
 	}
 
@@ -1027,7 +1028,7 @@ void VulkanApp::drawFrame() {
 		return;
 	}
 	else if (result != VK_SUCCESS && result != VK_SUBOPTIMAL_KHR) {
-		throw std::runtime_error("failed to acquire swap chain image!");
+		THROW("failed to acquire swap chain image!");
 	}
 
 	updateUniformBuffer(_swapChainIndex);
@@ -1081,7 +1082,7 @@ void VulkanApp::presentQueueKHR() {
 		recreateSwapChain();
 	}
 	else if (result != VK_SUCCESS) {
-		throw std::runtime_error("failed to present swap chain image!");
+		THROW("failed to present swap chain image!");
 	}
 }
 
@@ -1103,7 +1104,7 @@ VkShaderModule VulkanApp::createShaderModule(const std::vector<char>& code) {
 
 	VkShaderModule shaderModule;
 	if (vkCreateShaderModule(_deviceContext->_device, &createInfo, nullptr, &shaderModule) != VK_SUCCESS) {
-		throw std::runtime_error("failed to create shader module!");
+		THROW("failed to create shader module!");
 	}
 
 	return shaderModule;
@@ -1296,7 +1297,7 @@ std::vector<char> VulkanApp::readFile(const std::string& filename) {
 	std::ifstream file(filename, std::ios::ate | std::ios::binary);
 
 	if (!file.is_open()) {
-		throw std::runtime_error("failed to open file!");
+		THROW("failed to open file!");
 	}
 
 	size_t fileSize = (size_t)file.tellg();

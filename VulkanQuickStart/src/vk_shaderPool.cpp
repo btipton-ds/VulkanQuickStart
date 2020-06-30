@@ -33,6 +33,7 @@ This file is part of the VulkanQuickStart Project.
 #include <iostream>
 #include <fstream>
 
+#include <vk_logger.h>
 #include <vk_shaderPool.h>
 
 using namespace std;
@@ -114,7 +115,7 @@ VkShaderModule ShaderPool::createShaderModule(const std::vector<char>& code) con
 
 	VkShaderModule shaderModule;
 	if (vkCreateShaderModule(device, &createInfo, nullptr, &shaderModule) != VK_SUCCESS) {
-		throw std::runtime_error("failed to create shader module!");
+		THROW("failed to create shader module!");
 	}
 
 	return shaderModule;
@@ -124,7 +125,7 @@ vector<char> ShaderPool::readFile(const std::string& filename) {
 	std::ifstream file(filename, std::ios::ate | std::ios::binary);
 
 	if (!file.is_open()) {
-		throw std::runtime_error("failed to open file!");
+		THROW("failed to open file!");
 	}
 
 	size_t fileSize = (size_t)file.tellg();

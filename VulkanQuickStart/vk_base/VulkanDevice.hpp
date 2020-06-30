@@ -13,6 +13,8 @@
 #include <exception>
 #include <assert.h>
 #include <algorithm>
+
+#include <vk_logger.h>
 #include "vulkan/vulkan.h"
 #include "VulkanTools.h"
 #include "VulkanBuffer.hpp"
@@ -148,7 +150,7 @@ namespace vks
 			}
 			else
 			{
-				throw std::runtime_error("Could not find a matching memory type");
+				THROW("Could not find a matching memory type");
 			}
 		}
 
@@ -201,7 +203,7 @@ namespace vks
 				}
 			}
 
-			throw std::runtime_error("Could not find a matching queue family index");
+			THROW("Could not find a matching queue family index");
 		}
 
 		/**
@@ -352,7 +354,7 @@ namespace vks
 			// Create the buffer handle
 			VkBufferCreateInfo bufferCreateInfo = vks::initializers::bufferCreateInfo(usageFlags, size);
 			bufferCreateInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
-			VK_CHECK_RESULT(vkCreateBuffer(logicalDevice, &bufferCreateInfo, nullptr, buffer));
+			VKCHK(vkCreateBuffer(logicalDevice, &bufferCreateInfo, nullptr, buffer));
 
 			// Create the memory backing up the buffer handle
 			VkMemoryRequirements memReqs;
@@ -361,13 +363,13 @@ namespace vks
 			memAlloc.allocationSize = memReqs.size;
 			// Find a memory type index that fits the properties of the buffer
 			memAlloc.memoryTypeIndex = getMemoryType(memReqs.memoryTypeBits, memoryPropertyFlags);
-			VK_CHECK_RESULT(vkAllocateMemory(logicalDevice, &memAlloc, nullptr, memory));
+			VKCHK(vkAllocateMemory(logicalDevice, &memAlloc, nullptr, memory));
 			
 			// If a pointer to the buffer data has been passed, map the buffer and copy over the data
 			if (data != nullptr)
 			{
 				void *mapped;
-				VK_CHECK_RESULT(vkMapMemory(logicalDevice, *memory, 0, size, 0, &mapped));
+				VKCHK(vkMapMemory(logicalDevice, *memory, 0, size, 0, &mapped));
 				memcpy(mapped, data, size);
 				// If host coherency hasn't been requested, do a manual flush to make writes visible
 				if ((memoryPropertyFlags & VK_MEMORY_PROPERTY_HOST_COHERENT_BIT) == 0)
@@ -382,7 +384,7 @@ namespace vks
 			}
 
 			// Attach the memory to the buffer object
-			VK_CHECK_RESULT(vkBindBufferMemory(logicalDevice, *buffer, *memory, 0));
+			VKCHK(vkBindBufferMemory(logicalDevice, *buffer, *memory, 0));
 
 			return VK_SUCCESS;
 		}
@@ -404,7 +406,7 @@ namespace vks
 
 			// Create the buffer handle
 			VkBufferCreateInfo bufferCreateInfo = vks::initializers::bufferCreateInfo(usageFlags, size);
-			VK_CHECK_RESULT(vkCreateBuffer(logicalDevice, &bufferCreateInfo, nullptr, &buffer->buffer));
+			VKCHK(vkCreateBuffer(logicalDevice, &bufferCreateInfo, nullptr, &buffer->buffer));
 
 			// Create the memory backing up the buffer handle
 			VkMemoryRequirements memReqs;
@@ -413,7 +415,7 @@ namespace vks
 			memAlloc.allocationSize = memReqs.size;
 			// Find a memory type index that fits the properties of the buffer
 			memAlloc.memoryTypeIndex = getMemoryType(memReqs.memoryTypeBits, memoryPropertyFlags);
-			VK_CHECK_RESULT(vkAllocateMemory(logicalDevice, &memAlloc, nullptr, &buffer->memory));
+			VKCHK(vkAllocateMemory(logicalDevice, &memAlloc, nullptr, &buffer->memory));
 
 			buffer->alignment = memReqs.alignment;
 			buffer->size = size;
@@ -423,7 +425,7 @@ namespace vks
 			// If a pointer to the buffer data has been passed, map the buffer and copy over the data
 			if (data != nullptr)
 			{
-				VK_CHECK_RESULT(buffer->map());
+				VKCHK(buffer->map());
 				memcpy(buffer->mapped, data, size);
 				if ((memoryPropertyFlags & VK_MEMORY_PROPERTY_HOST_COHERENT_BIT) == 0)
 					buffer->flush();
@@ -485,7 +487,7 @@ namespace vks
 			cmdPoolInfo.queueFamilyIndex = queueFamilyIndex;
 			cmdPoolInfo.flags = createFlags;
 			VkCommandPool cmdPool;
-			VK_CHECK_RESULT(vkCreateCommandPool(logicalDevice, &cmdPoolInfo, nullptr, &cmdPool));
+			VKCHK(vkCreateCommandPool(logicalDevice, &cmdPoolInfo, nullptr, &cmdPool));
 			return cmdPool;
 		}
 
@@ -502,12 +504,12 @@ namespace vks
 		{
 			VkCommandBufferAllocateInfo cmdBufAllocateInfo = vks::initializers::commandBufferAllocateInfo(pool, level, 1);
 			VkCommandBuffer cmdBuffer;
-			VK_CHECK_RESULT(vkAllocateCommandBuffers(logicalDevice, &cmdBufAllocateInfo, &cmdBuffer));
+			VKCHK(vkAllocateCommandBuffers(logicalDevice, &cmdBufAllocateInfo, &cmdBuffer));
 			// If requested, also start recording for the new command buffer
 			if (begin)
 			{
 				VkCommandBufferBeginInfo cmdBufInfo = vks::initializers::commandBufferBeginInfo();
-				VK_CHECK_RESULT(vkBeginCommandBuffer(cmdBuffer, &cmdBufInfo));
+				VKCHK(vkBeginCommandBuffer(cmdBuffer, &cmdBufInfo));
 			}
 			return cmdBuffer;
 		}
@@ -535,7 +537,7 @@ namespace vks
 				return;
 			}
 
-			VK_CHECK_RESULT(vkEndCommandBuffer(commandBuffer));
+			VKCHK(vkEndCommandBuffer(commandBuffer));
 
 			VkSubmitInfo submitInfo = vks::initializers::submitInfo();
 			submitInfo.commandBufferCount = 1;
@@ -543,11 +545,11 @@ namespace vks
 			// Create fence to ensure that the command buffer has finished executing
 			VkFenceCreateInfo fenceInfo = vks::initializers::fenceCreateInfo(VK_FLAGS_NONE);
 			VkFence fence;
-			VK_CHECK_RESULT(vkCreateFence(logicalDevice, &fenceInfo, nullptr, &fence));
+			VKCHK(vkCreateFence(logicalDevice, &fenceInfo, nullptr, &fence));
 			// Submit to the queue
-			VK_CHECK_RESULT(vkQueueSubmit(queue, 1, &submitInfo, fence));
+			VKCHK(vkQueueSubmit(queue, 1, &submitInfo, fence));
 			// Wait for the fence to signal that command buffer has finished executing
-			VK_CHECK_RESULT(vkWaitForFences(logicalDevice, 1, &fence, VK_TRUE, DEFAULT_FENCE_TIMEOUT));
+			VKCHK(vkWaitForFences(logicalDevice, 1, &fence, VK_TRUE, DEFAULT_FENCE_TIMEOUT));
 			vkDestroyFence(logicalDevice, fence, nullptr);
 			if (free)
 			{
@@ -600,7 +602,7 @@ namespace vks
 					return format;
 				}
 			}
-			throw std::runtime_error("Could not find a matching depth format");
+			THROW("Could not find a matching depth format");
 		}
 
 	};

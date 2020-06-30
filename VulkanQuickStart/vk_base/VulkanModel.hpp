@@ -316,7 +316,7 @@ namespace vks
 				vks::Buffer vertexStaging, indexStaging;
 
 				// Vertex buffer
-				VK_CHECK_RESULT(device->createBuffer(
+				VKCHK(device->createBuffer(
 					VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
 					VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
 					&vertexStaging,
@@ -324,7 +324,7 @@ namespace vks
 					vertexBuffer.data()));
 
 				// Index buffer
-				VK_CHECK_RESULT(device->createBuffer(
+				VKCHK(device->createBuffer(
 					VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
 					VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
 					&indexStaging,
@@ -333,14 +333,14 @@ namespace vks
 
 				// Create device local target buffers
 				// Vertex buffer
-				VK_CHECK_RESULT(device->createBuffer(
+				VKCHK(device->createBuffer(
 					VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT | createInfo->memoryPropertyFlags,
 					VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
 					&vertices,
 					vBufferSize));
 
 				// Index buffer
-				VK_CHECK_RESULT(device->createBuffer(
+				VKCHK(device->createBuffer(
 					VK_BUFFER_USAGE_INDEX_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT | createInfo->memoryPropertyFlags,
 					VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
 					&indices,

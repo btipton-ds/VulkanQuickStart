@@ -70,6 +70,7 @@ VulkanQuickStartLib
 "src/vk_deviceContext.cpp"
 "src/vk_image.cpp"
 "src/vk_imageCopier.cpp" 
+"src/vk_logger.cpp"  
 "src/vk_modelPNC3f.cpp"  
 "src/vk_modelPNCT3f.cpp"
 "src/vk_offscreenPassBase.cpp"  

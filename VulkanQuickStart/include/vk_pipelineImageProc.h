@@ -31,6 +31,7 @@ This file is part of the VulkanQuickStart Project.
 
 #include <vk_defines.h>
 
+#include <vk_logger.h>
 #include <tm_boundingBox.h>
 #include <vk_pipeline.h>
 #include <vk_uniformBuffers.h>
@@ -73,7 +74,7 @@ namespace VK {
 
 		VkDescriptorSetLayoutCreateInfo descriptorLayout = initializers::descriptorSetLayoutCreateInfo(setLayoutBindings);
 		if (vkCreateDescriptorSetLayout(_dc->_device, &descriptorLayout, nullptr, &_descriptorSetLayout) != VK_SUCCESS) {
-			throw std::runtime_error("failed to create descriptor set layout!");
+			THROW("failed to create descriptor set layout!");
 		}
 	}
 

@@ -31,8 +31,8 @@ This file is part of the VulkanQuickStart Project.
 
 #include <array>
 
+#include <vk_logger.h>
 #include <vk_offscreenPassBase.h>
-
 #include <vk_deviceContext.h>
 #include <vk_image.h>
 #include <vk_pipelineBase.h>
@@ -80,7 +80,7 @@ void OffscreenPassBase::init(const VkExtent2D& extent) {
 	samplerInfo.minLod = 0.0f;
 	samplerInfo.maxLod = 1.0f;
 	samplerInfo.borderColor = VK_BORDER_COLOR_FLOAT_OPAQUE_WHITE;
-	VK_CHECK_RESULT(vkCreateSampler(device, &samplerInfo, nullptr, &_sampler));
+	VK_CHK(vkCreateSampler(device, &samplerInfo, nullptr, &_sampler));
 
 	// Depth stencil attachment
 	VkFormat fbDepthFormat = _depthFormat;
@@ -149,7 +149,7 @@ void OffscreenPassBase::init(const VkExtent2D& extent) {
 	renderPassInfo.pDependencies = dependencies.data();
 
 	VkRenderPass renderPass;
-	VK_CHECK_RESULT(vkCreateRenderPass(device, &renderPassInfo, nullptr, &renderPass));
+	VK_CHK(vkCreateRenderPass(device, &renderPassInfo, nullptr, &renderPass));
 	setRenderPass(renderPass);
 
 	VkImageView attachments[2];
@@ -165,7 +165,7 @@ void OffscreenPassBase::init(const VkExtent2D& extent) {
 	fbufCreateInfo.height = _rect.extent.height;
 	fbufCreateInfo.layers = 1;
 
-	VK_CHECK_RESULT(vkCreateFramebuffer(device, &fbufCreateInfo, nullptr, &_frameBuffer));
+	VK_CHK(vkCreateFramebuffer(device, &fbufCreateInfo, nullptr, &_frameBuffer));
 
 	// Fill a descriptor for later use in a descriptor set 
 	_descriptor.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;

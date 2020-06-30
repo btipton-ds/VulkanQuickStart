@@ -164,7 +164,7 @@ void ImageCopier::createVkImage() {
 	imageCreateCI.tiling = VK_IMAGE_TILING_LINEAR;
 	imageCreateCI.usage = VK_IMAGE_USAGE_TRANSFER_DST_BIT;
 
-	VK_CHECK_RESULT(vkCreateImage(_device, &imageCreateCI, nullptr, &_dstImage));
+	VK_CHK(vkCreateImage(_device, &imageCreateCI, nullptr, &_dstImage));
 
 	// Create memory to back up the image
 	VkMemoryRequirements memRequirements = {};
@@ -173,8 +173,8 @@ void ImageCopier::createVkImage() {
 	memAllocInfo.allocationSize = memRequirements.size;
 	// Memory must be host visible to copy from
 	memAllocInfo.memoryTypeIndex = _context->getMemoryType(memRequirements.memoryTypeBits, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
-	VK_CHECK_RESULT(vkAllocateMemory(_device, &memAllocInfo, nullptr, &_dstImageMemory));
-	VK_CHECK_RESULT(vkBindImageMemory(_device, _dstImage, _dstImageMemory, 0));
+	VK_CHK(vkAllocateMemory(_device, &memAllocInfo, nullptr, &_dstImageMemory));
+	VK_CHK(vkBindImageMemory(_device, _dstImage, _dstImageMemory, 0));
 
 }
 
