@@ -11,7 +11,7 @@ include_directories(
 "../../ThirdParty/tinyobjloader"
 "../../ThirdParty/freetype-2.10.2/include"
 "../../ThirdParty/stb"
-"/VulkanSDK/1.2.135.0/Include"
+"/VulkanSDK/1.2.170.0/Include"
 "../../triMesh/triMesh/include"
 "../../triMesh/stlReader/include"
 )
@@ -36,7 +36,7 @@ if (UNIX)
     endif()
 else(UNIX)
 
-    set(GLSL_VALIDATOR "/VulkanSDK/1.2.135.0/Bin32/glslangValidator.exe")
+    set(GLSL_VALIDATOR "/VulkanSDK/1.2.170.0/Bin32/glslangValidator.exe")
     add_definitions(-DGLFW_EXPOSE_NATIVE_WIN32)
     set(GLFW_LIB_DIR "../../ThirdParty/glfw-3.3.2/lib-vc2019")
 

@@ -34,6 +34,7 @@ This file is part of the VulkanQuickStart Project.
 #include <mutex>
 #include <vector>
 #include <memory>
+#include <algorithm>
 
 #include <vk_forwardDeclarations.h>
 

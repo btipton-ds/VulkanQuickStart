@@ -23,6 +23,10 @@ This file is part of the TipScat Project.
 using namespace std;
 using namespace VK;
 
+#ifdef _WIN32
+#pragma warning( disable : 26812 )
+#endif // _WIN32
+
 shared_ptr<Logger> Logger::_sLogger;
 
 void Logger::create(const string& name) {
@@ -133,7 +137,7 @@ const char* Logger::vkResultString(VkResult result) {
         case VK_ERROR_INCOMPATIBLE_DISPLAY_KHR: return "VK_ERROR_INCOMPATIBLE_DISPLAY_KHR";
         case VK_ERROR_VALIDATION_FAILED_EXT: return "VK_ERROR_VALIDATION_FAILED_EXT";
         case VK_ERROR_INVALID_SHADER_NV: return "VK_ERROR_INVALID_SHADER_NV";
-        case VK_ERROR_INCOMPATIBLE_VERSION_KHR: return "VK_ERROR_INCOMPATIBLE_VERSION_KHR";
+//        case VK_ERROR_INCOMPATIBLE_VERSION_KHR: return "VK_ERROR_INCOMPATIBLE_VERSION_KHR";
         case VK_ERROR_INVALID_DRM_FORMAT_MODIFIER_PLANE_LAYOUT_EXT: return "VK_ERROR_INVALID_DRM_FORMAT_MODIFIER_PLANE_LAYOUT_EXT";
         case VK_ERROR_NOT_PERMITTED_EXT: return "VK_ERROR_NOT_PERMITTED_EXT";
         case VK_ERROR_FULL_SCREEN_EXCLUSIVE_MODE_LOST_EXT: return "VK_ERROR_FULL_SCREEN_EXCLUSIVE_MODE_LOST_EXT";
@@ -142,7 +146,7 @@ const char* Logger::vkResultString(VkResult result) {
         case VK_OPERATION_DEFERRED_KHR: return "VK_OPERATION_DEFERRED_KHR";
         case VK_OPERATION_NOT_DEFERRED_KHR: return "VK_OPERATION_NOT_DEFERRED_KHR";
         case VK_ERROR_PIPELINE_COMPILE_REQUIRED_EXT: return "VK_ERROR_PIPELINE_COMPILE_REQUIRED_EXT";
-        case VK_RESULT_RANGE_SIZE: return "VK_RESULT_RANGE_SIZE";
+//        case VK_RESULT_RANGE_SIZE: return "VK_RESULT_RANGE_SIZE";
         default: return "Unknown VkResult type";
     }
 }
