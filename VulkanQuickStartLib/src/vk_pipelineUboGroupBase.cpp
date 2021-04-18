@@ -1,5 +1,3 @@
-#pragma once
-
 /*
 
 This file is part of the VulkanQuickStart Project.
@@ -31,39 +29,36 @@ This file is part of the VulkanQuickStart Project.
 
 #include <vk_defines.h>
 
-#include <mutex>
-#include <vector>
-#include <memory>
-
-#include <vk_forwardDeclarations.h>
-
-#include <vulkan/vulkan_core.h>
+#include <vk_pipelineUboGroupBase.h>
+#include <vk_app.h>
 
 namespace VK {
 
-	class PipelineUboGroupBase {
-	public:
-		PipelineUboGroupBase(const VulkanAppPtr& app, size_t numBuffers);
-		virtual ~PipelineUboGroupBase();
+    VkRenderPass PipelineUboGroupBase::getRenderPass() const {
+            return _renderPass;
+    }
 
-		VkRenderPass getRenderPass() const;
-		void setRenderPass(VkRenderPass renderPass);
+    void PipelineUboGroupBase::setRenderPass(VkRenderPass renderPass) {
+            _renderPass = renderPass;
+    }
 
-		void setAntiAliasSamples(VkSampleCountFlagBits samples);
-		VkSampleCountFlagBits getAntiAliasSamples() const;
+    void PipelineUboGroupBase::setAntiAliasSamples(VkSampleCountFlagBits samples) {
+            _msaaSamples = samples;
+    }
 
-		const VulkanAppPtr& getApp() const;
-		size_t getNumBuffers() const;
+    VkSampleCountFlagBits PipelineUboGroupBase::getAntiAliasSamples() const {
+            return _msaaSamples;
+    }
 
-                const DeviceContextPtr& getDeviceContext() const;
+    const VulkanAppPtr& PipelineUboGroupBase::getApp() const {
+            return _app;
+    }
 
-	protected:
-		VkSampleCountFlagBits _msaaSamples = VK_SAMPLE_COUNT_1_BIT;
+    size_t PipelineUboGroupBase::getNumBuffers() const {
+            return _numBuffers;
+    }
 
-		std::mutex _mutex;
-		VulkanAppPtr _app;
-		size_t _numBuffers;
-		VkRenderPass _renderPass = VK_NULL_HANDLE;
-	};
-
+    const DeviceContextPtr& PipelineUboGroupBase::getDeviceContext() const {
+        return getApp()->getDeviceContext();
+    }
 }

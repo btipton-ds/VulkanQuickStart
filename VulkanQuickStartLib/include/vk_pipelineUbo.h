@@ -31,39 +31,29 @@ This file is part of the VulkanQuickStart Project.
 
 #include <vk_defines.h>
 
-#include <mutex>
-#include <vector>
-#include <memory>
-
-#include <vk_forwardDeclarations.h>
-
-#include <vulkan/vulkan_core.h>
+#include <vk_pipelineBase.h>
 
 namespace VK {
 
-	class PipelineUboGroupBase {
-	public:
-		PipelineUboGroupBase(const VulkanAppPtr& app, size_t numBuffers);
-		virtual ~PipelineUboGroupBase();
+    template<class UBO_TYPE>
+    class PipelineUbo : public PipelineBase {
+    public:
+            using UboType = UBO_TYPE;
 
-		VkRenderPass getRenderPass() const;
-		void setRenderPass(VkRenderPass renderPass);
+            PipelineUbo(const PipelineUboGroupBasePtr& plGroup, const std::string& shaderId, const VkRect2D& rect)
+                    : PipelineBase(plGroup, shaderId, rect) 
+            {}
 
-		void setAntiAliasSamples(VkSampleCountFlagBits samples);
-		VkSampleCountFlagBits getAntiAliasSamples() const;
+            inline void setUniformBufferPtr(const UboType* uboPtr) {
+                    _ubo = uboPtr;
+            }
 
-		const VulkanAppPtr& getApp() const;
-		size_t getNumBuffers() const;
+            inline const UboType& getUniformBuffer() const {
+                    return *_ubo;
+            }
 
-                const DeviceContextPtr& getDeviceContext() const;
-
-	protected:
-		VkSampleCountFlagBits _msaaSamples = VK_SAMPLE_COUNT_1_BIT;
-
-		std::mutex _mutex;
-		VulkanAppPtr _app;
-		size_t _numBuffers;
-		VkRenderPass _renderPass = VK_NULL_HANDLE;
-	};
+    protected:
+            const UboType* _ubo;
+    };
 
 }

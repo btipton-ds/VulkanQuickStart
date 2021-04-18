@@ -6,6 +6,7 @@ cmake_minimum_required (VERSION 3.10.2)
 include_directories(
 "include"
 "vk_base"
+"usr/include/"
 "../../ThirdParty/glm-0.9.9.5/glm"
 "../../ThirdParty/glfw-3.3.2/include"
 "../../ThirdParty/tinyobjloader"
@@ -83,6 +84,7 @@ VulkanQuickStartLib SHARED
 "src/vk_pipelineUi.cpp"
 "src/vk_pipelinePNCT3f.cpp"
 "src/vk_pipelineUboGroup.cpp" 
+"src/vk_pipelineUboGroupBase.cpp"
 "src/vk_sceneNodeBase.cpp"
 "src/vk_sceneNodePNC3f.cpp"
 "src/vk_sceneNodePNCT3f.cpp"

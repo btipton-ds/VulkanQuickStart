@@ -61,7 +61,7 @@ namespace VK {
 
 		template<class UBO_TYPE>
 		inline void updateUbo(UBO_TYPE& ubo) const {
-			glm::mat4 xform = glm::identity<glm::mat4>();
+			glm::mat4 xform;
 			if (_modelXFormFunc && _modelXFormFunc->update(xform))
 				ubo.modelView *= _modelXForm * xform;
 			else

@@ -31,6 +31,7 @@ This file is part of the VulkanQuickStart Project.
 
 #include <vk_defines.h>
 
+#include <memory>
 #include <functional>
 
 #include <vk_forwardDeclarations.h>
@@ -46,7 +47,6 @@ namespace VK {
 		using PipelineGroupType = PipelineUboGroup<UBO_TYPE>;
 		using PipelineGroupTypePtr = PipelineUboGroupPtr<UBO_TYPE>;
 		using PipelinePtr = typename PipelineGroupType::PipelinePtr;
-		using UpdateUboFunctionType = UpdateUboFunctionType<UBO_TYPE>;
 		using PointerType = std::shared_ptr<OffscreenPass>;
 
 		OffscreenPass(const VulkanAppPtr& app, VkFormat colorFormat);
@@ -74,18 +74,20 @@ namespace VK {
 		inline void setRenderPass(VkRenderPass renderPass) override;
 
 	private:
-		UpdateUboFunctionType _updateUbo;
+		UpdateUboFunctionType<UBO_TYPE> _updateUbo;
 		PipelineGroupTypePtr _pipelines;
 	};
 
-	using OffscreenPass3D = OffscreenPass<UniformBufferObject3D>;
+	class OffscreenPass3D: public OffscreenPass<UniformBufferObject3D>
+        {
+        };
 	using OffscreenPass3DPtr = typename OffscreenPass3D::PointerType;
 
 	template<class UBO_TYPE>
 	inline OffscreenPass<UBO_TYPE>::OffscreenPass(const VulkanAppPtr& app, VkFormat colorFormat)
 		: OffscreenPassBase(app, colorFormat)
 	{
-		_pipelines = make_shared<PipelineGroupType>(app, 1);
+		_pipelines = std::make_shared<PipelineGroupType>(app, 1);
 	}
 
 	template<class UBO_TYPE>
@@ -135,13 +137,6 @@ namespace VK {
 			if (pl->isVisible())
 				pl->draw(cmdBuff, 0);
 		});
-	}
-
-	template<class UBO_TYPE>
-	template<class PIPELINE_TYPE>
-	VK::PipelinePtr<PIPELINE_TYPE> OffscreenPass<UBO_TYPE>::addPipelineWithSource(const std::string& shaderId, const std::vector<std::string>& filenames) {
-		VK::PipelinePtr<PIPELINE_TYPE> pipeline = _pipelines->addPipelineWithSource<PIPELINE_TYPE>(shaderId, _rect, filenames);
-		return pipeline;
 	}
 
 	template<class UBO_TYPE>

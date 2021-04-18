@@ -61,9 +61,8 @@ namespace VK {
 	public:
 		using BoundingBox = CBoundingBox3D<float>;
 		using UboType = UniformBufferObject3D;
-		using UpdateUboFunctionType = UpdateUboFunctionType<UboType>;
-		using PipelineGroupType = PipelineUboGroup<UboType>;
-		using PipelineGroupTypePtr = PipelineUboGroupPtr<UboType>;
+		using PipelineGroupType = PipelineUboGroup<UniformBufferObject3D>;
+		using PipelineGroupTypePtr = PipelineUboGroupPtr<UniformBufferObject3D>;
 		using PipelinePtr = PipelineGroupType::PipelinePtr;
 
 		class Updater {
@@ -212,7 +211,7 @@ namespace VK {
 		VkFormat _requestedFormat = VK_FORMAT_B8G8R8A8_UNORM;
 		VkColorSpaceKHR _requestedColorSpace = VK_COLOR_SPACE_SRGB_NONLINEAR_KHR;
 		UpdaterPtr _updater;
-		UpdateUboFunctionType _uboUpdater;
+		UpdateUboFunctionType<UniformBufferObject3D> _uboUpdater;
 		
 		glm::mat4 _modelToWorld;
 		double _modelScale = 1.0;

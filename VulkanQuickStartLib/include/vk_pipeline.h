@@ -31,34 +31,12 @@ This file is part of the VulkanQuickStart Project.
 
 #include <vk_defines.h>
 
-#include <vk_pipelineBase.h>
+#include <vk_pipelineUbo.h>
+#include <vk_pipelineUboGroup.h>
 #include <vk_sceneNode.h>
 #include <vk_sceneNodeBinding.h>
 
 namespace VK {
-
-	template<class UBO_TYPE>
-	class PipelineUbo : public PipelineBase {
-	public:
-		using UboType = UBO_TYPE;
-
-		PipelineUbo(const PipelineUboGroupBasePtr& plGroup, const std::string& shaderId, const VkRect2D& rect)
-			: PipelineBase(plGroup, shaderId, rect) 
-		{}
-
-		inline void setUniformBufferPtr(const UboType* uboPtr) {
-			_ubo = uboPtr;
-		}
-
-		inline const UboType& getUniformBuffer() const {
-			return *_ubo;
-		}
-
-	protected:
-		const UboType* _ubo;
-	};
-
-
 
 	template<class VERT_TYPE, class UBO_TYPE>
 	class Pipeline : public PipelineUbo<UBO_TYPE> {
@@ -93,32 +71,17 @@ namespace VK {
 		std::vector<BindingPtr> _sceneNodeBindings;
 	};
 
-	template<class PIPELINE_TYPE>
-	inline typename PIPELINE_TYPE::PipelinePtr createPipeline(const PipelineUboGroupBasePtr& plGroup, const std::string& shaderId, const VkRect2D& rect) {
-		PIPELINE_TYPE* ptr = new PIPELINE_TYPE(plGroup, shaderId, rect);
-		return PipelinePtr<PIPELINE_TYPE>(ptr);
-	}
-
-	template<class PIPELINE_TYPE>
-	inline typename PIPELINE_TYPE::PipelinePtr createPipelineWithSource(const PipelineUboGroupBasePtr& plGroup, const std::string& shaderId, const VkRect2D& rect, const std::vector<std::string>& filenames) {
-		auto pipeline = createPipeline<PIPELINE_TYPE>(plGroup, shaderId, rect);
-		auto& shaders = plGroup->getApp()->getDeviceContext()->getShaderPool();
-		if (!shaders.getShader(shaderId))
-			shaders.addShader(shaderId, filenames);
-		return pipeline;
-	}
-
 	template<class VERT_TYPE, class UBO_TYPE>
 	inline Pipeline<VERT_TYPE, UBO_TYPE>::Pipeline(const PipelineUboGroupBasePtr& plGroup, const std::string& shaderId, const VkRect2D& rect)
-	: PipelineUbo(plGroup, shaderId, rect)
+	: PipelineUbo<UBO_TYPE>(plGroup, shaderId, rect)
 	{ 
-		_vertBindDesc = VERT_TYPE::getBindingDescription();
-		_vertAttribDesc = VERT_TYPE::getAttributeDescriptions();
+		PipelineUbo<UBO_TYPE>::_vertBindDesc = VERT_TYPE::getBindingDescription();
+		PipelineUbo<UBO_TYPE>::_vertAttribDesc = VERT_TYPE::getAttributeDescriptions();
 	}
 
 	template<class VERT_TYPE, class UBO_TYPE>
 	inline void Pipeline<VERT_TYPE, UBO_TYPE>::cleanupSwapChain() {
-		PipelineUbo::cleanupSwapChain();
+		PipelineUbo<UBO_TYPE>::cleanupSwapChain();
 		for (auto& binding : _sceneNodeBindings) {
 			if (binding->isReady())
 				binding->cleanup();
@@ -129,7 +92,7 @@ namespace VK {
 	inline void Pipeline<VERT_TYPE, UBO_TYPE>::addCommands(VkCommandBuffer cmdBuff, size_t swapChainIdx) const {
 		for (const auto& binding : _sceneNodeBindings) {
 			if (binding->isReady() && binding->isVisible())
-				binding->addCommands(cmdBuff, _pipelineLayout, swapChainIdx);
+				binding->addCommands(cmdBuff, PipelineUbo<UBO_TYPE>::_pipelineLayout, swapChainIdx);
 		}
 	}
 
@@ -142,7 +105,7 @@ namespace VK {
 	inline typename Pipeline<VERT_TYPE, UBO_TYPE>::BindingPtr Pipeline<VERT_TYPE, UBO_TYPE>::addSceneNode(const SceneNodePtr& node) {
 		auto binding = std::make_shared<SceneNodeToPipelineBinding<VERT_TYPE, UBO_TYPE>>(this, node);
 		_sceneNodeBindings.push_back(binding);
-		changed();
+		PipelineUbo<UBO_TYPE>::changed();
 		return binding;
 	}
 
@@ -151,7 +114,7 @@ namespace VK {
 		auto iter = std::find(_sceneNodeBindings.begin(), _sceneNodeBindings.end(), node);
 		if (iter != _sceneNodeBindings.end()) {
 			_sceneNodeBindings.erase(iter);
-			changed();
+			PipelineUbo<UBO_TYPE>::changed();
 		}
 	}
 
@@ -164,7 +127,7 @@ namespace VK {
 	inline void Pipeline<VERT_TYPE, UBO_TYPE>::updateUniformBuffers(size_t swapChainIndex) {
 		for (auto& binding : _sceneNodeBindings) {
 			if (binding->isReady())
-				binding->updateUniformBuffer(swapChainIndex, *_ubo);
+				binding->updateUniformBuffer(swapChainIndex, *PipelineUbo<UBO_TYPE>::_ubo);
 		}
 	}
 

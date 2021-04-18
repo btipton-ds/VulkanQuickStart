@@ -1,5 +1,7 @@
 x64
 Debug
+CMakeFiles
+CMakeCache.txt
 .vs
 *.pdb
 *.idb

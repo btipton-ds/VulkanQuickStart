@@ -64,7 +64,7 @@ namespace VK {
 		void createTextureSampler();
 		const VkSamplerCreateInfo& getSamplerInfo() const;
 
-		VkDescriptorImageInfo getDescriptor() const;
+		VkDescriptorImageInfo& getDescriptor();
 
 	private:
 		TextureImage(const DeviceContextPtr& context);
@@ -76,6 +76,7 @@ namespace VK {
 		VkSamplerCreateInfo _samplerInfo;
 		uint32_t mipLevels_ = 0;
 		VkSampler _sampler = VK_NULL_HANDLE;
+                VkDescriptorImageInfo _descriptor;
 	};
 
 	inline TextureImagePtr TextureImage::newPtr(const DeviceContextPtr& context, VkFormat format, VkImageUsageFlags flagBits, uint32_t width,
@@ -117,13 +118,13 @@ namespace VK {
 		return result;
 	}
 
-	inline VkDescriptorImageInfo TextureImage::getDescriptor() const {
-		VkDescriptorImageInfo result = {};
-		result.imageView = _view;
-		result.sampler = _sampler;
-		result.imageLayout = _imageLayout;
+	inline VkDescriptorImageInfo& TextureImage::getDescriptor() {
+		_descriptor = {};
+		_descriptor.imageView = _view;
+		_descriptor.sampler = _sampler;
+		_descriptor.imageLayout = _imageLayout;
 
-		return result;
+		return _descriptor;
 	}
 
 }

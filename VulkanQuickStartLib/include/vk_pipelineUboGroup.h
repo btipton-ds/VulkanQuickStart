@@ -42,115 +42,140 @@ This file is part of the VulkanQuickStart Project.
 
 #include <vk_pipelineUboGroupBase.h>
 #include <vk_pipeline.h>
+#include <vk_shaderPool.h>
 
 namespace VK {
+    template<class PIPELINE_TYPE>
+    inline typename PIPELINE_TYPE::PipelinePtr createPipeline(const PipelineUboGroupBasePtr& plGroup, const std::string& shaderId, const VkRect2D& rect) {
+        PIPELINE_TYPE* ptr = new PIPELINE_TYPE(plGroup, shaderId, rect);
+        return PipelinePtr<PIPELINE_TYPE>(ptr);
+    }
 
-	template<class UBO_TYPE>
-	class PipelineUboGroup : public PipelineUboGroupBase, public std::enable_shared_from_this<PipelineUboGroup<UBO_TYPE>> {
-		/*
-		This class contains a list of pipelines which share a common uniform buffer object and related descriptors.
-		*/
-	public:
-		using UboType = UBO_TYPE;
-		using Pipeline = VK::PipelineUbo<UBO_TYPE>;
-		using PipelinePtr = std::shared_ptr<Pipeline>;
 
-		PipelineUboGroup(const VulkanAppPtr& app, size_t numBuffers);
+    template<class PIPELINE_TYPE>
+    inline typename PIPELINE_TYPE::PipelinePtr createPipelineWithSource(const PipelineUboGroupBasePtr& plGroup, const std::string& shaderId, const VkRect2D& rect, const std::vector<std::string>& filenames) {
+        auto pipeline = createPipeline<PIPELINE_TYPE>(plGroup, shaderId, rect);
+        auto& shaders = plGroup->getDeviceContext()->getShaderPool();
+        if (!shaders.getShader(shaderId))
+                shaders.addShader(shaderId, filenames);
+        return pipeline;
+    }
 
-		void add(const PipelinePtr& pl);
-		void resized(const VkRect2D& rect);
 
-		const UboType& getUbo() const;
-		void setUbo(const UboType& ubo, uint32_t swapChainImageIndex);
-		void updateUbos(uint32_t swapChainImageIndex);
+    template<class UBO_TYPE>
+    class PipelineUboGroup : public PipelineUboGroupBase, public std::enable_shared_from_this<PipelineUboGroup<UBO_TYPE>> {
+            /*
+            This class contains a list of pipelines which share a common uniform buffer object and related descriptors.
+            */
+    public:
+            using UboType = UBO_TYPE;
+            using Pipeline = VK::PipelineUbo<UBO_TYPE>;
+            using PipelinePtr = std::shared_ptr<Pipeline>;
 
-		template<typename FUNC_TYPE>
-		void iterate(FUNC_TYPE func);
+            PipelineUboGroup(const VulkanAppPtr& app, size_t numBuffers);
 
-		void cleanupSwapChain();
-		const PipelinePtr& getPipeline(size_t idx) const;
+            void add(const PipelinePtr& pl);
+            void resized(const VkRect2D& rect);
 
-		template<class PIPELINE_TYPE>
-		inline VK::PipelinePtr<PIPELINE_TYPE> addPipelineWithSource(const std::string& shaderId, const VkRect2D& rect, const std::vector<std::string>& filenames) {
-			auto self = shared_from_this();
-			auto pipeline = createPipelineWithSource<PIPELINE_TYPE>(self, shaderId, rect, filenames);
-			pipeline->setUniformBufferPtr(&_ubo);
-			_pipelines.push_back(pipeline);
+            const UboType& getUbo() const;
+            void setUbo(const UboType& ubo, uint32_t swapChainImageIndex);
+            void updateUbos(uint32_t swapChainImageIndex);
 
-			return std::dynamic_pointer_cast<PIPELINE_TYPE> (pipeline);
-		}
-	private:
-		static bool PipelineComparePaintLayer(const PipelinePtr& pl1, const PipelinePtr& pl2);
+            template<typename FUNC_TYPE>
+            void iterate(FUNC_TYPE func);
 
-		std::vector<PipelinePtr> _pipelines;
-		UboType _ubo;
-	};
+            void cleanupSwapChain();
+            const PipelinePtr& getPipeline(size_t idx) const;
 
-	template<class UBO_TYPE>
-	inline PipelineUboGroup<UBO_TYPE>::PipelineUboGroup(const VulkanAppPtr& app, size_t numBuffers)
-		: PipelineUboGroupBase(app, numBuffers)
-	{}
+            template<class PIPELINE_TYPE>
+            inline VK::PipelinePtr<PIPELINE_TYPE> addPipelineWithSource(const std::string& shaderId, const VkRect2D& rect, const std::vector<std::string>& filenames) {
+                    auto self = shared_from_this(this);
+                    auto pipeline = createPipelineWithSource<PIPELINE_TYPE>(self, shaderId, rect, filenames);
+                    pipeline->setUniformBufferPtr(&_ubo);
+                    _pipelines.push_back(pipeline);
 
-	template<class UBO_TYPE>
-	bool PipelineUboGroup<UBO_TYPE>::PipelineComparePaintLayer(const PipelinePtr& pl1, const PipelinePtr& pl2) {
-		return pl1->getPaintLayer() < pl2->getPaintLayer();
-	}
+                    return std::dynamic_pointer_cast<PIPELINE_TYPE> (pipeline);
+            }
 
-	template<class UBO_TYPE>
-	void PipelineUboGroup<UBO_TYPE>::add(const PipelinePtr& pl) {
-		std::lock_guard lg(_mutex);
-		pl->setUniformBufferPtr(&_ubo);
-		_pipelines.push_back(pl);
-		std::sort(_pipelines.begin(), _pipelines.end(), PipelineComparePaintLayer);
-	}
+            template<class PIPELINE_TYPE>
+            inline VK::PipelinePtr<PIPELINE_TYPE> addPipeline(const PIPELINE_TYPE& pipeline) {
+                    pipeline->setUniformBufferPtr(&_ubo);
+                    _pipelines.push_back(pipeline);
 
-	template<class UBO_TYPE>
-	void PipelineUboGroup<UBO_TYPE>::resized(const VkRect2D& rect) {
-		iterate([&](const auto& pipeline) {
-			pipeline->setViewportRect(rect);
-			pipeline->setScissorRect(rect);
-		});
-	}
+                    return pipeline;
+            }
+    private:
+            static bool PipelineComparePaintLayer(const PipelinePtr& pl1, const PipelinePtr& pl2);
 
-	template<class UBO_TYPE>
-	const typename PipelineUboGroup<UBO_TYPE>::UboType& PipelineUboGroup<UBO_TYPE>::getUbo() const {
-		return _ubo;
-	}
+            std::vector<PipelinePtr> _pipelines;
+            UboType _ubo;
+    };
 
-	template<class UBO_TYPE>
-	void PipelineUboGroup<UBO_TYPE>::setUbo(const UboType& ubo, uint32_t swapChainImageIndex) {
-		_ubo = ubo;
-		updateUbos(swapChainImageIndex);
-	}
+    template<class UBO_TYPE>
+    inline PipelineUboGroup<UBO_TYPE>::PipelineUboGroup(const VulkanAppPtr& app, size_t numBuffers)
+            : PipelineUboGroupBase(app, numBuffers)
+    {}
 
-	template<class UBO_TYPE>
-	void PipelineUboGroup<UBO_TYPE>::updateUbos(uint32_t swapChainImageIndex) {
-		iterate([&](const PipelinePtr& pipeline) {
-			if (pipeline->isVisible() && pipeline->numSceneNodes() > 0) {
-				pipeline->updateUniformBuffers(swapChainImageIndex);
-			}
-		});
-	}
+    template<class UBO_TYPE>
+    bool PipelineUboGroup<UBO_TYPE>::PipelineComparePaintLayer(const PipelinePtr& pl1, const PipelinePtr& pl2) {
+            return pl1->getPaintLayer() < pl2->getPaintLayer();
+    }
 
-	template<class UBO_TYPE>
-	template<typename FUNC_TYPE>
-	inline void PipelineUboGroup<UBO_TYPE>::iterate(FUNC_TYPE func) {
-		std::lock_guard lg(_mutex);
-		for (auto& pl : _pipelines) {
-			func(pl);
-		}
-	}
+    template<class UBO_TYPE>
+    void PipelineUboGroup<UBO_TYPE>::add(const PipelinePtr& pl) {
+            std::lock_guard lg(_mutex);
+            pl->setUniformBufferPtr(&_ubo);
+            _pipelines.push_back(pl);
+            std::sort(_pipelines.begin(), _pipelines.end(), PipelineComparePaintLayer);
+    }
 
-	template<class UBO_TYPE>
-	inline void PipelineUboGroup<UBO_TYPE>::cleanupSwapChain() {
-		iterate([&](const PipelinePtr& pipeline) {
-			pipeline->cleanupSwapChain();
-		});
-	}
+    template<class UBO_TYPE>
+    void PipelineUboGroup<UBO_TYPE>::resized(const VkRect2D& rect) {
+            iterate([&](const auto& pipeline) {
+                    pipeline->setViewportRect(rect);
+                    pipeline->setScissorRect(rect);
+            });
+    }
 
-	template<class UBO_TYPE>
-	inline const typename PipelineUboGroup<UBO_TYPE>::PipelinePtr& PipelineUboGroup<UBO_TYPE>::getPipeline(size_t idx) const {
-		return _pipelines[idx];
-	}
+    template<class UBO_TYPE>
+    const typename PipelineUboGroup<UBO_TYPE>::UboType& PipelineUboGroup<UBO_TYPE>::getUbo() const {
+            return _ubo;
+    }
+
+    template<class UBO_TYPE>
+    void PipelineUboGroup<UBO_TYPE>::setUbo(const UboType& ubo, uint32_t swapChainImageIndex) {
+            _ubo = ubo;
+            updateUbos(swapChainImageIndex);
+    }
+
+    template<class UBO_TYPE>
+    void PipelineUboGroup<UBO_TYPE>::updateUbos(uint32_t swapChainImageIndex) {
+            iterate([&](const PipelinePtr& pipeline) {
+                    if (pipeline->isVisible() && pipeline->numSceneNodes() > 0) {
+                            pipeline->updateUniformBuffers(swapChainImageIndex);
+                    }
+            });
+    }
+
+    template<class UBO_TYPE>
+    template<typename FUNC_TYPE>
+    inline void PipelineUboGroup<UBO_TYPE>::iterate(FUNC_TYPE func) {
+            std::lock_guard lg(_mutex);
+            for (auto& pl : _pipelines) {
+                    func(pl);
+            }
+    }
+
+    template<class UBO_TYPE>
+    inline void PipelineUboGroup<UBO_TYPE>::cleanupSwapChain() {
+            iterate([&](const PipelinePtr& pipeline) {
+                    pipeline->cleanupSwapChain();
+            });
+    }
+
+    template<class UBO_TYPE>
+    inline const typename PipelineUboGroup<UBO_TYPE>::PipelinePtr& PipelineUboGroup<UBO_TYPE>::getPipeline(size_t idx) const {
+            return _pipelines[idx];
+    }
 
 }
