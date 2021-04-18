@@ -6,5 +6,5 @@ cmake_minimum_required (VERSION 3.10)
 project ("VulkanQuickStart")
  
 # Include sub-projects.
-add_subdirectory ("VulkanQuickStart" )
-
+add_subdirectory ("VulkanQuickStartLib" )
+add_subdirectory ("VulkanQuickStartExe" )
