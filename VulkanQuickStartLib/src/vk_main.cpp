@@ -228,8 +228,6 @@ namespace VK
 
 		xform = glm::rotate(glm::mat4(1.0f), glm::radians(90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
 		plant->setModelTransform(xform);
-
-		/*
 		auto xformFunc = make_shared<UpdateFunc>(15, glm::vec3(0.0f, 1.0f, 0.0f));
 		plant->setModelTransformFunc(xformFunc);
 
@@ -245,7 +243,6 @@ namespace VK
 		xform = glm::translate(glm::mat4(1.0f), glm::vec3(10, 10, 0));
 		xform *= glm::rotate(glm::mat4(1.0f), glm::radians(90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
 		apricot->setModelTransform(xform);
-		*/
 #endif
 	}
 
@@ -382,7 +379,7 @@ namespace VK
 		createPipelines();
 
 		addObj();
-//		addStl();
+		addStl();
 
 #if ORBIT
 		gApp->setUboUpdateFunction(orbitFunc);
