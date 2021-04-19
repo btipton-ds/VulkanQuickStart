@@ -75,8 +75,8 @@ namespace VK
 	}
 
 	string getPath() {
-		string dir = "../../../resources/models/";
-		for (int i = 0; i < 4; i++) {
+		string dir = "resources/models/";
+		for (int i = 0; i < 6; i++) {
 			if (dirExists(dir))
 				return dir;
 			dir = "../" + dir;
@@ -87,7 +87,7 @@ namespace VK
 	const std::string modelPath = getPath();
 
 #if TEST_OBJ
-	const std::string pottedPlantPath = modelPath + "IndoorPotPlant/";
+	const string pottedPlantPath = modelPath + "IndoorPotPlant/";
 	const std::string pottedPlantFilename = "indoor_plant_02.obj";
 
 	const std::string dnaPath = modelPath + "DNA/";
@@ -205,6 +205,7 @@ namespace VK
 				: _rpm(rpm)
 				, _axis(axis)
 			{}
+
 			bool update(glm::mat4& xform) override {
 				double revs = gApp->getRuntimeMillis() / 1000.0 * (_rpm / 60.0);
 				while (revs > 1)

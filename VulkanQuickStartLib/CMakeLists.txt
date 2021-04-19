@@ -77,6 +77,7 @@ VulkanQuickStartLib SHARED
 "src/vk_textureImage.cpp"
 "src/vk_vertexTypes.cpp" 
 "src/vk_ui_button.cpp" 
+"src/vk_transformFunc.cpp"
 "src/vk_ui_window.cpp"
 "src/vk_sceneNodeImageProc.cpp"
 "src/vk_main.cpp")

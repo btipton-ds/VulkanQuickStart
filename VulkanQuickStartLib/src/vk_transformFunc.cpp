@@ -1,6 +1,3 @@
-#pragma once
-
-
 /*
 
 This file is part of the VulkanQuickStart Project.
@@ -31,15 +28,10 @@ This file is part of the VulkanQuickStart Project.
 */
 
 #include <vk_defines.h>
-#include <glm/glm.hpp>
+#include <vk_transformFunc.h>
 
 
-namespace VK {
-
-	class TransformFunc {
-	public:
-		virtual ~TransformFunc();
-		virtual bool update(glm::mat4& xform) = 0;
-	};
-
+VK::TransformFunc::~TransformFunc()
+{
 }
+
