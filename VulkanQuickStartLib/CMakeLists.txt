@@ -6,7 +6,8 @@ cmake_minimum_required (VERSION 3.10.2)
 include_directories(
 "include"
 "vk_base"
-"usr/include/"
+"/usr/include/"
+"/usr/include/freetype2/"
 "../../ThirdParty/glm-0.9.9.5/glm"
 "../../ThirdParty/glfw-3.3.2/include"
 "../../ThirdParty/tinyobjloader"
@@ -19,39 +20,27 @@ include_directories(
 
 find_package (Vulkan)
 
-string(FIND ${PROJECT_BINARY_DIR} "Release" isRelease)
-string(FIND ${PROJECT_BINARY_DIR} "Debug" isDebug)
 
 if (UNIX)
-	list(APPEND CMAKE_CXX_FLAGS "-pthread -fPIC")
+    list(APPEND CMAKE_CXX_FLAGS "-pthread -fPIC")
     set(GLSL_VALIDATOR "glslangValidator")
     add_definitions(-DGLFW_EXPOSE_NATIVE_X11 -D_GCC)
-    set(GLFW_LIB_DIR "../../ThirdParty/glfw/src")
+    set(GLFW_LIB_DIR "/usr/lib/x86_64-linux-gnu/")
 
-    if(NOT (isRelease EQUAL -1))
-        set (CONFIG "WSL-GCC-Release")
-    elseif(NOT (isDebug EQUAL -1))
-        set (CONFIG "WSL-GCC-Debug")
-    else()
-        message(FATAL_ERROR "unknown PROJECT_BINARY_DIR")
-    endif()
 else(UNIX)
 
     set(GLSL_VALIDATOR "/VulkanSDK/1.2.170.0/Bin32/glslangValidator.exe")
     add_definitions(-DGLFW_EXPOSE_NATIVE_WIN32)
     set(GLFW_LIB_DIR "../../ThirdParty/glfw-3.3.2/lib-vc2019")
 
-    if(NOT (isRelease EQUAL -1))
-        set (CONFIG "x64-Release")
-        set(FREE_TYPE_LIB_DER "../../ThirdParty/freetype-2.10.2/x64/Release Static")
-    elseif(NOT (isDebug EQUAL -1))
-        set (CONFIG "x64-Debug")
-        set(FREE_TYPE_LIB_DER "../../ThirdParty/freetype-2.10.2/x64/Debug Static")
-    else()
-        message(FATAL_ERROR "unknown PROJECT_BINARY_DIR")
-    endif()
 endif(UNIX)
 
+set(CONFIG "x64-${CMAKE_BUILD_TYPE}")
+
+message( "PROJECT_BINARY_DIR = ${PROJECT_BINARY_DIR}")
+message( "CONFIG = ${CONFIG}")
+message( "../../triMesh/out/build/${CONFIG}/triMesh/")
+message( "GLFW_LIB_DIR = ${GLFW_LIB_DIR}")
 link_directories (
 "${GLFW_LIB_DIR}"
 "${FREE_TYPE_LIB_DER}"
@@ -104,7 +93,7 @@ PUBLIC Vulkan::Vulkan
 PRIVATE triMesh
 PRIVATE stlReader 
 PRIVATE freetype
-PRIVATE glfw3
+PRIVATE glfw
 )
 
 # TODO: Add tests and install targets if needed.

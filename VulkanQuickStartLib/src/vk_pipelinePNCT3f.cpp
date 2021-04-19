@@ -42,6 +42,7 @@ This file is part of the VulkanQuickStart Project.
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
+#include <vk_transformFunc.h>
 #include <vk_pipelinePNCT3f.h>
 #include <vk_sceneNodePNCT3f.h>
 #include <vk_deviceContext.h>

@@ -31,6 +31,8 @@ This file is part of the VulkanQuickStart Project.
 */
 
 #include <vk_defines.h>
+#include <glm/glm.hpp>
+
 
 namespace VK {
 

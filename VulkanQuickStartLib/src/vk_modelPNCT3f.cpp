@@ -40,6 +40,7 @@ This file is part of the VulkanQuickStart Project.
 #define TINYOBJLOADER_IMPLEMENTATION
 #include <tiny_obj_loader.h>
 
+#include <vk_transformFunc.h>
 #include <vk_modelPNCT3f.h>
 #include <vk_app.h>
 

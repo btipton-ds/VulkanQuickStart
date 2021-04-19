@@ -89,7 +89,7 @@ namespace VK {
 
             template<class PIPELINE_TYPE>
             inline VK::PipelinePtr<PIPELINE_TYPE> addPipelineWithSource(const std::string& shaderId, const VkRect2D& rect, const std::vector<std::string>& filenames) {
-                    auto self = shared_from_this(this);
+                    auto self = PipelineUboGroup<UBO_TYPE>::shared_from_this();
                     auto pipeline = createPipelineWithSource<PIPELINE_TYPE>(self, shaderId, rect, filenames);
                     pipeline->setUniformBufferPtr(&_ubo);
                     _pipelines.push_back(pipeline);

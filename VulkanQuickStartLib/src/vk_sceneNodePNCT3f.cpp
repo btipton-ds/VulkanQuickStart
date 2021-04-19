@@ -31,6 +31,7 @@ This file is part of the VulkanQuickStart Project.
 
 #include <memory>
 
+#include <vk_transformFunc.h>
 #include <vk_pipelinePNCT3f.h>
 #include <vk_sceneNodePNCT3f.h>
 #include <vk_pipelinePNC3f.h>

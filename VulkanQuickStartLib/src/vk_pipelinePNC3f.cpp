@@ -118,5 +118,3 @@ void PipelinePNC3f::createDescriptorSetLayout() {
 		THROW("failed to create descriptor set layout!");
 	}
 }
-
-

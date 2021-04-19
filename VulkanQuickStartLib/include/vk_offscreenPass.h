@@ -66,8 +66,9 @@ namespace VK {
 		void build() override;
 
 		void draw(VkCommandBuffer cmdBuff) override;
-		template<class PIPELINE_TYPE>
-		VK::PipelinePtr<PIPELINE_TYPE> addPipelineWithSource(const std::string& shaderId, const std::vector<std::string>& filenames);
+
+                PipelineGroupTypePtr& getPipelines();
+                const PipelineGroupTypePtr& getPipelines() const;
 
 	protected:
 		VkSampleCountFlagBits getAntiAliasSamples() const override;
@@ -77,11 +78,6 @@ namespace VK {
 		UpdateUboFunctionType<UBO_TYPE> _updateUbo;
 		PipelineGroupTypePtr _pipelines;
 	};
-
-	class OffscreenPass3D: public OffscreenPass<UniformBufferObject3D>
-        {
-        };
-	using OffscreenPass3DPtr = typename OffscreenPass3D::PointerType;
 
 	template<class UBO_TYPE>
 	inline OffscreenPass<UBO_TYPE>::OffscreenPass(const VulkanAppPtr& app, VkFormat colorFormat)
@@ -163,4 +159,18 @@ namespace VK {
 	inline void OffscreenPass<UBO_TYPE>::setRenderPass(VkRenderPass renderPass) {
 		_pipelines->setRenderPass(renderPass);
 	}
+
+	template<class UBO_TYPE>
+        inline typename OffscreenPass<UBO_TYPE>::PipelineGroupTypePtr& OffscreenPass<UBO_TYPE>::getPipelines() {
+            return _pipelines;
+        }
+
+	template<class UBO_TYPE>
+        inline const typename OffscreenPass<UBO_TYPE>::PipelineGroupTypePtr& OffscreenPass<UBO_TYPE>::getPipelines() const {
+            return _pipelines;
+        }
+
+    using OffscreenPass3D = OffscreenPass<UniformBufferObject3D>;
+    using OffscreenPass3DPtr = typename OffscreenPass3D::PointerType;
+
 }

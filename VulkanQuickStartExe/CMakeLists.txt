@@ -62,10 +62,13 @@ file(GLOB_RECURSE GLSL_SOURCE_FILES
     "../VulkanQuickStartLib/shaders/*.vert"
     )
 
+if (UNIX)
+else (UNIX)
 add_custom_command(TARGET VulkanQuickStart POST_BUILD        # Adds a post-build event to MyTest
     COMMAND ${CMAKE_COMMAND} -E copy_if_different  # which executes "cmake - E copy_if_different..."
         "${PROJECT_BINARY_DIR}/VulkanQuickStartLib/VulkanQuickStartLib.dll"      # <--this is in-file
         "${PROJECT_BINARY_DIR}/VulkanQuickStartExe/")                 # <--this is out-file path
+endif(UNIX)
 
 foreach(GLSL ${GLSL_SOURCE_FILES})
   get_filename_component(RAW_FILE_NAME ${GLSL} NAME)
