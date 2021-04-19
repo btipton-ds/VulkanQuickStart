@@ -103,8 +103,8 @@ namespace VK {
 			Rect _rect;
 			float _fontSizePoints = 14;
 			std::string _label;
-			std::string _fontPath = "/usr/share/fonts/opentype/noto/"; //"/Windows/Fonts/";
-			std::string _fontName = "NotoSansCJK-Regular.ttc"; //"arial.ttf";
+			std::string _fontPath;
+			std::string _fontName;
 			Accel _accel;
 			glm::vec4 _backgroundColor = glm::vec4(0.75f, 0.75f, 0.75f, 1);
 			glm::vec4 _fontColor = glm::vec4(0, 0, 0.25f, 1);
