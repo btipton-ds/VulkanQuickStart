@@ -182,7 +182,6 @@ void PipelineBase::build() {
 	pipelineInfo.basePipelineHandle = VK_NULL_HANDLE;
 
 	VkDevice device = _dc->_device;
-
 	multisampling.rasterizationSamples = _plGroup->getAntiAliasSamples();
 	pipelineInfo.renderPass = _plGroup->getRenderPass();
 	if (vkCreateGraphicsPipelines(device, VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &_graphicsPipeline) != VK_SUCCESS) {

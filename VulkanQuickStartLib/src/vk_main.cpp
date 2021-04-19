@@ -228,6 +228,8 @@ namespace VK
 
 		xform = glm::rotate(glm::mat4(1.0f), glm::radians(90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
 		plant->setModelTransform(xform);
+
+		/*
 		auto xformFunc = make_shared<UpdateFunc>(15, glm::vec3(0.0f, 1.0f, 0.0f));
 		plant->setModelTransformFunc(xformFunc);
 
@@ -243,6 +245,7 @@ namespace VK
 		xform = glm::translate(glm::mat4(1.0f), glm::vec3(10, 10, 0));
 		xform *= glm::rotate(glm::mat4(1.0f), glm::radians(90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
 		apricot->setModelTransform(xform);
+		*/
 #endif
 	}
 
@@ -281,25 +284,28 @@ namespace VK
 	}
 
 	void createPipelines() {
-		vector<string> sampler3DFilenames = { "shaders/shader_depth_vert.spv", "shaders/shader_depth_frag.spv" };
 
+		vector<string> sampler3DFilenames = { "shaders/shader_depth_vert.spv", "shaders/shader_depth_frag.spv" };
 		pipeline3DWSampler.add(gApp->addPipelineWithSource<PipelinePNCT3f>("obj_shader", sampler3DFilenames));
 		pipeline3DWSampler.add(offscreen->getPipelines()->addPipelineWithSource<PipelinePNCT3f>("obj_shader", offscreen->getRect(), sampler3DFilenames));
-//		pipeline3DWSampler.add(offscreen->addPipelineWithSource<PipelinePNCT3f>("obj_shader", sampler3DFilenames));
 
 		vector<string> shaded3DFilenames = { "shaders/shader_vert.spv", "shaders/shader_frag.spv" };
 		pipeline3DShaded.add(gApp->addPipelineWithSource<PipelinePNC3f>("stl_shaded", shaded3DFilenames));
 		pipeline3DShaded.add(offscreen->getPipelines()->addPipelineWithSource<PipelinePNC3f>("stl_shaded", offscreen->getRect(), shaded3DFilenames));
-//		pipeline3DShaded.add(offscreen->addPipelineWithSource<PipelinePNC3f>("stl_shaded", shaded3DFilenames));
 
 		vector<string> wf3DFilenames = { "shaders/shader_vert.spv", "shaders/shader_wireframe_frag.spv" };
 		pipeline3DWireframe.add(gApp->addPipelineWithSource<PipelinePNC3f>("stl_wireframe", wf3DFilenames));
 		pipeline3DWireframe.add(offscreen->getPipelines()->addPipelineWithSource<PipelinePNC3f>("stl_wireframe", offscreen->getRect(), wf3DFilenames));
-//		pipeline3DWireframe.add(offscreen->addPipelineWithSource<PipelinePNC3f>("stl_wireframe", wf3DFilenames));
 
 		//pipeline3DWireframe.toggleVisiblity();
-		pipeline3DWireframe.setPolygonMode(VK_POLYGON_MODE_LINE);
-
+		if (gApp->getDeviceContext()->_features.fillModeNonSolid)
+		{
+			pipeline3DWireframe.setPolygonMode(VK_POLYGON_MODE_LINE);
+		}
+		else
+		{
+			int dbgBreak = 1; // Need a different way to draw wireframes on this device.
+		}
 		gApp->changed();	}
 
 	auto orbitFunc = [](uint32_t width, uint32_t height)->VulkanApp::UboType {
@@ -376,7 +382,7 @@ namespace VK
 		createPipelines();
 
 		addObj();
-		addStl();
+//		addStl();
 
 #if ORBIT
 		gApp->setUboUpdateFunction(orbitFunc);

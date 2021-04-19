@@ -66,6 +66,7 @@ namespace VK {
 		VkPhysicalDevice _physicalDevice = VK_NULL_HANDLE;
 		VkCommandPool _commandPool = VK_NULL_HANDLE;
 		VkQueue _graphicsQueue = VK_NULL_HANDLE;
+		VkPhysicalDeviceFeatures _features = {};
 		VkPhysicalDeviceMemoryProperties _memoryProperties = {};
 
 	private:

@@ -196,7 +196,7 @@ namespace VK {
 		VkPresentModeKHR chooseSwapPresentMode(const std::vector<VkPresentModeKHR>& availablePresentModes);
 		VkExtent2D getWindowExtent(const VkSurfaceCapabilitiesKHR& capabilities);
 		SwapChainSupportDetails querySwapChainSupport(VkPhysicalDevice device);
-		bool isDeviceSuitable(VkPhysicalDevice device);
+		bool isDeviceSuitable(VkPhysicalDevice device, VkPhysicalDeviceFeatures& features);
 		bool checkDeviceExtensionSupport(VkPhysicalDevice device);
 		QueueFamilyIndices findQueueFamilies(VkPhysicalDevice device);
 		std::vector<const char*> getRequiredExtensions();

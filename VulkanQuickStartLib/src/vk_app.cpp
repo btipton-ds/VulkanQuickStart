@@ -427,8 +427,10 @@ void VulkanApp::pickPhysicalDevice() {
 	vkEnumeratePhysicalDevices(_instance, &deviceCount, devices.data());
 
 	for (const auto& device : devices) {
-		if (isDeviceSuitable(device)) {
+		VkPhysicalDeviceFeatures features = {};
+		if (isDeviceSuitable(device, features)) {
 			_deviceContext->_physicalDevice = device;
+			_deviceContext->_features = features;
 			_maxMsaaSamples = getMaxUsableSampleCount();
 			break;
 		}
@@ -456,8 +458,10 @@ void VulkanApp::createLogicalDevice() {
 		queueCreateInfos.push_back(queueCreateInfo);
 	}
 
+// do this to turn on everything	VkPhysicalDeviceFeatures deviceFeatures = _deviceContext->_features;
 	VkPhysicalDeviceFeatures deviceFeatures = {};
 	deviceFeatures.samplerAnisotropy = VK_TRUE;
+	deviceFeatures.fillModeNonSolid = VK_TRUE;
 
 	VkDeviceCreateInfo createInfo = {};
 	createInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
@@ -1184,7 +1188,7 @@ VulkanApp::SwapChainSupportDetails VulkanApp::querySwapChainSupport(VkPhysicalDe
 	return details;
 }
 
-bool VulkanApp::isDeviceSuitable(VkPhysicalDevice device) {
+bool VulkanApp::isDeviceSuitable(VkPhysicalDevice device, VkPhysicalDeviceFeatures& features) {
 	QueueFamilyIndices indices = findQueueFamilies(device);
 
 	bool extensionsSupported = checkDeviceExtensionSupport(device);
@@ -1195,10 +1199,9 @@ bool VulkanApp::isDeviceSuitable(VkPhysicalDevice device) {
 		swapChainAdequate = !swapChainSupport.formats.empty() && !swapChainSupport.presentModes.empty();
 	}
 
-	VkPhysicalDeviceFeatures supportedFeatures;
-	vkGetPhysicalDeviceFeatures(device, &supportedFeatures);
+	vkGetPhysicalDeviceFeatures(device, &features);
 
-	return indices.isComplete() && extensionsSupported && swapChainAdequate && supportedFeatures.samplerAnisotropy;
+	return indices.isComplete() && extensionsSupported && swapChainAdequate && features.samplerAnisotropy;
 }
 
 bool VulkanApp::checkDeviceExtensionSupport(VkPhysicalDevice device) {
@@ -1313,7 +1316,25 @@ std::vector<char> VulkanApp::readFile(const std::string& filename) {
 }
 
 VKAPI_ATTR VkBool32 VKAPI_CALL VulkanApp::debugCallback(VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity, VkDebugUtilsMessageTypeFlagsEXT messageType, const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData, void* pUserData) {
-	std::cerr << "validation layer: " << pCallbackData->pMessage << std::endl;
+
+	// Format the message
+	string tmp, msg;
+	msg = pCallbackData->pMessage;
+
+	tmp = msg.substr(0, msg.find("]") + 2);
+	msg = msg.substr(tmp.length());
+	std::cerr << "validation layer message: " << tmp << std::endl;
+
+	tmp = msg.substr(0, msg.find("|"));
+	msg = msg.substr(tmp.length() + 2);
+	std::cerr << "  " << tmp << std::endl;
+
+	tmp = "| " + msg.substr(0, msg.find("|"));
+	msg = msg.substr(tmp.length() + 2);
+	std::cerr << "  " << tmp << std::endl;
+
+	tmp = "| " + msg;
+	std::cerr << "  " << tmp << std::endl;
 
 	return VK_FALSE;
 }
