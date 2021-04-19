@@ -6,8 +6,8 @@
 #define EXPORT_VQS __declspec(dllexport)
 #else
 #define EXPORT_VQS __declspec(dllimport)
-#endif
+#endif // VQS_EXPORT_DEF
 
 #else
 #define EXPORT_VQS 
-#endif
+#endif // _WIN32
