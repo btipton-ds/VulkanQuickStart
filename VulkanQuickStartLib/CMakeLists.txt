@@ -20,7 +20,6 @@ include_directories(
 
 find_package (Vulkan)
 
-
 if (UNIX)
     list(APPEND CMAKE_CXX_FLAGS "-pthread -fPIC")
     set(GLSL_VALIDATOR "glslangValidator")
@@ -37,10 +36,6 @@ endif(UNIX)
 
 set(CONFIG "x64-${CMAKE_BUILD_TYPE}")
 
-message( "PROJECT_BINARY_DIR = ${PROJECT_BINARY_DIR}")
-message( "CONFIG = ${CONFIG}")
-message( "../../triMesh/out/build/${CONFIG}/triMesh/")
-message( "GLFW_LIB_DIR = ${GLFW_LIB_DIR}")
 link_directories (
 "${GLFW_LIB_DIR}"
 "${FREE_TYPE_LIB_DER}"

@@ -7,38 +7,19 @@ include_directories(
 "../VulkanQuickStartLib/include"
 )
 
-string(FIND ${PROJECT_BINARY_DIR} "Release" isRelease)
-string(FIND ${PROJECT_BINARY_DIR} "Debug" isDebug)
-
 if (UNIX)
 	list(APPEND CMAKE_CXX_FLAGS "-pthread -fPIC")
     set(GLSL_VALIDATOR "glslangValidator")
     add_definitions(-DGLFW_EXPOSE_NATIVE_X11 -D_GCC)
     set(GLFW_LIB_DIR "../../ThirdParty/glfw/src")
-
-    if(NOT (isRelease EQUAL -1))
-        set (CONFIG "WSL-GCC-Release")
-    elseif(NOT (isDebug EQUAL -1))
-        set (CONFIG "WSL-GCC-Debug")
-    else()
-        message(FATAL_ERROR "unknown PROJECT_BINARY_DIR")
-    endif()
 else(UNIX)
 
     set(GLSL_VALIDATOR "/VulkanSDK/1.2.170.0/Bin32/glslangValidator.exe")
     add_definitions(-DGLFW_EXPOSE_NATIVE_WIN32)
     set(GLFW_LIB_DIR "../../ThirdParty/glfw-3.3.2/lib-vc2019")
-
-    if(NOT (isRelease EQUAL -1))
-        set (CONFIG "x64-Release")
-        set(FREE_TYPE_LIB_DER "../../ThirdParty/freetype-2.10.2/x64/Release Static")
-    elseif(NOT (isDebug EQUAL -1))
-        set (CONFIG "x64-Debug")
-        set(FREE_TYPE_LIB_DER "../../ThirdParty/freetype-2.10.2/x64/Debug Static")
-    else()
-        message(FATAL_ERROR "unknown PROJECT_BINARY_DIR")
-    endif()
 endif(UNIX)
+
+set(CONFIG "x64-${CMAKE_BUILD_TYPE}")
 
 link_directories (
 "out/build/${CONFIG}/VulkanQuickStartLib/"

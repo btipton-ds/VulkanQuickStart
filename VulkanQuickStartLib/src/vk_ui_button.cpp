@@ -238,11 +238,11 @@ namespace VK::UI {
 
 	void Button::init() {
 #ifdef _WIN32
+        _fontPath = "/Windows/Fonts/";
+        _fontName = "arial.ttf";
+#else
                 _fontPath = "/usr/share/fonts/opentype/noto/"; //"/Windows/Fonts/";
                 _fontName = "NotoSansCJK-Regular.ttc"; //"arial.ttf";
-#else
-                _fontPath = "/Windows/Fonts/";
-                _fontName = "arial.ttf";
 #endif
 
 		// Make sure all button are set so we don't get segfault/nullptr exceptions.
