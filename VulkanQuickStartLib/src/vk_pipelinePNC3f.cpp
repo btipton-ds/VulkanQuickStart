@@ -107,6 +107,7 @@ void PipelinePNC3f::createDescriptorSetLayout() {
 	uboLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
 	uboLayoutBinding.pImmutableSamplers = nullptr;
 	uboLayoutBinding.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
+	setDescriptorUboCount(uboLayoutBinding.descriptorCount);
 
 	std::array<VkDescriptorSetLayoutBinding, 1> bindings = { uboLayoutBinding };
 	VkDescriptorSetLayoutCreateInfo layoutInfo = {};

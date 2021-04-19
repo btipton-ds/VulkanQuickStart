@@ -94,4 +94,13 @@ PRIVATE freetype
 PRIVATE ${GLFW_LIB_NAME}
 )
 
+if (UNIX)
+else (UNIX)
+add_custom_command(TARGET VulkanQuickStartLib POST_BUILD        # Adds a post-build event to MyTest
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different  # which executes "cmake - E copy_if_different..."
+        "${PROJECT_BINARY_DIR}/VulkanQuickStartLib/VulkanQuickStartLib.dll"      # <--this is in-file
+        "${PROJECT_BINARY_DIR}/VulkanQuickStartExe/")                 # <--this is out-file path
+endif(UNIX)
+
+
 # TODO: Add tests and install targets if needed.

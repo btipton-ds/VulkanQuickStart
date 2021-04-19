@@ -60,6 +60,10 @@ namespace VK {
 		virtual void updateSceneNodeUbo(const SceneNodePtr& sceneNode, UBO_TYPE& ubo) const = 0;
 
 		size_t getUboSize() const override;
+		uint32_t getDescriptorSamplerCount() const;
+		void setDescriptorSamplerCount(uint32_t descriptorSamplerCount);
+		uint32_t getDescriptorUboCount() const;
+		void setDescriptorUboCount(uint32_t descriptorUboCount);
 
 	protected:
 		void buildSceneNodeBindings() override {
@@ -69,6 +73,9 @@ namespace VK {
 		}
 
 		std::vector<BindingPtr> _sceneNodeBindings;
+	private:
+		uint32_t _descriptorSamplerCount = 1;
+		uint32_t _descriptorUboCount = 1;
 	};
 
 	template<class VERT_TYPE, class UBO_TYPE>
@@ -129,6 +136,30 @@ namespace VK {
 			if (binding->isReady())
 				binding->updateUniformBuffer(swapChainIndex, *PipelineUbo<UBO_TYPE>::_ubo);
 		}
+	}
+
+	template<class VERT_TYPE, class UBO_TYPE>
+	inline uint32_t Pipeline<VERT_TYPE, UBO_TYPE>::getDescriptorSamplerCount() const
+	{
+		return _descriptorSamplerCount;
+	}
+
+	template<class VERT_TYPE, class UBO_TYPE>
+	inline void Pipeline<VERT_TYPE, UBO_TYPE>::setDescriptorSamplerCount(uint32_t descriptorSamplerCount)
+	{
+		_descriptorSamplerCount = descriptorSamplerCount;
+	}
+
+	template<class VERT_TYPE, class UBO_TYPE>
+	inline uint32_t Pipeline<VERT_TYPE, UBO_TYPE>::getDescriptorUboCount() const
+	{
+		return _descriptorUboCount;
+	}
+
+	template<class VERT_TYPE, class UBO_TYPE>
+	inline void Pipeline<VERT_TYPE, UBO_TYPE>::setDescriptorUboCount(uint32_t descriptorUboCount)
+	{
+		_descriptorUboCount = descriptorUboCount;
 	}
 
 }

@@ -8,3 +8,5 @@ project ("VulkanQuickStart")
 # Include sub-projects.
 add_subdirectory ("VulkanQuickStartLib" )
 add_subdirectory ("VulkanQuickStartExe" )
+
+
