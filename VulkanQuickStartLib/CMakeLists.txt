@@ -5,23 +5,19 @@ cmake_minimum_required (VERSION 3.10.2)
 
 find_package (Vulkan)
 
-message( "Vulkan_FOUND = ${Vulkan_FOUND}" )
-message( "Vulkan_INCLUDE_DIRS = ${Vulkan_INCLUDE_DIRS}" )
-message( "Vulkan_LIBRARIES = ${Vulkan_LIBRARIES}" )
-
 include_directories(
-"include"
-"vk_base"
-"/usr/include/"
-"/usr/include/freetype2/"
-"../../ThirdParty/glm-0.9.9.5/glm"
-"../../ThirdParty/glfw-3.3.2/include"
-"../../ThirdParty/tinyobjloader"
-"../../ThirdParty/freetype-2.10.2/include"
-"../../ThirdParty/stb"
-"/VulkanSDK/1.2.170.0/Include"
-"../../triMesh/triMesh/include"
-"../../triMesh/stlReader/include"
+	"include"
+	"vk_base"
+	"/usr/include/"
+	"/usr/include/freetype2/"
+	"../../ThirdParty/glm-0.9.9.5/glm"
+	"../../ThirdParty/glfw-3.3.2/include"
+	"../../ThirdParty/tinyobjloader"
+	"../../ThirdParty/freetype-2.10.2/include"
+	"../../ThirdParty/stb"
+	"${Vulkan_INCLUDE_DIRS}"
+	"../../triMesh/triMesh/include"
+	"../../triMesh/stlReader/include"
 )
 
 if (UNIX)
@@ -47,9 +43,6 @@ link_directories (
 "../../triMesh/out/build/${CONFIG}/triMesh/"
 "../../triMesh/out/build/${CONFIG}/stlReader/"
 )
-
-find_package(Vulkan)
-#find_package(glfw3 REQUIRED)
 
 #turn export declaration on for windows
 add_compile_definitions(VQS_EXPORT_DEF)
