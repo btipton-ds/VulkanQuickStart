@@ -1321,20 +1321,24 @@ VKAPI_ATTR VkBool32 VKAPI_CALL VulkanApp::debugCallback(VkDebugUtilsMessageSever
 	string tmp, msg;
 	msg = pCallbackData->pMessage;
 
-	tmp = msg.substr(0, msg.find("]") + 2);
-	msg = msg.substr(tmp.length());
-	std::cerr << "validation layer message: " << tmp << std::endl;
+	auto pos = msg.find("]");
+	if (pos > -1) {
+		tmp = msg.substr(0, pos + 2);
+		msg = msg.substr(tmp.length());
+		std::cerr << "validation layer message: " << tmp << std::endl;
 
-	tmp = msg.substr(0, msg.find("|"));
-	msg = msg.substr(tmp.length() + 2);
-	std::cerr << "  " << tmp << std::endl;
+		tmp = msg.substr(0, msg.find("|"));
+		msg = msg.substr(tmp.length() + 2);
+		std::cerr << "  " << tmp << std::endl;
 
-	tmp = "| " + msg.substr(0, msg.find("|"));
-	msg = msg.substr(tmp.length() + 2);
-	std::cerr << "  " << tmp << std::endl;
+		tmp = "| " + msg.substr(0, msg.find("|"));
+		msg = msg.substr(tmp.length() + 2);
+		std::cerr << "  " << tmp << std::endl;
 
-	tmp = "| " + msg;
-	std::cerr << "  " << tmp << std::endl;
-
+		tmp = "| " + msg;
+		std::cerr << "  " << tmp << std::endl;
+	} else {
+		std::cerr << "  " << msg << std::endl;
+	}
 	return VK_FALSE;
 }

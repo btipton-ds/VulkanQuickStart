@@ -3,6 +3,12 @@
 #
 cmake_minimum_required (VERSION 3.10.2)
 
+find_package (Vulkan)
+
+message( "Vulkan_FOUND = ${Vulkan_FOUND}" )
+message( "Vulkan_INCLUDE_DIRS = ${Vulkan_INCLUDE_DIRS}" )
+message( "Vulkan_LIBRARIES = ${Vulkan_LIBRARIES}" )
+
 include_directories(
 "include"
 "vk_base"
@@ -18,25 +24,22 @@ include_directories(
 "../../triMesh/stlReader/include"
 )
 
-find_package (Vulkan)
-
 if (UNIX)
     list(APPEND CMAKE_CXX_FLAGS "-pthread -fPIC")
     set(GLSL_VALIDATOR "glslangValidator")
     add_definitions(-DGLFW_EXPOSE_NATIVE_X11 -D_GCC)
     set(GLFW_LIB_DIR "/usr/lib/x86_64-linux-gnu/")
     set(GLFW_LIB_NAME "glfw")
-    set(CONFIG "${CMAKE_BUILD_TYPE}")
 else(UNIX)
     set(GLSL_VALIDATOR "/VulkanSDK/1.2.170.0/Bin32/glslangValidator.exe")
     add_definitions(-DGLFW_EXPOSE_NATIVE_WIN32)
     set(GLFW_LIB_DIR "../../ThirdParty/glfw-3.3.2/lib-vc2019")
     set(FREE_TYPE_LIB_DER "../../ThirdParty/freetype-2.10.2/x64/Release Static")
     set(GLFW_LIB_NAME "glfw3")
-    set(CONFIG "x64-${CMAKE_BUILD_TYPE}")
 endif(UNIX)
 
-message("CONFIG = ${CONFIG}" )
+set(CONFIG "x64-${CMAKE_BUILD_TYPE}")
+message("CONFIG = ${CONFIG}" ) 
 
 link_directories (
 "${GLFW_LIB_DIR}"

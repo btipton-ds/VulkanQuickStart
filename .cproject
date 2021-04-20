@@ -146,6 +146,16 @@
             </storageModule>
             			
             <storageModule moduleId="org.eclipse.cdt.core.externalSettings"/>
+            			
+            <storageModule buildDir="out/build/${ConfigName}" moduleId="de.marw.cdt.cmake.core.settings">
+                				
+                <options/>
+                				
+                <defs/>
+                				
+                <undefs/>
+                			
+            </storageModule>
             		
         </cconfiguration>
         	
