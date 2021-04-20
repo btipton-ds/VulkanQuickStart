@@ -45,9 +45,12 @@ This file is part of the VulkanQuickStart Project.
 #include <vk_buffer.h>
 #include <vk_sceneNode.h>
 
+#pragma warning (push)
+#pragma warning( disable : 4251 )
+
 namespace VK {
 
-	class PipelineBase {
+	class EXPORT_VQS PipelineBase {
 	public:
 		PipelineBase(const PipelineUboGroupBasePtr& plGroup, const std::string& shaderId, const VkRect2D& rect);
 		virtual ~PipelineBase();
@@ -188,3 +191,5 @@ namespace VK {
 	}
 
 }
+
+#pragma warning (pop)

@@ -55,9 +55,12 @@ This file is part of the VulkanQuickStart Project.
 #include <vk_swapChain.h>
 #include <vk_offscreenPass.h>
 
+#pragma warning (push)
+#pragma warning( disable : 4251 )
+
 namespace VK {
 
-	class VulkanApp : public std::enable_shared_from_this<VulkanApp> {
+	class EXPORT_VQS VulkanApp : public std::enable_shared_from_this<VulkanApp> {
 	public:
 		using BoundingBox = CBoundingBox3D<float>;
 		using UboType = UniformBufferObject3D;
@@ -333,3 +336,5 @@ namespace VK {
 	}
 
 }
+
+#pragma warning( pop )

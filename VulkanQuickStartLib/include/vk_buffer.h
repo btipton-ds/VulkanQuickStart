@@ -38,9 +38,12 @@ This file is part of the VulkanQuickStart Project.
 
 #include <vk_forwardDeclarations.h>
 
+#pragma warning (push)
+#pragma warning( disable : 4251 )
+
 namespace VK {
 
-	class Buffer {
+	class EXPORT_VQS Buffer {
 	public:
 		Buffer(const DeviceContextPtr& context);
 		~Buffer();
@@ -104,3 +107,6 @@ namespace VK {
 	}
 
 }
+
+#pragma warning (pop)
+

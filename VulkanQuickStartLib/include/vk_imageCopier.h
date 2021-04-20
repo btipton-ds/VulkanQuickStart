@@ -36,9 +36,12 @@ This file is part of the VulkanQuickStart Project.
 
 #include <vk_forwardDeclarations.h>
 
+#pragma warning (push)
+#pragma warning( disable : 4251 )
+
 namespace VK {
 
-	class ImageCopier {
+	class EXPORT_VQS ImageCopier {
 	public:
 		struct MappedMemory {
 			MappedMemory(const ImageCopier& copier);
@@ -126,3 +129,5 @@ namespace VK {
 	}
 
 }
+
+#pragma warning (pop)

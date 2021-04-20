@@ -45,9 +45,12 @@ This file is part of the VulkanQuickStart Project.
 #include <vk_buffer.h>
 #include <vk_textureImage.h>
 
+#pragma warning (push)
+#pragma warning( disable : 4251 )
+
 namespace VK {
 
-	class SceneNodeBase {
+	class EXPORT_VQS SceneNodeBase {
 	public:
 		SceneNodeBase(const VulkanAppPtr& app);
 		virtual ~SceneNodeBase();
@@ -85,3 +88,5 @@ namespace VK {
 		return _app;
 	}
 }
+
+#pragma warning (pop)

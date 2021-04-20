@@ -39,9 +39,12 @@ This file is part of the VulkanQuickStart Project.
 #include <vk_pipelineUboGroup.h>
 #include <vk_uniformBuffers.h>
 
+#pragma warning (push)
+#pragma warning( disable : 4251 )
+
 namespace VK {
 
-	class OffscreenPassBase {
+	class EXPORT_VQS OffscreenPassBase {
 	public:
 		OffscreenPassBase(const VulkanAppPtr& app, VkFormat colorFormat);
 		virtual ~OffscreenPassBase();
@@ -116,3 +119,5 @@ namespace VK {
 		return _descriptor;
 	}
 }
+
+#pragma warning (pop)

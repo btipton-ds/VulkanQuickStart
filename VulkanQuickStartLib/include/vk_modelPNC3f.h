@@ -52,9 +52,12 @@ This file is part of the VulkanQuickStart Project.
 
 #include <tm_boundingBox.h>
 
+#pragma warning (push)
+#pragma warning( disable : 4251 )
+
 namespace VK {
 
-	class ModelPNC3f : public SceneNodePNC3f {
+	class EXPORT_VQS ModelPNC3f : public SceneNodePNC3f {
 	public:
 		using BoundingBox = CBoundingBox3D<float>;
 
@@ -102,3 +105,5 @@ namespace VK {
 	};
 
 }
+
+#pragma warning (pop)

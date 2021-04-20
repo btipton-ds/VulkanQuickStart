@@ -36,9 +36,12 @@ This file is part of the VulkanQuickStart Project.
 #include <vk_forwardDeclarations.h>
 #include <vk_buffer.h>
 
+#pragma warning (push)
+#pragma warning( disable : 4251 )
+
 namespace VK {
 
-	class ComputeStepBase {
+	class EXPORT_VQS ComputeStepBase {
 		// Uses a compute shader t process one image to another
 	public:
 		static ComputeStepBasePtr newPtr(const DeviceContextPtr& dc, const TextureImagePtr& srcImage, const TextureImagePtr& dstImage, const std::string& shaderId, size_t uboSize = 0) {
@@ -127,3 +130,5 @@ namespace VK {
 	};
 
 }
+
+#pragma warning (pop)

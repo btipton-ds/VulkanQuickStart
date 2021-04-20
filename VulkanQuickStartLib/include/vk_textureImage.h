@@ -42,7 +42,7 @@ This file is part of the VulkanQuickStart Project.
 
 namespace VK {
 
-	class TextureImage : public Image {
+	class EXPORT_VQS TextureImage : public Image {
 	public:
 		static TextureImagePtr newPtr(const DeviceContextPtr& context, VkFormat format, VkImageUsageFlags flagBits, uint32_t width,
 			uint32_t height, VkSampleCountFlagBits samples);

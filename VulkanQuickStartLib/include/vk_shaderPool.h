@@ -41,9 +41,12 @@ This file is part of the VulkanQuickStart Project.
 #include <vk_forwardDeclarations.h>
 #include <vk_deviceContext.h>
 
+#pragma warning (push)
+#pragma warning( disable : 4251 )
+
 namespace VK {
 
-	class ShaderPool {
+	class EXPORT_VQS ShaderPool {
 	public:
 		struct Shader {
 			~Shader();
@@ -77,3 +80,5 @@ namespace VK {
 	};
 
 }
+
+#pragma warning (pop)

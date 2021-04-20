@@ -51,6 +51,9 @@ This file is part of the VulkanQuickStart Project.
 #include <vk_vertexTypes.h>
 #include <vk_sceneNodePNCT3f.h>
 
+#pragma warning (push)
+#pragma warning( disable : 4251 )
+
 namespace VK {
 
 	/*
@@ -67,7 +70,7 @@ namespace VK {
 	class ModelPNCT3f;
 	using ModelPNCT3fPtr = std::shared_ptr<ModelPNCT3f>;
 
-	class ModelPNCT3f : public SceneNodePNCT3f {
+	class EXPORT_VQS ModelPNCT3f : public SceneNodePNCT3f {
 	public:
 		using BoundingBox = CBoundingBox3D<float>;
 
@@ -119,3 +122,6 @@ namespace VK {
 	};
 
 }
+
+#pragma warning (pop)
+

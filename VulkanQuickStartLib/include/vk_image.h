@@ -39,9 +39,12 @@ This file is part of the VulkanQuickStart Project.
 #include <vk_forwardDeclarations.h>
 #include <vk_imageCopier.h>
 
+#pragma warning (push)
+#pragma warning( disable : 4251 )
+
 namespace VK {
 
-	class Image {
+	class EXPORT_VQS Image {
 	public:
 		static size_t pixelSize(VkFormat format);
 		size_t imageSize() const;
@@ -131,3 +134,5 @@ namespace VK {
 	}
 
 }
+
+#pragma warning (pop)

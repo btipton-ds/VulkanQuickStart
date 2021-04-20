@@ -19,9 +19,12 @@ This file is part of the TipScat Project.
 #include <memory>
 #include <iostream>
 
+#pragma warning (push)
+#pragma warning( disable : 4251 )
+
 namespace VK {
 
-	class Logger {
+	class EXPORT_VQS Logger {
 	public:
 		enum Level {
 			LEVEL_INFO = 1,
@@ -60,3 +63,4 @@ namespace VK {
 
 #define VK_CHK(err) VK::Logger::chk(err);
 
+#pragma warning (pop)

@@ -36,6 +36,9 @@ This file is part of the VulkanQuickStart Project.
 #include <vk_pipeline.h>
 #include <vk_vertexTypes.h>
 
+#pragma warning (push)
+#pragma warning( disable : 4251 )
+
 namespace VK {
 
 	struct UniformBufferObjectUi {
@@ -44,7 +47,7 @@ namespace VK {
 		glm::vec4 _color;
 	};
 
-	struct VertexUi {
+	struct EXPORT_VQS VertexUi {
 		VertexUi() = default;
 		VertexUi(const VertexUi& src) = default;
 		VertexUi(const glm::vec2& pos, const glm::vec2& tc);
@@ -57,7 +60,7 @@ namespace VK {
 		glm::vec2 _texCoord;
 	};
 
-	class PipelineUi : public Pipeline<VertexUi, UniformBufferObjectUi> {
+	class EXPORT_VQS PipelineUi : public Pipeline<VertexUi, UniformBufferObjectUi> {
 	public:
 		using PipelinePtr = std::shared_ptr<PipelineUi>;
 		using VertexType = VertexUi;
@@ -78,3 +81,4 @@ namespace VK {
 
 }
 
+#pragma warning (pop)

@@ -42,9 +42,12 @@ This file is part of the VulkanQuickStart Project.
 #include <vk_sceneNode.h>
 #include <vk_uniformBuffers.h>
 
+#pragma warning (push)
+#pragma warning( disable : 4251 )
+
 namespace VK {
 
-	class SceneNodePNCT3f : public SceneNode<Vertex3_PNCTf> {
+	class EXPORT_VQS SceneNodePNCT3f : public SceneNode<Vertex3_PNCTf> {
 	public:
 		using BoundingBox = CBoundingBox3Df;
 
@@ -94,3 +97,5 @@ namespace VK {
 		_modelXFormFunc = func;
 	}
 }
+
+#pragma warning (pop)

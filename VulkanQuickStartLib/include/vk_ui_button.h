@@ -41,6 +41,9 @@ This file is part of the VulkanQuickStart Project.
 #include <vk_sceneNodeUi.h>
 #include <vk_pipelineUi.h>
 
+#pragma warning (push)
+#pragma warning( disable : 4251 )
+
 namespace VK {
 	class VulkanApp;
 	using VulkanAppPtr = std::shared_ptr<VulkanApp>;
@@ -60,7 +63,7 @@ namespace VK {
 			int _modifers = 0;
 		};
 
-		class Button : public SceneNodeUi {
+		class EXPORT_VQS Button : public SceneNodeUi {
 		public:
 			using VertexType = PipelineUi::VertexType;
 			enum ActionType {
@@ -133,3 +136,5 @@ namespace VK {
 
 	}
 }
+
+#pragma warning (pop)

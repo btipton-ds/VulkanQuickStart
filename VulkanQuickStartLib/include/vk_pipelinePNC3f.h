@@ -36,9 +36,12 @@ This file is part of the VulkanQuickStart Project.
 #include <vk_uniformBuffers.h>
 #include <vk_vertexTypes.h>
 
+#pragma warning (push)
+#pragma warning( disable : 4251 )
+
 namespace VK {
 
-	class PipelinePNC3f : public Pipeline<Vertex3_PNCf, UniformBufferObject3D> {
+	class EXPORT_VQS PipelinePNC3f : public Pipeline<Vertex3_PNCf, UniformBufferObject3D> {
 	public:
 		using BoundingBox = CBoundingBox3D<float>;
 		using PipelinePtr = std::shared_ptr<PipelinePNC3f>;
@@ -55,3 +58,5 @@ namespace VK {
 	using PipelinePNC3fPtr = std::shared_ptr<PipelinePNC3f>;
 
 }
+
+#pragma warning (pop)

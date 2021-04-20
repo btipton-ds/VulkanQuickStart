@@ -41,15 +41,18 @@ This file is part of the VulkanQuickStart Project.
 #define GLM_FORCE_DEPTH_ZERO_TO_ONE
 #include <glm/glm.hpp>
 
+#pragma warning (push)
+#pragma warning( disable : 4251 )
+
 namespace VK {
 
-	struct Vertex2_Pf {
+	struct EXPORT_VQS Vertex2_Pf {
 		glm::vec2 pos;
 		static VkVertexInputBindingDescription getBindingDescription();
 		static std::vector<VkVertexInputAttributeDescription> getAttributeDescriptions();
 	};
 
-	struct Vertex2_PTf {
+	struct EXPORT_VQS Vertex2_PTf {
 		glm::vec2 pos;
 		glm::vec2 texCoord;
 
@@ -57,7 +60,7 @@ namespace VK {
 		static std::vector<VkVertexInputAttributeDescription> getAttributeDescriptions();
 	};
 
-	struct Vertex2Cd {
+	struct EXPORT_VQS Vertex2Cd {
 		glm::f64vec2 pos;
 		glm::vec3 color;
 
@@ -65,7 +68,7 @@ namespace VK {
 		static std::array<VkVertexInputAttributeDescription, 2> getAttributeDescriptions();
 	};
 
-	struct Vertex3_PNCf {
+	struct EXPORT_VQS Vertex3_PNCf {
 		glm::vec3 pos;
 		glm::vec3 norm;
 		glm::vec3 color;
@@ -75,7 +78,7 @@ namespace VK {
 		bool operator==(const Vertex3_PNCf& other) const;
 	};
 
-	struct Vertex3_PNCTf {
+	struct EXPORT_VQS Vertex3_PNCTf {
 		glm::vec3 pos;
 		glm::vec3 norm;
 		glm::vec3 color;
@@ -87,3 +90,5 @@ namespace VK {
 		bool operator==(const Vertex3_PNCTf& other) const;
 	};
 }
+
+#pragma warning (pop)

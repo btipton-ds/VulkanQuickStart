@@ -33,10 +33,9 @@ This file is part of the VulkanQuickStart Project.
 #include <vk_defines.h>
 #include <glm/glm.hpp>
 
-
 namespace VK {
 
-	class TransformFunc {
+	class EXPORT_VQS TransformFunc {
 	public:
 		virtual ~TransformFunc();
 		virtual bool update(glm::mat4& xform) = 0;

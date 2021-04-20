@@ -36,9 +36,12 @@ This file is part of the VulkanQuickStart Project.
 #include <vk_vertexTypes.h>
 #include <vk_pipelineUi.h>
 
+#pragma warning (push)
+#pragma warning( disable : 4251 )
+
 namespace VK {
 
-	class SceneNodeUi : public SceneNode<VertexUi> {
+	class EXPORT_VQS SceneNodeUi : public SceneNode<VertexUi> {
 	public:
 		SceneNodeUi(const VulkanAppPtr& app);
 
@@ -48,3 +51,5 @@ namespace VK {
 
 	using SceneNodeUiPtr = std::shared_ptr<SceneNodeUi>;
 }
+
+#pragma warning (pop)

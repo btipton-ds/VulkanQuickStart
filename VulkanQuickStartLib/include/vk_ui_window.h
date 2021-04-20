@@ -44,11 +44,14 @@ This file is part of the VulkanQuickStart Project.
 
 struct GLFWwindow;
 
+#pragma warning (push)
+#pragma warning( disable : 4251 )
+
 namespace VK {
 
 	namespace UI {
 
-		class Window {
+		class EXPORT_VQS Window {
 		public:
 			using UboType = UniformBufferObjectUi;
 			using PipelineGroupType = PipelineUboGroup<UboType>;
@@ -118,3 +121,4 @@ namespace VK {
 	}
 }
 
+#pragma warning (pop)

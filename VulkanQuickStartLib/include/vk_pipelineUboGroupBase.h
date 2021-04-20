@@ -39,9 +39,12 @@ This file is part of the VulkanQuickStart Project.
 
 #include <vulkan/vulkan_core.h>
 
+#pragma warning (push)
+#pragma warning( disable : 4251 )
+
 namespace VK {
 
-	class PipelineUboGroupBase {
+	class EXPORT_VQS PipelineUboGroupBase {
 	public:
 		PipelineUboGroupBase(const VulkanAppPtr& app, size_t numBuffers);
 		virtual ~PipelineUboGroupBase();
@@ -67,3 +70,5 @@ namespace VK {
 	};
 
 }
+
+#pragma warning (pop)
