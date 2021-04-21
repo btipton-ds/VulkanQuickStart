@@ -58,13 +58,6 @@ PipelinePNC3f::PipelinePNC3f(const PipelineUboGroupBasePtr& plGroup, const std::
 {}
 
 namespace {
-	inline glm::vec3 conv(const Vector3f& pt) {
-		return glm::vec3(pt[0], pt[1], pt[2]);
-	}
-	inline glm::vec4 conv4(const Vector3f& pt) {
-		return glm::vec4(pt[0], pt[1], pt[2], 1);
-	}
-
 	PipelinePNC3f::BoundingBox transform(const PipelinePNC3f::BoundingBox& bb, const glm::mat4& xform) {
 		PipelinePNC3f::BoundingBox result;
 		glm::vec4 pt(0, 0, 0, 1);

@@ -54,12 +54,12 @@ namespace VK::UI {
 
 	Button::Button(const VulkanAppPtr& app, const glm::vec4& backgroundColor, const std::string& label, const Rect& rect, const Accel& accel)
 		: SceneNodeUi(app)
+		, _rect(rect)
+		, _label(label)
+		, _accel(accel)
+		, _backgroundColor(backgroundColor)
 		, _vertexBuffer(app->getDeviceContext())
 		, _indexBuffer(app->getDeviceContext())
-		, _backgroundColor(backgroundColor)
-		, _label(label)
-		, _rect(rect)
-		, _accel(accel)
 	{
 		init();
 	}
@@ -185,8 +185,6 @@ namespace VK::UI {
 						glm::vec4 val = grayScale * fontColor + (1 - grayScale) * current;
 						val[3] = current[3]; // use source alpha
 						image[y * imageWidth + x] = fromVec4(val);
-					} else {
-						int dbgBreak = 1;
 					}
 				}
 			}

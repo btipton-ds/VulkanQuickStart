@@ -75,7 +75,7 @@ namespace VK {
 		virtual void setRenderPass(VkRenderPass renderPass) = 0;
 
 		VkRect2D _rect = { { 0, 0 }, {0, 0 } };
-		VkClearColorValue _clearColor = { 0, 0, 0, 1 };
+		VkClearColorValue _clearColor = { { 0, 0, 0, 1 } };
 		VkClearDepthStencilValue _depthStencil = { 1, 0 };
 		VkFramebuffer _frameBuffer = VK_NULL_HANDLE;
 		TextureImagePtr _color = VK_NULL_HANDLE;
@@ -108,7 +108,7 @@ namespace VK {
 	}
 
 	inline void OffscreenPassBase::setClearColor(float red, float green, float blue, float alpha) {
-		_clearColor = { red, green, blue, alpha };
+		_clearColor = { { red, green, blue, alpha } };
 	}
 
 	inline void OffscreenPassBase::setDepthStencil(const VkClearDepthStencilValue& value) {

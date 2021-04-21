@@ -109,9 +109,9 @@ VulkanAppPtr VulkanApp::create(const VkRect2D& rect) {
 }
 
 VulkanApp::VulkanApp(const VkRect2D& rect)
-	: _deviceContext(make_shared<DeviceContext>(MAX_FRAMES_IN_FLIGHT))
+	: _frameRect(rect)
+	, _deviceContext(make_shared<DeviceContext>(MAX_FRAMES_IN_FLIGHT))
 	, _swapChain(_deviceContext)
-	, _frameRect(rect)
 {
 	_modelToWorld = glm::identity<glm::mat4>();
 
@@ -915,9 +915,6 @@ namespace {
 		return glm::vec3(pt[0], pt[1], pt[2]);
 	}
 
-	inline glm::vec4 conv4(const Vector3f& pt) {
-		return glm::vec4(pt[0], pt[1], pt[2], 1);
-	}
 }
 
 void VulkanApp::updateUBO(const VkExtent2D& extent, const BoundingBox& modelBounds, UboType& ubo) const {
@@ -931,7 +928,6 @@ void VulkanApp::updateUBO(const VkExtent2D& extent, const BoundingBox& modelBoun
 	float w = (float)extent.width;
 	float h = (float)extent.height;
 	float maxDim = std::max(w, h);
-	float minDim = std::min(w, h);
 	w /= maxDim;
 	h /= maxDim;
 
@@ -950,7 +946,6 @@ void VulkanApp::updateUBO(const VkExtent2D& extent, const BoundingBox& modelBoun
 	ubo.modelView = view * model;
 
 	//		auto proj = glm::perspective(glm::radians(45.0f), _extent.width / (float)_extent.height, 0.1f, 10.0f);
-	float k = 0.5f;
 	ubo.proj = glm::ortho(-w, w, -h, h, -10.0f, 10.0f);
 	ubo.proj[1][1] *= -1;
 }

@@ -44,10 +44,7 @@ namespace VK {
 	class EXPORT_VQS ComputeStepBase {
 		// Uses a compute shader t process one image to another
 	public:
-		static ComputeStepBasePtr newPtr(const DeviceContextPtr& dc, const TextureImagePtr& srcImage, const TextureImagePtr& dstImage, const std::string& shaderId, size_t uboSize = 0) {
-			ComputeStepBasePtr p = std::shared_ptr<ComputeStepBase>(new ComputeStepBase(dc, srcImage, dstImage, shaderId, uboSize));
-			return p;
-		}
+		ComputeStepBase(const DeviceContextPtr& dc, const TextureImagePtr& srcImage, const TextureImagePtr& dstImage, const std::string& shaderId, size_t uboSize = 0);
 
 		void setLocalDim(int localDim);
 		void setPriorStep(const ComputeStepBasePtr& prior);
@@ -60,7 +57,6 @@ namespace VK {
 		virtual void updateUbo();
 
 	protected:
-		ComputeStepBase(const DeviceContextPtr& dc, const TextureImagePtr& srcImage, const TextureImagePtr& dstImage, const std::string& shaderId, size_t uboSize);
 
 		void createComputeQueue();
 		void createDescriptorPool();

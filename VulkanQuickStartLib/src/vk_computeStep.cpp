@@ -43,11 +43,11 @@ using namespace std;
 using namespace VK;
 
 ComputeStepBase::ComputeStepBase(const DeviceContextPtr& dc, const TextureImagePtr& srcImage, const TextureImagePtr& dstImage, const std::string& shaderId, size_t uboSize)
-	: _dc(dc)
+	: _uboSize(uboSize)
+	, _dc(dc)
 	, _srcImage(srcImage)
 	, _dstImage(dstImage)
 	, _shaderId(shaderId)
-	, _uboSize(uboSize)
 {}
 
 void ComputeStepBase::updateUbo() {

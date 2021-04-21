@@ -42,10 +42,10 @@ using namespace VK;
 
 ImageCopier::ImageCopier(const DeviceContextPtr& context, const Image& srcImage, size_t bufSize)
 	: _context(context)
-	, _bufSize(bufSize)
 	, _srcImage(srcImage)
 	, _extent(srcImage.getImageInfo().extent)
 	, _format(srcImage.getImageInfo().format)
+	, _bufSize(bufSize)
 {
 	_device = _context->_device;
 
