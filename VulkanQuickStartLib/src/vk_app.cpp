@@ -83,9 +83,9 @@ const std::vector<const char*> deviceExtensions = {
 	VK_KHR_SWAPCHAIN_EXTENSION_NAME
 };
 
-#define FORCE_VALIDATION 1
+#define FORCE_VALIDATION 0
 
-#if defined(NDEBUG) && !FORCE_VALIDATION
+#if defined(VQS_RELEASE_BUILD) && !FORCE_VALIDATION
 const bool enableValidationLayers = false;
 #else
 const bool enableValidationLayers = true;
