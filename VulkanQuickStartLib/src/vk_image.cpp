@@ -563,7 +563,6 @@ void Image::saveImage(const std::string& filename, const VkSubresourceLayout& vk
 		unsigned int* row = (unsigned int*)data;
 		for (uint32_t x = 0; x < extent.width; x++)
 		{
-			auto ref = dstPx;
 			if (colorSwizzle) {
 				if (isPng)
 					*dstPx++ = *((char*)row + 3);

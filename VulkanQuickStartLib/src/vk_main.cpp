@@ -299,12 +299,8 @@ namespace VK
 		{
 			pipeline3DWireframe.setPolygonMode(VK_POLYGON_MODE_LINE);
 		}
-		else
-		{
-			int dbgBreak = 1; // Need a different way to draw wireframes on this device.
-		}
 		gApp->changed();	}
-
+	/*
 	auto orbitFunc = [](uint32_t width, uint32_t height)->VulkanApp::UboType {
 		VulkanApp::UboType ubo;
 
@@ -317,7 +313,6 @@ namespace VK
 		float w = (float)width;
 		float h = (float)height;
 		float maxDim = std::max(w, h);
-		float minDim = std::min(w, h);
 		w /= maxDim;
 		h /= maxDim;
 
@@ -343,7 +338,7 @@ namespace VK
 
 		return ubo;
 	};
-
+	*/
 	int mainRunTest(int numArgs, char** args) {
 		VkRect2D frame;
 		frame.offset = { 0,0, };

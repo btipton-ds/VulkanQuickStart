@@ -84,7 +84,7 @@ namespace VK {
 
 		void addCommands(VkCommandBuffer cmdBuff) const override;
 		void buildImageInfoList(std::vector<VkDescriptorImageInfo>& imageInfoList) const override;
-		BoundingBox getBounds() const;// override;
+		BoundingBox getBounds() const override;
 
 		inline const std::vector<VertexType>& getVertices() const {
 			return _vertices;

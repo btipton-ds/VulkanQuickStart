@@ -227,7 +227,7 @@ namespace VK {
 
 		DeviceContextPtr _deviceContext;
 
-		VkClearColorValue _clearColor = { 0, 0, 0, 1 };
+		VkClearColorValue _clearColor = { { 0, 0, 0, 1 } };
 		VkClearDepthStencilValue _depthStencil = { 1, 0 };
 		VkSampleCountFlagBits _maxMsaaSamples = VK_SAMPLE_COUNT_1_BIT;
 		VkSampleCountFlagBits _msaaSamples = VK_SAMPLE_COUNT_1_BIT;
@@ -247,7 +247,7 @@ namespace VK {
 	};
 
 	inline void VulkanApp::setClearColor(float red, float green, float blue, float alpha) {
-		_clearColor = {red, green, blue, alpha};
+		_clearColor = { {red, green, blue, alpha} };
 	}
 
 	inline VulkanAppPtr VulkanApp::getAppPtr() {
