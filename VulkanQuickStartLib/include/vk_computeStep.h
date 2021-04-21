@@ -44,7 +44,7 @@ namespace VK {
 	class EXPORT_VQS ComputeStepBase {
 		// Uses a compute shader t process one image to another
 	public:
-		ComputeStepBase(const DeviceContextPtr& dc, const TextureImagePtr& srcImage, const TextureImagePtr& dstImage, const std::string& shaderId, size_t uboSize);
+		ComputeStepBase(const DeviceContextPtr& dc, const TextureImagePtr& srcImage, const TextureImagePtr& dstImage, const std::string& shaderId, size_t uboSize = 0);
 
 		void setLocalDim(int localDim);
 		void setPriorStep(const ComputeStepBasePtr& prior);
