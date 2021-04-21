@@ -57,7 +57,7 @@ namespace VK {
 
 	template<class UBO_TYPE>
 	PipelineImageProcTmpl<UBO_TYPE>::PipelineImageProcTmpl(const PipelineUboGroupBasePtr& plGroup, const std::string& shaderId, const VkRect2D& rect)
-		: Pipeline<VertexType, UboType>(plGroup, shaderId, rect)
+		: Pipeline<Vertex2_PTf, UBO_TYPE>(plGroup, shaderId, rect)
 	{}
 
 	template<class UBO_TYPE>
@@ -73,7 +73,7 @@ namespace VK {
 		setLayoutBindings.push_back(initializers::descriptorSetLayoutBinding(VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT, bindingIdx++));
 
 		VkDescriptorSetLayoutCreateInfo descriptorLayout = initializers::descriptorSetLayoutCreateInfo(setLayoutBindings);
-		if (vkCreateDescriptorSetLayout(_dc->_device, &descriptorLayout, nullptr, &_descriptorSetLayout) != VK_SUCCESS) {
+		if (vkCreateDescriptorSetLayout(PipelineBase::_dc->_device, &descriptorLayout, nullptr, &(PipelineBase::_descriptorSetLayout)) != VK_SUCCESS) {
 			THROW("failed to create descriptor set layout!");
 		}
 	}

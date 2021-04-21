@@ -66,7 +66,8 @@ namespace VK {
 		, _indexBuffer(app->getDeviceContext())
 		, _srcImage(srcImage)
 	{
-		std::vector<VertexType> vertices = {
+		// This should be a class local define or using clause, but it won't compile in gcc.
+		std::vector<Vertex2_PTf> vertices = {
 			{{-1, -1}, {0, 0} },
 			{{ 1, -1}, {1, 0}},
 			{{ 1,  1}, {1, 1}},
