@@ -27,11 +27,54 @@ This file is part of the VulkanQuickStart Project.
 	Dark Sky Innovative Solutions http://darkskyinnovation.com/
 
 */
-
 #include <vk_exports.h>
+#include <memory>
+#include <string>
+#include <vector>
 
-namespace VK {
-  EXPORT_VQS int mainRunTest(int numArgs, char** args);
+namespace VQS_API
+{
+	enum class CommandId {
+		CMD_INIT,
+		CMD_RESULT,
+		CMD_UNKNOWN
+	};
+
+	enum class CmdDataType {
+		PT_2D,
+		STRING,
+		Error,
+		NONE
+	};
+
+	struct CmdData {
+		inline CmdData(CmdDataType t)
+		{
+			type = t;
+		}
+		CmdDataType type;
+	};
+
+	struct CmdDataPoint2d : public CmdData {
+		inline CmdDataPoint2d() : CmdData(CmdDataType::PT_2D) {}
+		int x, y;
+	};
+
+	struct CmdDataPointString : public CmdData {
+		inline CmdDataPointString() : CmdData(CmdDataType::STRING) {}
+		std::string str;
+	};
+
+	class EXPORT_VQS Api {
+	public:
+		Api();
+		virtual ~Api();
+
+		virtual CmdData doCommand(CommandId cmd, const CmdData& command) = 0;
+		virtual void getFrame(uint8_t* buffer, size_t& width, size_t& height) const = 0;
+	};
+
 }
 
-EXPORT_VQS int startHeadless();
+typedef std::shared_ptr<VQS_API::Api>(*getApiFunc)();
+std::shared_ptr<VQS_API::Api> EXPORT_VQS getVqsApi();

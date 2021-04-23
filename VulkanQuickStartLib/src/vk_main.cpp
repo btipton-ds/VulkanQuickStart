@@ -81,7 +81,7 @@ namespace VK
 				return dir;
 			dir = "../" + dir;
 		}
-		throw runtime_error("Could not find model directory");
+		return "";
 	}
 
 	const std::string modelPath = getPath();
@@ -392,3 +392,9 @@ namespace VK
 	}
 
 }
+
+int startHeadless()
+{
+	return 1;
+}
+

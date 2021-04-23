@@ -62,6 +62,7 @@ VulkanQuickStartLib SHARED
 "src/vk_logger.cpp"  
 "src/vk_modelPNC3f.cpp"  
 "src/vk_modelPNCT3f.cpp"
+"src/vk_nodeApi.cpp"
 "src/vk_offscreenPassBase.cpp"  
 "src/vk_pipelineBase.cpp"
 
@@ -81,7 +82,8 @@ VulkanQuickStartLib SHARED
 "src/vk_transformFunc.cpp"
 "src/vk_ui_window.cpp"
 "src/vk_sceneNodeImageProc.cpp"
-"src/vk_main.cpp")
+"src/vk_main.cpp"
+)
 
 target_compile_features(VulkanQuickStartLib PRIVATE cxx_std_17)
 

@@ -1,4 +1,5 @@
 #pragma once
+
 /*
 
 This file is part of the VulkanQuickStart Project.
@@ -28,10 +29,80 @@ This file is part of the VulkanQuickStart Project.
 
 */
 
-#include <vk_exports.h>
+#include <vk_defines.h>
 
-namespace VK {
-  EXPORT_VQS int mainRunTest(int numArgs, char** args);
+#include <map>
+
+#include <vk_nodeAPI.h>
+
+using namespace std;
+using namespace VQS_API;
+
+Api::Api()
+{}
+
+Api::~Api()
+{}
+
+class ApiHandler {
+public:
+	virtual CmdData doCommand(const CmdData& command) = 0;
+};
+
+using ApiHandlerPtr = shared_ptr<ApiHandler>;
+
+class ApiImpl : public Api
+{
+public:
+	ApiImpl();
+	~ApiImpl();
+	CmdData doCommand(CommandId cmd, const CmdData& command) override;
+	void getFrame(uint8_t* buffer, size_t& width, size_t& height) const override;
+
+private:
+	map<CommandId, ApiHandlerPtr> _commandMap;
+};
+
+shared_ptr<Api> getVqsApi()
+{
+	static shared_ptr<Api> api;
+
+	if (!api)
+		api = make_shared<ApiImpl>();
+
+	return api;
 }
 
-EXPORT_VQS int startHeadless();
+class InitHandler : public ApiHandler
+{
+public:
+	virtual CmdData doCommand(const CmdData& command)
+	{
+		return CmdData(CmdDataType::NONE);
+	}
+};
+
+ApiImpl::ApiImpl()
+	: Api()
+{
+	_commandMap[CommandId::CMD_INIT] = make_shared<InitHandler>();
+}
+
+ApiImpl::~ApiImpl()
+{}
+
+CmdData ApiImpl::doCommand(CommandId cmd, const CmdData& command)
+{
+	auto iter = _commandMap.find(cmd);
+
+	if (iter != _commandMap.end()) {
+		return iter->second->doCommand(command);
+	}
+
+	return CmdData(CmdDataType::Error);
+}
+
+void ApiImpl::getFrame(uint8_t* buffer, size_t& width, size_t& height) const
+{
+
+}
