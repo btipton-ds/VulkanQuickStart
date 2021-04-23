@@ -33,6 +33,7 @@ This file is part of the VulkanQuickStart Project.
 #include <vk_defines.h>
 #include <sys/stat.h>
 #include <fstream>
+#include <thread>
 
 #include "vk_app.h"
 
@@ -55,9 +56,11 @@ This file is part of the VulkanQuickStart Project.
 #include <triMesh.h>
 #include <readStl.h>
 
-namespace VK
+using namespace std;
+using namespace VK;
+
+namespace
 {
-	using namespace std;
 
 #define TEST_OBJ 1 // TODO. Recent driver changes cause this option to crash due to insufficient resources.
 #define TEST_STL 1
@@ -198,27 +201,26 @@ namespace VK
 	}
 #endif
 
-	namespace {
-		class UpdateFunc : public VK::TransformFunc {
-		public:
-			UpdateFunc(double rpm, const glm::vec3& axis)
-				: _rpm(rpm)
-				, _axis(axis)
-			{}
+	class UpdateFunc : public VK::TransformFunc {
+	public:
+		UpdateFunc(double rpm, const glm::vec3& axis)
+			: _rpm(rpm)
+			, _axis(axis)
+		{}
 
-			bool update(glm::mat4& xform) override {
-				double revs = gApp->getRuntimeMillis() / 1000.0 * (_rpm / 60.0);
-				while (revs > 1)
-					revs -= 1;
+		bool update(glm::mat4& xform) override {
+			double revs = gApp->getRuntimeMillis() / 1000.0 * (_rpm / 60.0);
+			while (revs > 1)
+				revs -= 1;
 
-				xform *= glm::rotate(glm::mat4(1.0f), (float)(2 * EIGEN_PI * revs), _axis);
-				return true;
-			}
-		private:
-			double _rpm;
-			glm::vec3 _axis;
-		};
-	}
+			xform *= glm::rotate(glm::mat4(1.0f), (float)(2 * EIGEN_PI * revs), _axis);
+			return true;
+		}
+	private:
+		double _rpm;
+		glm::vec3 _axis;
+	};
+
 	void addObj() {
 #if TEST_OBJ
 		glm::mat4 xform;
@@ -280,121 +282,128 @@ namespace VK
 		return 0;
 	}
 
-	void createPipelines() {
+	void createPipelines(bool headless) {
 
 		vector<string> sampler3DFilenames = { "shaders/shader_depth_vert.spv", "shaders/shader_depth_frag.spv" };
-		pipeline3DWSampler.add(gApp->addPipelineWithSource<PipelinePNCT3f>("obj_shader", sampler3DFilenames));
-		pipeline3DWSampler.add(offscreen->getPipelines()->addPipelineWithSource<PipelinePNCT3f>("obj_shader", offscreen->getRect(), sampler3DFilenames));
-
 		vector<string> shaded3DFilenames = { "shaders/shader_vert.spv", "shaders/shader_frag.spv" };
-		pipeline3DShaded.add(gApp->addPipelineWithSource<PipelinePNC3f>("stl_shaded", shaded3DFilenames));
-		pipeline3DShaded.add(offscreen->getPipelines()->addPipelineWithSource<PipelinePNC3f>("stl_shaded", offscreen->getRect(), shaded3DFilenames));
-
 		vector<string> wf3DFilenames = { "shaders/shader_vert.spv", "shaders/shader_wireframe_frag.spv" };
-		pipeline3DWireframe.add(gApp->addPipelineWithSource<PipelinePNC3f>("stl_wireframe", wf3DFilenames));
-		pipeline3DWireframe.add(offscreen->getPipelines()->addPipelineWithSource<PipelinePNC3f>("stl_wireframe", offscreen->getRect(), wf3DFilenames));
 
-		//pipeline3DWireframe.toggleVisiblity();
 		if (gApp->getDeviceContext()->_features.fillModeNonSolid)
 		{
 			pipeline3DWireframe.setPolygonMode(VK_POLYGON_MODE_LINE);
 		}
-		gApp->changed();	}
-	/*
-	auto orbitFunc = [](uint32_t width, uint32_t height)->VulkanApp::UboType {
-		VulkanApp::UboType ubo;
 
-		ubo = {};
-		ubo.ambient = 0.10f;
-		ubo.numLights = 2;
-		ubo.lightDir[0] = glm::normalize(glm::vec3(1, -0.5, 1));
-		ubo.lightDir[1] = glm::normalize(glm::vec3(-1, -0.5, 3));
-
-		float w = (float)width;
-		float h = (float)height;
-		float maxDim = std::max(w, h);
-		w /= maxDim;
-		h /= maxDim;
-
-
-		double revs = gApp->getRuntimeMillis() / 1000.0 * (-5.0 / 60.0);
-		while (revs > 1)
-			revs -= 1;
-
-		float scale = 0.075f;
-		float theta = (float)(15.0 * EIGEN_PI / 180.0);
-		glm::vec3 ctr(0, 0, 0);
-		glm::mat4 model = glm::scale(glm::mat4(1.0f), glm::vec3(scale, scale, scale));
-		model *= glm::translate(glm::mat4(1.0f), ctr);
-		model *= glm::rotate(glm::mat4(1.0f), theta, glm::vec3(0.0f, 1.0f, 0.0f));
-		model *= glm::rotate(glm::mat4(1.0f), (float)(2 * EIGEN_PI * revs), glm::vec3(0.0f, 0.0f, 1.0f));
-
-		glm::mat4 view = glm::lookAt(glm::vec3(1.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
-
-		ubo.modelView = view * model;
-
-		ubo.proj = glm::ortho(-w, w, -h, h, -10.0f, 10.0f);
-		ubo.proj[1][1] *= -1;
-
-		return ubo;
-	};
-	*/
-	int mainRunTest(int numArgs, char** args) {
-		VkRect2D frame;
-		frame.offset = { 0,0, };
-		frame.extent.width = 1500;
-		frame.extent.height = 900;
-		gApp = VulkanApp::create(frame);
-
-		gApp->setAntiAliasSamples(VK_SAMPLE_COUNT_4_BIT);
-		gApp->setClearColor(0.0f, 0.0f, 0.2f);
-
-		auto formats = gApp->findSupportedFormats({ VK_FORMAT_R8G8B8A8_UNORM, VK_FORMAT_R8G8B8A8_UINT, VK_FORMAT_B8G8R8A8_UNORM }, VK_FORMAT_FEATURE_COLOR_ATTACHMENT_BIT);
-		if (formats.empty()) {
-			throw runtime_error("Format not supported");
+		if (headless) {
+			pipeline3DWSampler.add(offscreen->getPipelines()->addPipelineWithSource<PipelinePNCT3f>("obj_shader", offscreen->getRect(), sampler3DFilenames));
+			pipeline3DShaded.add(offscreen->getPipelines()->addPipelineWithSource<PipelinePNC3f>("stl_shaded", offscreen->getRect(), shaded3DFilenames));
+			pipeline3DWireframe.add(offscreen->getPipelines()->addPipelineWithSource<PipelinePNC3f>("stl_wireframe", offscreen->getRect(), wf3DFilenames));
+		} else {
+			pipeline3DWSampler.add(gApp->addPipelineWithSource<PipelinePNCT3f>("obj_shader", sampler3DFilenames));
+			pipeline3DShaded.add(gApp->addPipelineWithSource<PipelinePNC3f>("stl_shaded", shaded3DFilenames));
+			pipeline3DWireframe.add(gApp->addPipelineWithSource<PipelinePNC3f>("stl_wireframe", wf3DFilenames));
 		}
-		VkExtent2D offscreenExtent = { 2048, 2048 };
-		offscreen = make_shared<OffscreenPass3D>(gApp, formats.front()._format);
-		offscreen->setAntiAliasSamples(VK_SAMPLE_COUNT_1_BIT);
-		offscreen->setClearColor(0.0f, 0.3f, 0.0f);
-		offscreen->init(offscreenExtent);
-		offscreenIdx = gApp->addOffscreen(offscreen);
 
+		//pipeline3DWireframe.toggleVisiblity();
+		gApp->changed();	
+	}
 
-#if TEST_GUI
-		UI::WindowPtr gui = make_shared<UI::Window>(gApp);
-		gApp->setUiWindow(gui);
-		buildUi(gui);
-#else
-		UI::Window gui(gApp);
-#endif
-
-		glfwSetWindowTitle(gApp->getWindow(), "Vulkan Quick Start");
-
-		createPipelines();
-
-		addObj();
-		addStl();
-
-#if ORBIT
-		gApp->setUboUpdateFunction(orbitFunc);
-#endif
-
+	void headlessThreadFunc()
+	{
 		try {
 			gApp->run();
 		}
 		catch (const std::exception& e) {
 			std::cerr << e.what() << std::endl;
-			return EXIT_FAILURE;
 		}
+	}
+}
 
-		return EXIT_SUCCESS;
+int VK::mainRunTest(int numArgs, char** args) {
+	VkRect2D frame;
+	frame.offset = { 0,0, };
+	frame.extent.width = 1500;
+	frame.extent.height = 900;
+	gApp = VulkanApp::create(frame);
+
+	gApp->setAntiAliasSamples(VK_SAMPLE_COUNT_4_BIT);
+	gApp->setClearColor(0.0f, 0.0f, 0.2f);
+
+	auto formats = gApp->findSupportedFormats({ VK_FORMAT_R8G8B8A8_UNORM, VK_FORMAT_R8G8B8A8_UINT, VK_FORMAT_B8G8R8A8_UNORM }, VK_FORMAT_FEATURE_COLOR_ATTACHMENT_BIT);
+	if (formats.empty()) {
+		throw runtime_error("Format not supported");
+	}
+	VkExtent2D offscreenExtent = { 2048, 2048 };
+	offscreen = make_shared<OffscreenPass3D>(gApp, formats.front()._format);
+	offscreen->setAntiAliasSamples(VK_SAMPLE_COUNT_1_BIT);
+	offscreen->setClearColor(0.0f, 0.3f, 0.0f);
+	offscreen->init(offscreenExtent);
+	offscreenIdx = gApp->addOffscreen(offscreen);
+
+
+#if TEST_GUI
+	UI::WindowPtr gui = make_shared<UI::Window>(gApp);
+	gApp->setUiWindow(gui);
+	buildUi(gui);
+#else
+	UI::Window gui(gApp);
+#endif
+
+	glfwSetWindowTitle(gApp->getWindow(), "Vulkan Quick Start");
+
+	createPipelines(false);
+
+	addObj();
+	addStl();
+
+#if ORBIT
+	gApp->setUboUpdateFunction(orbitFunc);
+#endif
+
+	try {
+		gApp->run();
+	}
+	catch (const std::exception& e) {
+		std::cerr << e.what() << std::endl;
+		return EXIT_FAILURE;
 	}
 
+	return EXIT_SUCCESS;
 }
 
 int startHeadless()
 {
+	VkRect2D frame;
+	frame.offset = { 0,0, };
+	frame.extent.width = 1500;
+	frame.extent.height = 900;
+	gApp = VulkanApp::create(frame);
+
+	gApp->setAntiAliasSamples(VK_SAMPLE_COUNT_4_BIT);
+	gApp->setClearColor(0.0f, 0.0f, 0.2f);
+
+	auto formats = gApp->findSupportedFormats({ VK_FORMAT_R8G8B8A8_UNORM, VK_FORMAT_R8G8B8A8_UINT, VK_FORMAT_B8G8R8A8_UNORM }, VK_FORMAT_FEATURE_COLOR_ATTACHMENT_BIT);
+	if (formats.empty()) {
+		throw runtime_error("Format not supported");
+	}
+	VkExtent2D offscreenExtent = { 2048, 2048 };
+	offscreen = make_shared<OffscreenPass3D>(gApp, formats.front()._format);
+	offscreen->setAntiAliasSamples(VK_SAMPLE_COUNT_1_BIT);
+	offscreen->setClearColor(0.0f, 0.3f, 0.0f);
+	offscreen->init(offscreenExtent);
+	offscreenIdx = gApp->addOffscreen(offscreen);
+
+	createPipelines(true);
+
+	addObj();
+	addStl();
+
+#if ORBIT
+	gApp->setUboUpdateFunction(orbitFunc);
+#endif
+
+	thread graphicsThread(headlessThreadFunc);
+	graphicsThread.detach();
+
 	return 1;
 }
 
