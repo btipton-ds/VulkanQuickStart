@@ -30,14 +30,15 @@ This file is part of the VulkanQuickStart Project.
 #include <vk_exports.h>
 #include <memory>
 #include <string>
-#include <vector>
 
 namespace VQS_API
 {
 	enum class CommandId {
-		CMD_INIT,
-		CMD_RESULT,
-		CMD_UNKNOWN
+		CMD_Init,
+		CMD_OpenFile,
+		CMD_Result,
+		CMD_Unknown,
+		CMD_LAST
 	};
 
 	enum class CmdDataType {
@@ -60,8 +61,8 @@ namespace VQS_API
 		int x, y;
 	};
 
-	struct CmdDataPointString : public CmdData {
-		inline CmdDataPointString() : CmdData(CmdDataType::STRING) {}
+	struct CmdDataString : public CmdData {
+		inline CmdDataString(const std::string& s) : CmdData(CmdDataType::STRING), str(s) {}
 		std::string str;
 	};
 
@@ -70,6 +71,9 @@ namespace VQS_API
 		Api();
 		virtual ~Api();
 
+		// CANNOT use stl vector/itereators due to debugging mismatch. TODO BRT - fix this
+		virtual size_t getNumCommands() const = 0;
+		virtual std::string getCommand(size_t idx) const = 0;
 		virtual CmdData doCommand(CommandId cmd, const CmdData& command) = 0;
 		virtual void getFrame(uint8_t* buffer, size_t& width, size_t& height) const = 0;
 	};

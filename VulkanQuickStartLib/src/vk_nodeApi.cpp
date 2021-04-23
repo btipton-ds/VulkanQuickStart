@@ -56,6 +56,9 @@ class ApiImpl : public Api
 public:
 	ApiImpl();
 	~ApiImpl();
+
+	size_t getNumCommands() const override;
+	string getCommand(size_t idx) const override;
 	CmdData doCommand(CommandId cmd, const CmdData& command) override;
 	void getFrame(uint8_t* buffer, size_t& width, size_t& height) const override;
 
@@ -82,14 +85,68 @@ public:
 	}
 };
 
+class OpenFileHandler : public ApiHandler
+{
+public:
+	virtual CmdData doCommand(const CmdData& command)
+	{
+		CmdDataString* ptr = (CmdDataString*) &command;
+		if (ptr) {
+			string file = ptr->str;
+			// TODO BRT - Need to open the file. Before that we need all the pipelines and stuff running.
+		}
+		return CmdData(CmdDataType::NONE);
+	}
+};
+
 ApiImpl::ApiImpl()
 	: Api()
 {
-	_commandMap[CommandId::CMD_INIT] = make_shared<InitHandler>();
+	// TODO BRT - Need a real factory for these, the commands and handler bindings can be messed up
+	_commandMap[CommandId::CMD_Init] = make_shared<InitHandler>();
+	_commandMap[CommandId::CMD_OpenFile] = make_shared<OpenFileHandler>();
 }
 
 ApiImpl::~ApiImpl()
 {}
+
+inline CommandId incr(CommandId id) {
+	int i = (int)id;
+	return (CommandId)(i + 1);
+}
+
+size_t ApiImpl::getNumCommands() const
+{
+	return (size_t)CommandId::CMD_LAST;
+}
+
+string ApiImpl::getCommand(size_t idx) const
+{
+	string result;
+	for (CommandId id = CommandId::CMD_Init; id != CommandId::CMD_LAST; id = incr(id)) {
+		switch (id)
+		{
+		case CommandId::CMD_Init:
+			result = "CMD_Init";
+			break;
+		case CommandId::CMD_OpenFile:
+			result = "CMD_OpenFile";
+			break;
+		case CommandId::CMD_Result:
+			result = "CMD_Result";
+			break;
+		case CommandId::CMD_Unknown:
+			result = "CMD_Result";
+			break;
+		default:
+			throw("CommandId enum is not mapped to a string");
+		}
+		if ((size_t)id == idx)
+			return result;
+	}
+
+	return result;
+}
 
 CmdData ApiImpl::doCommand(CommandId cmd, const CmdData& command)
 {

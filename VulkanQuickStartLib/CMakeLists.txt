@@ -49,6 +49,7 @@ link_directories (
 
 #turn export declaration on for windows
 add_compile_definitions(VQS_EXPORT_DEF)
+add_compile_definitions(_HAS_ITERATOR_DEBUGGING=0)
 
 add_library (
 VulkanQuickStartLib SHARED
