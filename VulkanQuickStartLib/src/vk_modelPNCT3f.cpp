@@ -178,11 +178,11 @@ void ModelPNCT3f::loadModel(string path, string filename) {
 
 			glm::vec3 v0 = vert1.pos - vert0.pos;
 			glm::vec3 v1 = vert2.pos - vert0.pos;
-			glm::vec3 n = glm::normalize(glm::cross(v0, v1));
+			glm::vec3 triNormal = glm::normalize(glm::cross(v0, v1));
 
-			vert0.norm = n;
-			vert1.norm = n;
-			vert2.norm = n;
+			vert0.norm = triNormal;
+			vert1.norm = triNormal;
+			vert2.norm = triNormal;
 
 		}
 	}

@@ -119,7 +119,7 @@ namespace
 	PipelineGroup<PipelinePNCT3fPtr> pipeline3DWSampler;
 
 	VulkanAppPtr gApp;
-	OffscreenPass3DPtr offscreen;
+	OffscreenPass3DPtr gOffscreen;
 	size_t offscreenIdx = stm1;
 
 	ModelPNC3fPtr vase, part;
@@ -294,9 +294,12 @@ namespace
 		}
 
 		if (headless) {
-			pipeline3DWSampler.add(offscreen->getPipelines()->addPipelineWithSource<PipelinePNCT3f>("obj_shader", offscreen->getRect(), sampler3DFilenames));
-			pipeline3DShaded.add(offscreen->getPipelines()->addPipelineWithSource<PipelinePNC3f>("stl_shaded", offscreen->getRect(), shaded3DFilenames));
-			pipeline3DWireframe.add(offscreen->getPipelines()->addPipelineWithSource<PipelinePNC3f>("stl_wireframe", offscreen->getRect(), wf3DFilenames));
+			if (!gOffscreen)
+				throw ("Creating offscreen pipelines with gOffscreen == null");
+
+			pipeline3DWSampler.add(gOffscreen->getPipelines()->addPipelineWithSource<PipelinePNCT3f>("obj_shader", gOffscreen->getRect(), sampler3DFilenames));
+			pipeline3DShaded.add(gOffscreen->getPipelines()->addPipelineWithSource<PipelinePNC3f>("stl_shaded", gOffscreen->getRect(), shaded3DFilenames));
+			pipeline3DWireframe.add(gOffscreen->getPipelines()->addPipelineWithSource<PipelinePNC3f>("stl_wireframe", gOffscreen->getRect(), wf3DFilenames));
 		} else {
 			pipeline3DWSampler.add(gApp->addPipelineWithSource<PipelinePNCT3f>("obj_shader", sampler3DFilenames));
 			pipeline3DShaded.add(gApp->addPipelineWithSource<PipelinePNC3f>("stl_shaded", shaded3DFilenames));
@@ -327,18 +330,6 @@ int VK::mainRunTest(int numArgs, char** args) {
 
 	gApp->setAntiAliasSamples(VK_SAMPLE_COUNT_4_BIT);
 	gApp->setClearColor(0.0f, 0.0f, 0.2f);
-
-	auto formats = gApp->findSupportedFormats({ VK_FORMAT_R8G8B8A8_UNORM, VK_FORMAT_R8G8B8A8_UINT, VK_FORMAT_B8G8R8A8_UNORM }, VK_FORMAT_FEATURE_COLOR_ATTACHMENT_BIT);
-	if (formats.empty()) {
-		throw runtime_error("Format not supported");
-	}
-	VkExtent2D offscreenExtent = { 2048, 2048 };
-	offscreen = make_shared<OffscreenPass3D>(gApp, formats.front()._format);
-	offscreen->setAntiAliasSamples(VK_SAMPLE_COUNT_1_BIT);
-	offscreen->setClearColor(0.0f, 0.3f, 0.0f);
-	offscreen->init(offscreenExtent);
-	offscreenIdx = gApp->addOffscreen(offscreen);
-
 
 #if TEST_GUI
 	UI::WindowPtr gui = make_shared<UI::Window>(gApp);
@@ -386,11 +377,11 @@ int startHeadless()
 		throw runtime_error("Format not supported");
 	}
 	VkExtent2D offscreenExtent = { 2048, 2048 };
-	offscreen = make_shared<OffscreenPass3D>(gApp, formats.front()._format);
-	offscreen->setAntiAliasSamples(VK_SAMPLE_COUNT_1_BIT);
-	offscreen->setClearColor(0.0f, 0.3f, 0.0f);
-	offscreen->init(offscreenExtent);
-	offscreenIdx = gApp->addOffscreen(offscreen);
+	gOffscreen = make_shared<OffscreenPass3D>(gApp, formats.front()._format);
+	gOffscreen->setAntiAliasSamples(VK_SAMPLE_COUNT_1_BIT);
+	gOffscreen->setClearColor(0.0f, 0.3f, 0.0f);
+	gOffscreen->init(offscreenExtent);
+	offscreenIdx = gApp->addOffscreen(gOffscreen);
 
 	createPipelines(true);
 

@@ -132,13 +132,13 @@ void ModelPNC3f::loadModel(const TriMesh::CMeshPtr& meshPtr, const glm::vec3& co
 
 		auto v0 = verts[1]._pt - verts[0]._pt;
 		auto v1 = verts[2]._pt - verts[0]._pt;
-		auto n = v0.cross(v1);
-		checkNAN(n);
+		auto triNormal = v0.cross(v1);
+		checkNAN(triNormal);
 
 		for (size_t j = 0; j < 3; j++) {
 			VertexType vertex;
 			vertex.pos = conv(verts[j]._pt);
-			vertex.norm = conv(n.normalized());
+			vertex.norm = conv(triNormal.normalized());
 			vertex.color = color;
 
 			_bounds.merge(conv(vertex.pos));

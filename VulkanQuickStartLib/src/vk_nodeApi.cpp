@@ -1,5 +1,3 @@
-#pragma once
-
 /*
 
 This file is part of the VulkanQuickStart Project.
@@ -76,7 +74,7 @@ shared_ptr<Api> getVqsApi()
 	return api;
 }
 
-class InitHandler : public ApiHandler
+class InitHandler final : public ApiHandler
 {
 public:
 	virtual CmdData doCommand(const CmdData& command)
@@ -85,7 +83,7 @@ public:
 	}
 };
 
-class OpenFileHandler : public ApiHandler
+class OpenFileHandler final : public ApiHandler
 {
 public:
 	virtual CmdData doCommand(const CmdData& command)
