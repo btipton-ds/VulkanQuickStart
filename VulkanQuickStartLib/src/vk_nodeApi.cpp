@@ -29,6 +29,7 @@ This file is part of the VulkanQuickStart Project.
 
 #include <vk_defines.h>
 
+#include <iostream>
 #include <map>
 
 #include <vk_nodeAPI.h>
@@ -83,14 +84,117 @@ public:
 	}
 };
 
+class MouseDownHandler final : public ApiHandler
+{
+public:
+	virtual CmdData doCommand(const CmdData& command)
+	{
+		CmdDataPoint2d* ptr = (CmdDataPoint2d*) &command;
+		if (ptr) {
+			// TODO BRT - Need to open the file. Before that we need all the pipelines and stuff running.
+		}
+		return CmdData(CmdDataType::NONE);
+	}
+};
+
+class MouseUpHandler final : public ApiHandler
+{
+public:
+	virtual CmdData doCommand(const CmdData& command)
+	{
+		CmdDataPoint2d* ptr = (CmdDataPoint2d*)&command;
+		if (ptr) {
+			// TODO BRT - Need to open the file. Before that we need all the pipelines and stuff running.
+		}
+		return CmdData(CmdDataType::NONE);
+	}
+};
+
+class MouseEnterHandler final : public ApiHandler
+{
+public:
+	virtual CmdData doCommand(const CmdData& command)
+	{
+		CmdDataPoint2d* ptr = (CmdDataPoint2d*)&command;
+		if (ptr) {
+			// TODO BRT - Need to open the file. Before that we need all the pipelines and stuff running.
+		}
+		return CmdData(CmdDataType::NONE);
+	}
+};
+
+class MouseMoveHandler final : public ApiHandler
+{
+public:
+	virtual CmdData doCommand(const CmdData& command)
+	{
+		CmdDataPoint2d* ptr = (CmdDataPoint2d*)&command;
+		if (ptr) {
+			// TODO BRT - Need to open the file. Before that we need all the pipelines and stuff running.
+		}
+		return CmdData(CmdDataType::NONE);
+	}
+};
+
+class MouseLeaveHandler final : public ApiHandler
+{
+public:
+	virtual CmdData doCommand(const CmdData& command)
+	{
+		CmdDataPoint2d* ptr = (CmdDataPoint2d*)&command;
+		if (ptr) {
+			// TODO BRT - Need to open the file. Before that we need all the pipelines and stuff running.
+		}
+		return CmdData(CmdDataType::NONE);
+	}
+};
+
+class MouseOutHandler final : public ApiHandler
+{
+public:
+	virtual CmdData doCommand(const CmdData& command)
+	{
+		CmdDataPoint2d* ptr = (CmdDataPoint2d*)&command;
+		if (ptr) {
+			// TODO BRT - Need to open the file. Before that we need all the pipelines and stuff running.
+		}
+		return CmdData(CmdDataType::NONE);
+	}
+};
+
+class MouseOverHandler final : public ApiHandler
+{
+public:
+	virtual CmdData doCommand(const CmdData& command)
+	{
+		CmdDataPoint2d* ptr = (CmdDataPoint2d*)&command;
+		if (ptr) {
+			// TODO BRT - Need to open the file. Before that we need all the pipelines and stuff running.
+		}
+		return CmdData(CmdDataType::NONE);
+	}
+};
+
+class MouseWheelHandler final : public ApiHandler
+{
+public:
+	virtual CmdData doCommand(const CmdData& command)
+	{
+		CmdDataPoint2d* ptr = (CmdDataPoint2d*)&command;
+		if (ptr) {
+			// TODO BRT - Need to open the file. Before that we need all the pipelines and stuff running.
+		}
+		return CmdData(CmdDataType::NONE);
+	}
+};
+
 class OpenFileHandler final : public ApiHandler
 {
 public:
 	virtual CmdData doCommand(const CmdData& command)
 	{
-		CmdDataString* ptr = (CmdDataString*) &command;
+		CmdDataString* ptr = (CmdDataString*)&command;
 		if (ptr) {
-			string file = ptr->str;
 			// TODO BRT - Need to open the file. Before that we need all the pipelines and stuff running.
 		}
 		return CmdData(CmdDataType::NONE);
@@ -103,6 +207,15 @@ ApiImpl::ApiImpl()
 	// TODO BRT - Need a real factory for these, the commands and handler bindings can be messed up
 	_commandMap[CommandId::CMD_Init] = make_shared<InitHandler>();
 	_commandMap[CommandId::CMD_OpenFile] = make_shared<OpenFileHandler>();
+
+	_commandMap[CommandId::CMD_MouseDown] = make_shared<MouseDownHandler>();
+	_commandMap[CommandId::CMD_MouseUp] = make_shared<MouseUpHandler>();
+	_commandMap[CommandId::CMD_MouseEnter] = make_shared<MouseEnterHandler>();
+	_commandMap[CommandId::CMD_MouseMove] = make_shared<MouseMoveHandler>();
+	_commandMap[CommandId::CMD_MouseLeave] = make_shared<MouseLeaveHandler>();
+	_commandMap[CommandId::CMD_MouseOut] = make_shared<MouseOutHandler>();
+	_commandMap[CommandId::CMD_MouseOver] = make_shared<MouseOverHandler>();
+	_commandMap[CommandId::CMD_MouseWheel] = make_shared<MouseWheelHandler>();
 }
 
 ApiImpl::~ApiImpl()
@@ -116,34 +229,6 @@ inline CommandId incr(CommandId id) {
 size_t ApiImpl::getNumCommands() const
 {
 	return (size_t)CommandId::CMD_LAST;
-}
-
-string ApiImpl::getCommand(size_t idx) const
-{
-	string result;
-	for (CommandId id = CommandId::CMD_Init; id != CommandId::CMD_LAST; id = incr(id)) {
-		switch (id)
-		{
-		case CommandId::CMD_Init:
-			result = "CMD_Init";
-			break;
-		case CommandId::CMD_OpenFile:
-			result = "CMD_OpenFile";
-			break;
-		case CommandId::CMD_Result:
-			result = "CMD_Result";
-			break;
-		case CommandId::CMD_Unknown:
-			result = "CMD_Result";
-			break;
-		default:
-			throw("CommandId enum is not mapped to a string");
-		}
-		if ((size_t)id == idx)
-			return result;
-	}
-
-	return result;
 }
 
 CmdData ApiImpl::doCommand(CommandId cmd, const CmdData& command)
@@ -160,4 +245,56 @@ CmdData ApiImpl::doCommand(CommandId cmd, const CmdData& command)
 void ApiImpl::getFrame(uint8_t* buffer, size_t& width, size_t& height) const
 {
 
+}
+
+string ApiImpl::getCommand(size_t idx) const
+{
+	string result;
+	for (CommandId id = CommandId::CMD_Init; id != CommandId::CMD_LAST; id = incr(id)) {
+		switch (id)
+		{
+		case CommandId::CMD_Init:
+			result = "CMD_Init";
+			break;
+		case CommandId::CMD_OpenFile:
+			result = "CMD_OpenFile";
+			break;
+		case CommandId::CMD_MouseDown:
+			result = "CMD_MouseDown";
+			break;
+		case CommandId::CMD_MouseUp:
+			result = "CMD_MouseUp";
+			break;
+		case CommandId::CMD_MouseEnter:
+			result = "CMD_MouseEnter";
+			break;
+		case CommandId::CMD_MouseLeave:
+			result = "CMD_MouseLeave";
+			break;
+		case CommandId::CMD_MouseMove:
+			result = "CMD_MouseMove";
+			break;
+		case CommandId::CMD_MouseOut:
+			result = "CMD_MouseOut";
+			break;
+		case CommandId::CMD_MouseOver:
+			result = "CMD_MouseOver";
+			break;
+		case CommandId::CMD_MouseWheel:
+			result = "CMD_MouseWheel";
+			break;
+		case CommandId::CMD_Result:
+			result = "CMD_Result";
+			break;
+		case CommandId::CMD_Unknown:
+			result = "CMD_Result";
+			break;
+		default:
+			throw("CommandId enum is not mapped to a string");
+		}
+		if ((size_t)id == idx)
+			return result;
+	}
+
+	return result;
 }

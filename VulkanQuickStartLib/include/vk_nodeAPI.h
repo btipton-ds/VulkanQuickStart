@@ -36,6 +36,14 @@ namespace VQS_API
 	enum class CommandId {
 		CMD_Init,
 		CMD_OpenFile,
+		CMD_MouseDown,
+		CMD_MouseUp,
+		CMD_MouseEnter,
+		CMD_MouseLeave,
+		CMD_MouseMove,
+		CMD_MouseOut,
+		CMD_MouseOver,
+		CMD_MouseWheel,
 		CMD_Result,
 		CMD_Unknown,
 		CMD_LAST
@@ -57,8 +65,12 @@ namespace VQS_API
 	};
 
 	struct CmdDataPoint2d : public CmdData {
-		inline CmdDataPoint2d() : CmdData(CmdDataType::PT_2D) {}
-		int x, y;
+		inline CmdDataPoint2d(double xIn = 0, double yIn = 0)
+			: CmdData(CmdDataType::PT_2D)
+			, x(xIn)
+			, y(yIn)
+		{}
+		double x, y;
 	};
 
 	struct CmdDataString : public CmdData {
