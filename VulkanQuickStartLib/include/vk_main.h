@@ -34,4 +34,4 @@ namespace VK {
   EXPORT_VQS int mainRunTest(int numArgs, char** args);
 }
 
-EXPORT_VQS int startHeadless();
+EXPORT_VQS int initHeadless(double width, double height);

@@ -108,6 +108,13 @@ VulkanAppPtr VulkanApp::create(const VkRect2D& rect) {
 	return result;
 }
 
+VulkanAppPtr VulkanApp::createHeadless(const VkRect2D& rect) {
+	VulkanApp* ptr = new VulkanApp(rect);
+	VulkanAppPtr result = shared_ptr<VulkanApp>(ptr);
+	result->initHeadless();
+	return result;
+}
+
 VulkanApp::VulkanApp(const VkRect2D& rect)
 	: _frameRect(rect)
 	, _deviceContext(make_shared<DeviceContext>(MAX_FRAMES_IN_FLIGHT))
@@ -120,6 +127,10 @@ VulkanApp::VulkanApp(const VkRect2D& rect)
 void VulkanApp::init() {
 	initWindow();
 	initVulkan();
+}
+
+void VulkanApp::initHeadless() {
+	initVulkanHeadless();
 }
 
 void VulkanApp::createPipelines() {
@@ -216,6 +227,26 @@ void VulkanApp::initVulkan() {
 	createDepthResources();
 	createFramebuffers();
 	createSyncObjects();
+}
+
+void VulkanApp::initVulkanHeadless() {
+	createInstance();
+	setupDebugMessenger();
+#if 0
+	createSurface();
+	pickPhysicalDevice();
+	createLogicalDevice();
+	createSwapChain();
+	createPipelines();
+	createImageViews();
+	createRenderPass();
+	createGraphicsPipeline();
+	createCommandPool();
+	createColorResources();
+	createDepthResources();
+	createFramebuffers();
+	createSyncObjects();
+#endif
 }
 
 void VulkanApp::recreateSwapChain() {

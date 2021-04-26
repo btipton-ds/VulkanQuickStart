@@ -361,14 +361,14 @@ int VK::mainRunTest(int numArgs, char** args) {
 	return EXIT_SUCCESS;
 }
 
-int startHeadless()
+int initHeadless(double width, double height)
 {
 	VkRect2D frame;
 	frame.offset = { 0,0, };
-	frame.extent.width = 1500;
-	frame.extent.height = 900;
-	gApp = VulkanApp::create(frame);
-
+	frame.extent.width = (uint32_t)width; // TODO BRT - lazy passing of a double to postpone creating integer point type.
+	frame.extent.height = (uint32_t)height;
+	gApp = VulkanApp::createHeadless(frame);
+#if 0
 	gApp->setAntiAliasSamples(VK_SAMPLE_COUNT_4_BIT);
 	gApp->setClearColor(0.0f, 0.0f, 0.2f);
 
@@ -394,6 +394,7 @@ int startHeadless()
 
 	thread graphicsThread(headlessThreadFunc);
 	graphicsThread.detach();
+#endif
 
 	return 1;
 }

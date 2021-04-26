@@ -79,12 +79,14 @@ namespace VK {
 		using UpdaterPtr = std::shared_ptr<Updater>;
 
 		static VulkanAppPtr create(const VkRect2D& rect);
+		static VulkanAppPtr createHeadless(const VkRect2D& rect);
 
 		void setClearColor(float red, float green, float blue, float alpha = 1.0f);
 
 	protected:
 		VulkanApp(const VkRect2D& rect);
 		void init();
+		void initHeadless();
 
 	public:
 		~VulkanApp();
@@ -154,6 +156,7 @@ namespace VK {
 
 		void initWindow();
 		void initVulkan();
+		void initVulkanHeadless();
 		void recreateSwapChain();
 		void mainLoop();
 		void cleanupSwapChain();

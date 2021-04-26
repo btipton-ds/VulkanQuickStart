@@ -33,6 +33,7 @@ This file is part of the VulkanQuickStart Project.
 #include <map>
 
 #include <vk_nodeAPI.h>
+#include <vk_main.h>
 
 using namespace std;
 using namespace VQS_API;
@@ -80,6 +81,10 @@ class InitHandler final : public ApiHandler
 public:
 	virtual CmdData doCommand(const CmdData& command)
 	{
+		CmdDataPoint2d* ptr = (CmdDataPoint2d*)&command;
+		if (ptr) {
+			initHeadless(ptr->x, ptr->y);
+		}
 		return CmdData(CmdDataType::NONE);
 	}
 };
