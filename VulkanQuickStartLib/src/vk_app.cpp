@@ -79,9 +79,7 @@ const std::vector<const char*> validationLayers = {
 	"VK_LAYER_KHRONOS_validation"
 };
 
-const std::vector<const char*> deviceExtensions = {
-	VK_KHR_SWAPCHAIN_EXTENSION_NAME
-};
+vector<const char*> deviceExtensions;
 
 #define FORCE_VALIDATION 0
 
@@ -173,6 +171,16 @@ struct VulkanApp::QueueFamilyIndices {
 	uint32_t presentFamily = 0xffffffff;
 	uint32_t computeFamily = 0xffffffff;
 
+	inline const uint32_t* data() const
+	{
+		return &graphicsFamily;
+	}
+
+	inline uint32_t* data()
+	{
+		return &graphicsFamily;
+	}
+
 	bool isComplete() {
 		return graphicsFamily != 0xffffffff && presentFamily != 0xffffffff && computeFamily != 0xffffffff;
 	}
@@ -219,7 +227,6 @@ void VulkanApp::initVulkan() {
 	createLogicalDevice();
 	createSwapChain();
 	createPipelines();
-	createImageViews();
 	createRenderPass();
 	createGraphicsPipeline();
 	createCommandPool();
@@ -232,13 +239,10 @@ void VulkanApp::initVulkan() {
 void VulkanApp::initVulkanHeadless() {
 	createInstance();
 	setupDebugMessenger();
-#if 0
-	createSurface();
 	pickPhysicalDevice();
 	createLogicalDevice();
-	createSwapChain();
+	createOffscreenSwap();
 	createPipelines();
-	createImageViews();
 	createRenderPass();
 	createGraphicsPipeline();
 	createCommandPool();
@@ -246,7 +250,6 @@ void VulkanApp::initVulkanHeadless() {
 	createDepthResources();
 	createFramebuffers();
 	createSyncObjects();
-#endif
 }
 
 void VulkanApp::recreateSwapChain() {
@@ -267,7 +270,6 @@ void VulkanApp::recreateSwapChain() {
 	cleanupSwapChain();
 
 	createSwapChain();
-	createImageViews();
 	createRenderPass();
 	createGraphicsPipeline();
 	createColorResources();
@@ -568,25 +570,61 @@ void VulkanApp::createSwapChain() {
 	}
 
 	vkGetSwapchainImagesKHR(_deviceContext->_device, _swapChain._vkSwapChain, &imageCount, nullptr);
-	_swapChain._vkImages.resize(imageCount);
-	vkGetSwapchainImagesKHR(_deviceContext->_device, _swapChain._vkSwapChain, &imageCount, _swapChain._vkImages.data());
+	vector<VkImage> vkImages;
+	vkImages.resize(imageCount);
+	vkGetSwapchainImagesKHR(_deviceContext->_device, _swapChain._vkSwapChain, &imageCount, vkImages.data());
 
 	_swapChain._images.clear();
 	_swapChain._images.reserve(imageCount);
-	for (auto vkImage : _swapChain._vkImages) {
-		_swapChain._images.push_back(make_shared<Image>(_deviceContext, createInfo, vkImage));
+	_swapChain._vkImageViews.clear();
+	_swapChain._vkImageViews.reserve(imageCount);
+
+	for (auto vkImage : vkImages) {
+		ImagePtr image = make_shared<Image>(_deviceContext, createInfo, vkImage);
+		_swapChain._images.push_back(image);
+		_swapChain._vkImageViews.push_back(Image::createImageView(_deviceContext, image->getVkImage(), surfaceFormat.format, VK_IMAGE_ASPECT_COLOR_BIT, 1));
 	}
 	_swapChain._imageFormat = surfaceFormat.format;
 	_swapChain._extent = extent;
 }
 
-void VulkanApp::createImageViews() {
-	_swapChain._vkImageViews.resize(_swapChain._vkImages.size());
+void VulkanApp::createOffscreenSwap()
+{
+	uint32_t imageCount = 2;
+	VkExtent3D extent3D;
+	extent3D.width = _frameRect.extent.width;
+	extent3D.height = _frameRect.extent.height;
+	extent3D.depth = 0;
 
-	for (uint32_t i = 0; i < _swapChain._vkImages.size(); i++) {
-		_swapChain._vkImageViews[i] = Image::createImageView(_deviceContext, _swapChain._vkImages[i], 
-			_swapChain._imageFormat, VK_IMAGE_ASPECT_COLOR_BIT, 1);
+	QueueFamilyIndices indices = findQueueFamilies(_deviceContext->_physicalDevice);
+	uint32_t queueFamilyIndices[] = { indices.graphicsFamily, indices.presentFamily };
+
+	_swapChain._images.clear();
+	_swapChain._images.reserve(imageCount);
+	_swapChain._vkImageViews.clear();
+	_swapChain._vkImageViews.reserve(imageCount);
+
+	auto formats = findSupportedFormats({ VK_FORMAT_R8G8B8A8_UNORM, VK_FORMAT_R8G8B8A8_UINT, VK_FORMAT_B8G8R8A8_UNORM }, VK_FORMAT_FEATURE_COLOR_ATTACHMENT_BIT);
+	if (formats.empty())
+		throw "Could not find usable format";
+
+	VkImageCreateInfo createInfo = {};
+	createInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
+	createInfo.extent = extent3D;
+	createInfo.tiling = formats[0]._tiling;
+	createInfo.format = formats[0]._format; // TODO BRT check this against device capabilities;
+	createInfo.flags = VK_IMAGE_CREATE_MUTABLE_FORMAT_BIT;
+	createInfo.pQueueFamilyIndices = queueFamilyIndices;
+	createInfo.queueFamilyIndexCount = 2;
+	createInfo.usage = VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_STORAGE_BIT | VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT;
+
+	for (uint32_t i = 0; i < imageCount; i++) {
+		ImagePtr image = make_shared<Image>(_deviceContext, createInfo);
+		_swapChain._images.push_back(image);
+		_swapChain._vkImageViews.push_back(Image::createImageView(_deviceContext, image->getVkImage(), createInfo.format, VK_IMAGE_ASPECT_COLOR_BIT, 1));
 	}
+	_swapChain._imageFormat = createInfo.format;
+	_swapChain._extent = _frameRect.extent;
 }
 
 void VulkanApp::createRenderPass() {
@@ -1219,8 +1257,8 @@ bool VulkanApp::isDeviceSuitable(VkPhysicalDevice device, VkPhysicalDeviceFeatur
 
 	bool extensionsSupported = checkDeviceExtensionSupport(device);
 
-	bool swapChainAdequate = false;
-	if (extensionsSupported) {
+	bool swapChainAdequate = true;
+	if (extensionsSupported && _surface) {
 		SwapChainSupportDetails swapChainSupport = querySwapChainSupport(device);
 		swapChainAdequate = !swapChainSupport.formats.empty() && !swapChainSupport.presentModes.empty();
 	}
@@ -1237,6 +1275,11 @@ bool VulkanApp::checkDeviceExtensionSupport(VkPhysicalDevice device) {
 	std::vector<VkExtensionProperties> availableExtensions(extensionCount);
 	vkEnumerateDeviceExtensionProperties(device, nullptr, &extensionCount, availableExtensions.data());
 
+	if (_surface && deviceExtensions.empty()) {
+		deviceExtensions = {
+			VK_KHR_SWAPCHAIN_EXTENSION_NAME
+		};
+	}
 	std::set<std::string> requiredExtensions(deviceExtensions.begin(), deviceExtensions.end());
 
 	for (const auto& extension : availableExtensions) {
@@ -1261,8 +1304,9 @@ VulkanApp::QueueFamilyIndices VulkanApp::findQueueFamilies(VkPhysicalDevice devi
 			indices.graphicsFamily = i;
 		}
 
-		VkBool32 presentSupport = false;
-		vkGetPhysicalDeviceSurfaceSupportKHR(device, i, _surface, &presentSupport);
+		VkBool32 presentSupport = true;
+		if (_surface)
+			vkGetPhysicalDeviceSurfaceSupportKHR(device, i, _surface, &presentSupport);
 
 		if (queueFamily.queueCount > 0 && presentSupport) {
 			indices.presentFamily = i;
@@ -1366,5 +1410,7 @@ VKAPI_ATTR VkBool32 VKAPI_CALL VulkanApp::debugCallback(VkDebugUtilsMessageSever
 	} else {
 		std::cerr << "  " << msg << std::endl;
 	}
+	std::cerr << "\n---------------------------------------------------------------------------\n";
+	std::cerr << "\n---------------------------------------------------------------------------\n";
 	return VK_FALSE;
 }

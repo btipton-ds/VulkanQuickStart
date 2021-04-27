@@ -68,6 +68,7 @@ namespace VK {
 		Image(const DeviceContextPtr& context);
 		Image(const Image& src) = default;
 		Image(const DeviceContextPtr& context, const VkSwapchainCreateInfoKHR& info, VkImage image);
+		Image(const DeviceContextPtr& context, const VkImageCreateInfo& info);
 		~Image();
 
 		void destroy();
@@ -97,6 +98,7 @@ namespace VK {
 		void saveImage(const std::string& filename, const VkSubresourceLayout& vkLayout, bool colorSwizzle, const char* pix) const;
 
 		DeviceContextPtr _context;
+		bool _ownImage = false;
 		VkImageCreateInfo _imageInfo = {};
 		VkImage _image = VK_NULL_HANDLE;
 		VkDeviceMemory _memory = VK_NULL_HANDLE;

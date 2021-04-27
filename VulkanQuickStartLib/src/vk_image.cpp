@@ -34,6 +34,7 @@ This file is part of the VulkanQuickStart Project.
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 #include <stb_image_write.h>
 
+#include <VulkanInitializers.hpp>
 #include "vk_deviceContext.h"
 #include "vk_image.h"
 #include <vk_imageCopier.h>
@@ -74,6 +75,40 @@ Image::Image(const DeviceContextPtr& context, const VkSwapchainCreateInfoKHR& in
 	_imageInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
 }
 
+Image::Image(const DeviceContextPtr& context, const VkImageCreateInfo& info)
+	: _context(context)
+	, _imageInfo(info)
+{
+	_imageInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
+	_imageInfo.imageType = VK_IMAGE_TYPE_2D;
+	_imageInfo.extent.depth = 1;
+	_imageInfo.mipLevels = 1;
+	_imageInfo.arrayLayers = 1;
+//	_imageInfo.tiling = VK_IMAGE_TILING_LINEAR;
+	_imageInfo.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+	_imageInfo.samples = VK_SAMPLE_COUNT_1_BIT;
+	_imageInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+
+	if (vkCreateImage(_context->_device, &_imageInfo, nullptr, &_image) != VK_SUCCESS) {
+		throw("Failed to create image");
+	}
+
+	// Create memory to back up the image
+	VkMemoryRequirements memRequirements = {};
+	vkGetImageMemoryRequirements(_context->_device, _image, &memRequirements);
+	VkMemoryAllocateInfo memAllocInfo(vks::initializers::memoryAllocateInfo());
+	memAllocInfo.allocationSize = memRequirements.size;
+	// Memory must be host visible to copy from
+	memAllocInfo.memoryTypeIndex = _context->getMemoryType(memRequirements.memoryTypeBits, 0); // May need host visible or something
+	if (vkAllocateMemory(_context->_device, &memAllocInfo, nullptr, &_memory) != VK_SUCCESS) {
+		throw("Failed to create image");
+	}
+	if (vkBindImageMemory(_context->_device, _image, _memory, 0) != VK_SUCCESS) {
+		throw("Failed to create image");
+	}
+	_ownImage = true;
+}
+
 void Image::set(VkImage image, VkDeviceMemory memory, VkImageView view) {
 	_image = image;
 	_memory = memory;
@@ -85,12 +120,18 @@ Image::~Image() {
 }
 
 void Image::destroy() {
-	if (_view != VK_NULL_HANDLE && _memory != VK_NULL_HANDLE) {
+	if (_view != VK_NULL_HANDLE)
 		vkDestroyImageView(_context->_device, _view, nullptr);
-		vkDestroyImage(_context->_device, _image, nullptr);
-		vkFreeMemory(_context->_device, _memory, nullptr);
-		_view = VK_NULL_HANDLE;
+	if (_ownImage) {
+		if (_memory != VK_NULL_HANDLE)
+			vkFreeMemory(_context->_device, _memory, nullptr);
+		if (_image != VK_NULL_HANDLE)
+			vkDestroyImage(_context->_device, _image, nullptr);
+		_memory = VK_NULL_HANDLE;
+		_image = VK_NULL_HANDLE;
 	}
+
+	_view = VK_NULL_HANDLE;
 }
 
 void Image::create(VkFormat format, VkImageUsageFlags usageFlags, uint32_t width, uint32_t height, VkSampleCountFlagBits samples) {

@@ -170,8 +170,8 @@ namespace VK {
 
 		void createLogicalDevice();
 		void createSwapChain();
+		void createOffscreenSwap();
 		void createPipelines();
-		void createImageViews();
 		void createRenderPass();
 		void createGraphicsPipeline();
 		void createFramebuffers();
@@ -208,24 +208,24 @@ namespace VK {
 		std::vector<const char*> getRequiredExtensions();
 		bool checkValidationLayerSupport();
 
-		GLFWwindow* _window;
+		GLFWwindow* _window = nullptr;
 		VkRect2D _frameRect;
 		bool _isRunning = true;
 		size_t _runtimeMillis = 0;
 		UI::WindowPtr _uiWindow;
 		unsigned int _windowDpi = 72;
-		VkFormat _requestedFormat = VK_FORMAT_B8G8R8A8_UNORM;
+		VkFormat _requestedFormat = VK_FORMAT_B8G8R8A8_UNORM; // TODO BRT - this look redundant and confusing. Do we need it?
 		VkColorSpaceKHR _requestedColorSpace = VK_COLOR_SPACE_SRGB_NONLINEAR_KHR;
 		UpdaterPtr _updater;
 		UpdateUboFunctionType<UniformBufferObject3D> _uboUpdater;
 		
 		glm::mat4 _modelToWorld;
 		double _modelScale = 1.0;
-		VkSurfaceKHR _surface;
+		VkSurfaceKHR _surface = VK_NULL_HANDLE;
 		size_t _changeNumber = 0, _lastChangeNumber = 0, _uiWindowChangeNumber = 0;
-		uint32_t _swapChainIndex;
+		uint32_t _swapChainIndex = 0;
 
-		VkInstance _instance;
+		VkInstance _instance = VK_NULL_HANDLE;
 		VkDebugUtilsMessengerEXT _debugMessenger;
 
 		DeviceContextPtr _deviceContext;
@@ -235,7 +235,7 @@ namespace VK {
 		VkSampleCountFlagBits _maxMsaaSamples = VK_SAMPLE_COUNT_1_BIT;
 		VkSampleCountFlagBits _msaaSamples = VK_SAMPLE_COUNT_1_BIT;
 
-		VkQueue _presentQueue;
+		VkQueue _presentQueue = VK_NULL_HANDLE;
 		SwapChain _swapChain;
 
 		double _targetFrameDurationMillis = -1;

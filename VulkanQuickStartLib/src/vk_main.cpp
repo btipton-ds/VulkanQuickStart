@@ -368,7 +368,7 @@ int initHeadless(double width, double height)
 	frame.extent.width = (uint32_t)width; // TODO BRT - lazy passing of a double to postpone creating integer point type.
 	frame.extent.height = (uint32_t)height;
 	gApp = VulkanApp::createHeadless(frame);
-#if 0
+#if 1
 	gApp->setAntiAliasSamples(VK_SAMPLE_COUNT_4_BIT);
 	gApp->setClearColor(0.0f, 0.0f, 0.2f);
 
@@ -376,7 +376,7 @@ int initHeadless(double width, double height)
 	if (formats.empty()) {
 		throw runtime_error("Format not supported");
 	}
-	VkExtent2D offscreenExtent = { 2048, 2048 };
+	VkExtent2D offscreenExtent = frame.extent;
 	gOffscreen = make_shared<OffscreenPass3D>(gApp, formats.front()._format);
 	gOffscreen->setAntiAliasSamples(VK_SAMPLE_COUNT_1_BIT);
 	gOffscreen->setClearColor(0.0f, 0.3f, 0.0f);
