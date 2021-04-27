@@ -158,7 +158,6 @@ namespace VK {
 		void initVulkan();
 		void initVulkanHeadless();
 		void recreateSwapChain();
-		void mainLoop();
 		void cleanupSwapChain();
 		void cleanup();
 		void createInstance();
@@ -210,7 +209,7 @@ namespace VK {
 
 		GLFWwindow* _window = nullptr;
 		VkRect2D _frameRect;
-		bool _isRunning = true;
+		bool _isRunning = true, _headlessFrameStale = true;
 		size_t _runtimeMillis = 0;
 		UI::WindowPtr _uiWindow;
 		unsigned int _windowDpi = 72;

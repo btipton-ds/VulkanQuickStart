@@ -77,9 +77,9 @@ namespace
 #endif
 	}
 
-	string getPath() {
-		string dir = "resources/models/";
-		for (int i = 0; i < 6; i++) {
+	string getRootPath() {
+		string dir = "VulkanQuickStart/";
+		for (int i = 0; i < 10; i++) {
 			if (dirExists(dir))
 				return dir;
 			dir = "../" + dir;
@@ -87,7 +87,7 @@ namespace
 		return "";
 	}
 
-	const std::string modelPath = getPath();
+	const std::string modelPath = getRootPath() + "resources/models/";
 
 #if TEST_OBJ
 	const string pottedPlantPath = modelPath + "IndoorPotPlant/";
@@ -283,28 +283,25 @@ namespace
 	}
 
 	void createPipelines(bool headless) {
+		auto path = getRootPath() + "out/build/x64-Debug/VulkanQuickStartExe/shaders/";
 
-		vector<string> sampler3DFilenames = { "shaders/shader_depth_vert.spv", "shaders/shader_depth_frag.spv" };
-		vector<string> shaded3DFilenames = { "shaders/shader_vert.spv", "shaders/shader_frag.spv" };
-		vector<string> wf3DFilenames = { "shaders/shader_vert.spv", "shaders/shader_wireframe_frag.spv" };
+		vector<string> sampler3DFilenames = { path + "shader_depth_vert.spv", path + "shader_depth_frag.spv" };
+		vector<string> shaded3DFilenames = { path + "shader_vert.spv", path + "shader_frag.spv" };
+		vector<string> wf3DFilenames = { path + "shader_vert.spv", path + "shader_wireframe_frag.spv" };
 
 		if (gApp->getDeviceContext()->_features.fillModeNonSolid)
 		{
 			pipeline3DWireframe.setPolygonMode(VK_POLYGON_MODE_LINE);
 		}
 
-		if (headless) {
-			if (!gOffscreen)
-				throw ("Creating offscreen pipelines with gOffscreen == null");
-
+		pipeline3DWSampler.add(gApp->addPipelineWithSource<PipelinePNCT3f>("obj_shader", sampler3DFilenames));
+		pipeline3DShaded.add(gApp->addPipelineWithSource<PipelinePNC3f>("stl_shaded", shaded3DFilenames));
+		pipeline3DWireframe.add(gApp->addPipelineWithSource<PipelinePNC3f>("stl_wireframe", wf3DFilenames));
+#if 0
 			pipeline3DWSampler.add(gOffscreen->getPipelines()->addPipelineWithSource<PipelinePNCT3f>("obj_shader", gOffscreen->getRect(), sampler3DFilenames));
 			pipeline3DShaded.add(gOffscreen->getPipelines()->addPipelineWithSource<PipelinePNC3f>("stl_shaded", gOffscreen->getRect(), shaded3DFilenames));
 			pipeline3DWireframe.add(gOffscreen->getPipelines()->addPipelineWithSource<PipelinePNC3f>("stl_wireframe", gOffscreen->getRect(), wf3DFilenames));
-		} else {
-			pipeline3DWSampler.add(gApp->addPipelineWithSource<PipelinePNCT3f>("obj_shader", sampler3DFilenames));
-			pipeline3DShaded.add(gApp->addPipelineWithSource<PipelinePNC3f>("stl_shaded", shaded3DFilenames));
-			pipeline3DWireframe.add(gApp->addPipelineWithSource<PipelinePNC3f>("stl_wireframe", wf3DFilenames));
-		}
+#endif
 
 		//pipeline3DWireframe.toggleVisiblity();
 		gApp->changed();	

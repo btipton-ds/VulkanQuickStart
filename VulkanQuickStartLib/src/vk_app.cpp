@@ -192,8 +192,50 @@ struct VulkanApp::SwapChainSupportDetails {
 	std::vector<VkPresentModeKHR> presentModes;
 };
 
-void VulkanApp::run() {
-	mainLoop();
+void VulkanApp::run() 
+{
+	static chrono::steady_clock::time_point t0 = std::chrono::steady_clock::now();
+	if (_targetFrameDurationMillis > 0) {
+		// Run loop with frame rate calculations
+		while (_isRunning) {
+			if (_window && glfwWindowShouldClose(_window))
+				break;
+			chrono::steady_clock::time_point start = std::chrono::steady_clock::now();
+			_runtimeMillis = chrono::duration_cast<std::chrono::milliseconds>(start - t0).count();
+
+			glfwPollEvents();
+			drawFrame();
+			if (_updater)
+				_updater->updateVkApp();
+			chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
+
+
+			int64_t timeMs = chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
+			int64_t target = (int64_t)_targetFrameDurationMillis;
+
+			if (target > timeMs) {
+				std::this_thread::sleep_for(chrono::milliseconds(target - timeMs));
+			}
+
+		}
+	}
+	else {
+		while (_isRunning) {
+			// Run loop without frame rate calculations
+			if (_window && glfwWindowShouldClose(_window))
+				break;
+
+			chrono::steady_clock::time_point start = std::chrono::steady_clock::now();
+			_runtimeMillis = chrono::duration_cast<std::chrono::milliseconds>(start - t0).count();
+
+			glfwPollEvents();
+			drawFrame();
+			if (_updater)
+				_updater->updateVkApp();
+		}
+	}
+
+	vkDeviceWaitIdle(_deviceContext->_device);
 }
 
 void VulkanApp::initWindow() {
@@ -276,44 +318,6 @@ void VulkanApp::recreateSwapChain() {
 	createDepthResources();
 	createFramebuffers();
 	createCommandBuffers();
-}
-
-void VulkanApp::mainLoop() {
-	static chrono::steady_clock::time_point t0 = std::chrono::steady_clock::now();
-	if (_targetFrameDurationMillis > 0) {
-		while (!glfwWindowShouldClose(_window) && _isRunning) {
-			chrono::steady_clock::time_point start = std::chrono::steady_clock::now();
-			_runtimeMillis = chrono::duration_cast<std::chrono::milliseconds>(start - t0).count();
-
-			glfwPollEvents();
-			drawFrame();
-			if (_updater)
-				_updater->updateVkApp();
-			chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
-
-
-			int64_t timeMs = chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
-			int64_t target = (int64_t)_targetFrameDurationMillis;
-
-			if (target > timeMs) {
-				std::this_thread::sleep_for(chrono::milliseconds(target - timeMs));
-			}
-
-		}
-	}
-	else {
-		while (!glfwWindowShouldClose(_window) && _isRunning) {
-			chrono::steady_clock::time_point start = std::chrono::steady_clock::now();
-			_runtimeMillis = chrono::duration_cast<std::chrono::milliseconds>(start - t0).count();
-
-			glfwPollEvents();
-			drawFrame();
-			if (_updater)
-				_updater->updateVkApp();
-		}
-	}
-
-	vkDeviceWaitIdle(_deviceContext->_device);
 }
 
 void VulkanApp::cleanupSwapChain() {
@@ -1089,9 +1093,18 @@ void VulkanApp::drawFrame() {
 
 	_deviceContext->waitForInFlightFence();
 
-	VkSemaphore semaphore = _deviceContext->getImageAvailableSemaphore();
-	VkResult result = vkAcquireNextImageKHR(_deviceContext->_device, _swapChain._vkSwapChain, std::numeric_limits<uint64_t>::max(),
-		semaphore, VK_NULL_HANDLE, &_swapChainIndex);
+	VkResult result = VK_SUCCESS; // VK_ERROR_OUT_OF_DATE_KHR
+	if (_swapChain._vkSwapChain) {
+		// Normal loop
+		VkSemaphore semaphore = _deviceContext->getImageAvailableSemaphore();
+		result = vkAcquireNextImageKHR(_deviceContext->_device, _swapChain._vkSwapChain, std::numeric_limits<uint64_t>::max(),
+			semaphore, VK_NULL_HANDLE, &_swapChainIndex);
+	} else {
+		if (!_headlessFrameStale) {
+			return;
+		}
+		// Headless loop
+	}
 
 	if (recreateSwapChainIfNeeded(result)) {
 		return;
