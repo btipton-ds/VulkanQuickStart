@@ -81,7 +81,7 @@ namespace VK {
 		static VulkanAppPtr create(const VkRect2D& rect);
 		static VulkanAppPtr createHeadless(uint32_t width, uint32_t height, uint32_t numBuffers, uint8_t** buffers);
 		void setHeadlessFrameBuffers(uint32_t width, uint32_t height, uint32_t numBuffers, uint8_t** buffers, bool doCreateOffscreenSwap);
-		uint32_t getHeadlessFrameIndex() const;
+		uint32_t getHeadlessFrameIndex();
 		void doneWithHeadlessFrameIndex();
 
 

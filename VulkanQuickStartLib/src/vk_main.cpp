@@ -309,11 +309,17 @@ namespace
 
 	void headlessThreadFunc()
 	{
-		try {
 			gApp->runHeadless();
-		}
-		catch (const std::exception& e) {
-			std::cerr << e.what() << std::endl;
+	}
+
+	void headlessTestThreadFunc()
+	{
+		bool done = false;
+		while (!done) {
+			this_thread::sleep_for(std::chrono::microseconds(20));
+			uint32_t idx = gApp->getHeadlessFrameIndex();
+
+			cout << "Drawing idx: " << idx << "\n";
 		}
 	}
 }
@@ -364,7 +370,7 @@ VK::VulkanAppPtr initHeadless(uint32_t width, uint32_t height, uint32_t numBuffe
 #if 1
 	gApp->setAntiAliasSamples(VK_SAMPLE_COUNT_4_BIT);
 	gApp->setClearColor(0.0f, 0.0f, 0.2f);
-
+	
 	auto formats = gApp->findSupportedFormats({ VK_FORMAT_R8G8B8A8_UNORM, VK_FORMAT_R8G8B8A8_UINT, VK_FORMAT_B8G8R8A8_UNORM }, VK_FORMAT_FEATURE_COLOR_ATTACHMENT_BIT);
 	if (formats.empty()) {
 		throw runtime_error("Format not supported");
@@ -382,15 +388,22 @@ VK::VulkanAppPtr initHeadless(uint32_t width, uint32_t height, uint32_t numBuffe
 
 	addObj();
 	addStl();
-
+	
 #if ORBIT
 	gApp->setUboUpdateFunction(orbitFunc);
 #endif
 
 	thread graphicsThread(headlessThreadFunc);
+
+#if 0
 	graphicsThread.detach();
+#else
+	thread testThread(headlessTestThreadFunc);
+	graphicsThread.join();
+	testThread.join();
 #endif
 
+#endif
 	return gApp;
 }
 

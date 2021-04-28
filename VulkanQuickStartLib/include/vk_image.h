@@ -64,6 +64,7 @@ namespace VK {
 
 		void saveImage(const std::string& filename) const;
 		size_t getImageData(const char*& data, size_t bufSize) const;
+		size_t getImageData(char* data, size_t bufSize) const;
 
 		Image(const DeviceContextPtr& context);
 		Image(const Image& src) = default;

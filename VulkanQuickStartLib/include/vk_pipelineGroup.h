@@ -44,6 +44,7 @@ namespace VK {
 		*/
 	public:
 		inline void add(const PL_TYPE& pl) {
+			pl->build();
 			_pipelines.push_back(pl);
 		}
 

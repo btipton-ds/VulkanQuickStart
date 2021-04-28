@@ -57,6 +57,7 @@ namespace VK {
 		ImageCopier(const DeviceContextPtr& context, const Image& srcImage, size_t bufSize);
 		~ImageCopier();
 		const char* getPersistentCopy() const;
+		void copyToBuffer(char* buf) const;
 		bool getColorSwizzle() const;
 		VkImageSubresource getSubResource() const;
 		VkSubresourceLayout getSubResourceLayout() const;

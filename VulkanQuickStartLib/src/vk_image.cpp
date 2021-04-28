@@ -661,3 +661,18 @@ size_t Image::getImageData(const char*& data, size_t bufSize) const {
 
 	return bufSize;
 }
+
+size_t Image::getImageData(char* data, size_t bufSize) const {
+	const VkExtent3D& extent = _imageInfo.extent;
+	VkFormat format = _imageInfo.format;
+
+	size_t newBufSize = extent.width * extent.height * pixelSize(format);
+	if (bufSize != newBufSize)
+		return newBufSize;
+
+	ImageCopier copier(_context, *this, bufSize);
+
+	copier.copyToBuffer(data);
+
+	return bufSize;
+}

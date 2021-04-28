@@ -80,6 +80,15 @@ const char* ImageCopier::getPersistentCopy() const {
 	return p;
 }
 
+void ImageCopier::copyToBuffer(char* buf) const
+{
+	MappedMemory mem(*this);
+	const char* tempPtr = mem.getData();
+
+	memcpy(buf, tempPtr, _bufSize);
+}
+
+
 void ImageCopier::copyImages() {
 	bool supportsBlit = doesSupportsBlit();
 

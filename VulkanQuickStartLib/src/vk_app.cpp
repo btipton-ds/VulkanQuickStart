@@ -144,9 +144,14 @@ void VulkanApp::setHeadlessFrameBuffers(uint32_t width, uint32_t height, uint32_
 	}
 }
 
-uint32_t VulkanApp::getHeadlessFrameIndex() const
+uint32_t VulkanApp::getHeadlessFrameIndex()
 {
-	// If image is stale, copy swap fram to _webGlBuffer[_swapChainIndex]
+	const ImagePtr& image = _swapChain._images[_swapChainIndex];
+	uint8_t* buf = _webGlBuffers[_swapChainIndex];
+	image->getImageData((char*)buf, _webGlBuffers.size());
+
+	_headlessWorkFrame = (_swapChainIndex + 1) % (uint32_t)_webGlBuffers.size();
+
 	return _swapChainIndex;
 }
 
@@ -285,6 +290,7 @@ void VulkanApp::runHeadless()
 		rebuildPipelinesIfNeeded();
 		if (_headlessWorkFrame != _swapChainIndex) {
 			glfwPollEvents();
+			cout << "Rendering idx: " << _headlessWorkFrame << "\n";
 			drawNextHeadlessFrame(_headlessWorkFrame);
 			_swapChainIndex = _headlessWorkFrame;
 		}
@@ -376,6 +382,7 @@ void VulkanApp::recreateSwapChain() {
 
 bool VulkanApp::rebuildPipelines()
 {
+	
 	_lastChangeNumber = _changeNumber;
 	_framebufferResized = false;
 	_pipelines->resized(_frameRect);
@@ -386,7 +393,7 @@ bool VulkanApp::rebuildPipelines()
 
 	createOffscreenSwap();
 	createRenderPass();
-	createGraphicsPipeline();
+ 	createGraphicsPipeline();
 	createColorResources();
 	createDepthResources();
 	createFramebuffers();
@@ -1236,7 +1243,6 @@ void VulkanApp::drawNextHeadlessFrame(uint32_t frameIndex)
 	updateUniformBuffer(frameIndex);
 	submitGraphicsQueue();
 	submitComputeCommands();
-	presentQueueKHR();
 
 	doPostDrawTasks();
 
