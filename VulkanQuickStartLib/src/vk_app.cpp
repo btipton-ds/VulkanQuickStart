@@ -106,11 +106,53 @@ VulkanAppPtr VulkanApp::create(const VkRect2D& rect) {
 	return result;
 }
 
-VulkanAppPtr VulkanApp::createHeadless(const VkRect2D& rect) {
+VulkanAppPtr VulkanApp::createHeadless(uint32_t width, uint32_t height, uint32_t numBuffers, uint8_t** buffers) {
+	VkRect2D rect = {};
+	rect.extent.width = width;
+	rect.extent.height = height;
 	VulkanApp* ptr = new VulkanApp(rect);
 	VulkanAppPtr result = shared_ptr<VulkanApp>(ptr);
-	result->initHeadless();
+	result->setHeadlessFrameBuffers(width, height, numBuffers, buffers, false);
+	result->initVulkanHeadless();
 	return result;
+}
+
+void VulkanApp::setHeadlessFrameBuffers(uint32_t width, uint32_t height, uint32_t numBuffers, uint8_t** buffers, bool doCreateOffscreenSwap)
+{
+	bool changed = false;
+	
+	if (_webGlBuffers.empty() || _webGlBuffers.size() != numBuffers) {
+		changed = true;
+		_webGlBuffers.clear();
+		for (uint32_t i = 0; i < numBuffers; i++) {
+			_webGlBuffers.push_back(buffers[i]);
+		}
+	}
+	changed = changed ||
+		_frameRect.extent.width != width ||
+		_frameRect.extent.height != height ||
+		_webGlBuffers.size() != numBuffers;
+
+	for (size_t i = 0; i < _webGlBuffers.size(); i++)
+		changed = changed || _webGlBuffers[i] != buffers[i];
+
+	if (changed) {
+		_frameRect.extent.width = width;
+		_frameRect.extent.height = height;
+		if (doCreateOffscreenSwap)
+			createOffscreenSwap(); // May need to synch this
+	}
+}
+
+uint32_t VulkanApp::getHeadlessFrameIndex() const
+{
+	// If image is stale, copy swap fram to _webGlBuffer[_swapChainIndex]
+	return _swapChainIndex;
+}
+
+void VulkanApp::doneWithHeadlessFrameIndex()
+{
+	_headlessWorkFrame = (_swapChainIndex + 1) % (uint32_t)_webGlBuffers.size();
 }
 
 VulkanApp::VulkanApp(const VkRect2D& rect)
@@ -125,10 +167,6 @@ VulkanApp::VulkanApp(const VkRect2D& rect)
 void VulkanApp::init() {
 	initWindow();
 	initVulkan();
-}
-
-void VulkanApp::initHeadless() {
-	initVulkanHeadless();
 }
 
 void VulkanApp::createPipelines() {
@@ -238,6 +276,22 @@ void VulkanApp::run()
 	vkDeviceWaitIdle(_deviceContext->_device);
 }
 
+void VulkanApp::runHeadless()
+{
+	bool done = false;
+	_swapChainIndex = 0;
+	_headlessWorkFrame = 1;
+	while (!done) {
+		rebuildPipelinesIfNeeded();
+		if (_headlessWorkFrame != _swapChainIndex) {
+			glfwPollEvents();
+			drawNextHeadlessFrame(_headlessWorkFrame);
+			_swapChainIndex = _headlessWorkFrame;
+		}
+	}
+	// run offscreen pipelines
+}
+
 void VulkanApp::initWindow() {
 	glfwInit();
 
@@ -320,6 +374,28 @@ void VulkanApp::recreateSwapChain() {
 	createCommandBuffers();
 }
 
+bool VulkanApp::rebuildPipelines()
+{
+	_lastChangeNumber = _changeNumber;
+	_framebufferResized = false;
+	_pipelines->resized(_frameRect);
+
+	vkDeviceWaitIdle(_deviceContext->_device);
+
+	cleanupSwapChain();
+
+	createOffscreenSwap();
+	createRenderPass();
+	createGraphicsPipeline();
+	createColorResources();
+	createDepthResources();
+	createFramebuffers();
+	createCommandBuffers();
+
+	return true;
+}
+
+
 void VulkanApp::cleanupSwapChain() {
 	for (auto framebuffer : _swapChain._vkFrameBuffers) {
 		vkDestroyFramebuffer(_deviceContext->_device, framebuffer, nullptr);
@@ -343,7 +419,8 @@ void VulkanApp::cleanupSwapChain() {
 		vkDestroyImageView(_deviceContext->_device, imageView, nullptr);
 	}
 
-	vkDestroySwapchainKHR(_deviceContext->_device, _swapChain._vkSwapChain, nullptr);
+	if (_swapChain._vkSwapChain)
+		vkDestroySwapchainKHR(_deviceContext->_device, _swapChain._vkSwapChain, nullptr);
 }
 
 size_t VulkanApp::addOffscreen(const OffscreenPassBasePtr& osp) {
@@ -594,7 +671,9 @@ void VulkanApp::createSwapChain() {
 
 void VulkanApp::createOffscreenSwap()
 {
-	uint32_t imageCount = 2;
+	size_t imageCount = _webGlBuffers.size();
+	if (imageCount == 0)
+		return;
 	VkExtent3D extent3D;
 	extent3D.width = _frameRect.extent.width;
 	extent3D.height = _frameRect.extent.height;
@@ -623,7 +702,7 @@ void VulkanApp::createOffscreenSwap()
 	createInfo.usage = VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_STORAGE_BIT | VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT;
 
 	for (uint32_t i = 0; i < imageCount; i++) {
-		ImagePtr image = make_shared<Image>(_deviceContext, createInfo);
+		ImagePtr image = make_shared<Image>(_deviceContext, createInfo, _webGlBuffers[i]);
 		_swapChain._images.push_back(image);
 		_swapChain._vkImageViews.push_back(Image::createImageView(_deviceContext, image->getVkImage(), createInfo.format, VK_IMAGE_ASPECT_COLOR_BIT, 1));
 	}
@@ -1080,6 +1159,19 @@ inline bool VulkanApp::recreateSwapChainIfNeeded(VkResult result) {
 	return needToRecreate;
 }
 
+bool VulkanApp::rebuildPipelinesIfNeeded()
+{
+	bool needToRecreate = false;
+
+
+	needToRecreate = (_changeNumber > _lastChangeNumber) || _framebufferResized;
+
+	if (needToRecreate) {
+		rebuildPipelines();
+	}
+	return needToRecreate;
+}
+
 void VulkanApp::drawFrame() {
 	// TODO Cache this state on _pipelines so we stop doing the loop
 	size_t numSceneNodes = 0;
@@ -1093,18 +1185,9 @@ void VulkanApp::drawFrame() {
 
 	_deviceContext->waitForInFlightFence();
 
-	VkResult result = VK_SUCCESS; // VK_ERROR_OUT_OF_DATE_KHR
-	if (_swapChain._vkSwapChain) {
-		// Normal loop
-		VkSemaphore semaphore = _deviceContext->getImageAvailableSemaphore();
-		result = vkAcquireNextImageKHR(_deviceContext->_device, _swapChain._vkSwapChain, std::numeric_limits<uint64_t>::max(),
-			semaphore, VK_NULL_HANDLE, &_swapChainIndex);
-	} else {
-		if (!_headlessFrameStale) {
-			return;
-		}
-		// Headless loop
-	}
+	VkSemaphore semaphore = _deviceContext->getImageAvailableSemaphore();
+	VkResult result = vkAcquireNextImageKHR(_deviceContext->_device, _swapChain._vkSwapChain, std::numeric_limits<uint64_t>::max(),
+		semaphore, VK_NULL_HANDLE, &_swapChainIndex);
 
 	if (recreateSwapChainIfNeeded(result)) {
 		return;
@@ -1121,6 +1204,42 @@ void VulkanApp::drawFrame() {
 	doPostDrawTasks();
 
 	_deviceContext->nextFrame();
+}
+
+void VulkanApp::drawNextHeadlessFrame(uint32_t frameIndex)
+{
+	// TODO Cache this state on _pipelines so we stop doing the loop
+	size_t numSceneNodes = 0;
+	_pipelines->iterate([&](const PipelinePtr& pipeline) {
+		// TODO, add update buffers call here.
+		numSceneNodes += pipeline->numSceneNodes();
+	});
+
+	if (numSceneNodes <= 0)
+		return;
+
+	/*
+	_deviceContext->waitForInFlightFence();
+
+	VkSemaphore semaphore = _deviceContext->getImageAvailableSemaphore();
+	VkResult result = vkAcquireNextImageKHR(_deviceContext->_device, _swapChain._vkSwapChain, std::numeric_limits<uint64_t>::max(),
+		semaphore, VK_NULL_HANDLE, &_swapChainIndex);
+
+	if (recreateSwapChainIfNeeded(result)) {
+		return;
+	}
+	else if (result != VK_SUCCESS && result != VK_SUBOPTIMAL_KHR) {
+		THROW("failed to acquire swap chain image!");
+	}
+	*/
+
+	updateUniformBuffer(frameIndex);
+	submitGraphicsQueue();
+	submitComputeCommands();
+	presentQueueKHR();
+
+	doPostDrawTasks();
+
 }
 
 void VulkanApp::submitGraphicsQueue() {

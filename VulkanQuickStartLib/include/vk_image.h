@@ -68,7 +68,7 @@ namespace VK {
 		Image(const DeviceContextPtr& context);
 		Image(const Image& src) = default;
 		Image(const DeviceContextPtr& context, const VkSwapchainCreateInfoKHR& info, VkImage image);
-		Image(const DeviceContextPtr& context, const VkImageCreateInfo& info);
+		Image(const DeviceContextPtr& context, const VkImageCreateInfo& info, uint8_t* buffer = nullptr);
 		~Image();
 
 		void destroy();

@@ -34,6 +34,7 @@ This file is part of the VulkanQuickStart Project.
 
 #include <vk_nodeAPI.h>
 #include <vk_main.h>
+#include <vk_app.h>
 
 using namespace std;
 using namespace VQS_API;
@@ -60,34 +61,26 @@ public:
 	size_t getNumCommands() const override;
 	string getCommand(size_t idx) const override;
 	CmdData doCommand(CommandId cmd, const CmdData& command) override;
-	void getFrame(uint8_t* buffer, size_t& width, size_t& height) const override;
+	void initVQS(uint32_t width, uint32_t height, uint32_t numBuffers, uint8_t** buffers) override;
+	void setFrameBuffers(uint32_t width, uint32_t height, uint32_t numBuffers, uint8_t** buffers) override;
+	uint32_t getHeadlessFrameIndex() const override;
+	void doneWithHeadlessFrameIndex() override;
+	void setAppPtr(const VK::VulkanAppPtr& app) override;
 
 private:
+	VK::VulkanAppPtr _app;
 	map<CommandId, ApiHandlerPtr> _commandMap;
 };
 
 shared_ptr<Api> getVqsApi()
 {
-	static shared_ptr<Api> api;
+	static shared_ptr<ApiImpl> api;
 
 	if (!api)
 		api = make_shared<ApiImpl>();
 
 	return api;
 }
-
-class InitHandler final : public ApiHandler
-{
-public:
-	virtual CmdData doCommand(const CmdData& command)
-	{
-		CmdDataPoint2d* ptr = (CmdDataPoint2d*)&command;
-		if (ptr) {
-			initHeadless(ptr->x, ptr->y);
-		}
-		return CmdData(CmdDataType::NONE);
-	}
-};
 
 class MouseDownHandler final : public ApiHandler
 {
@@ -210,7 +203,6 @@ ApiImpl::ApiImpl()
 	: Api()
 {
 	// TODO BRT - Need a real factory for these, the commands and handler bindings can be messed up
-	_commandMap[CommandId::CMD_Init] = make_shared<InitHandler>();
 	_commandMap[CommandId::CMD_OpenFile] = make_shared<OpenFileHandler>();
 
 	_commandMap[CommandId::CMD_MouseDown] = make_shared<MouseDownHandler>();
@@ -231,6 +223,11 @@ inline CommandId incr(CommandId id) {
 	return (CommandId)(i + 1);
 }
 
+void ApiImpl::setAppPtr(const VK::VulkanAppPtr& app)
+{
+	_app = app;
+}
+
 size_t ApiImpl::getNumCommands() const
 {
 	return (size_t)CommandId::CMD_LAST;
@@ -247,20 +244,34 @@ CmdData ApiImpl::doCommand(CommandId cmd, const CmdData& command)
 	return CmdData(CmdDataType::Error);
 }
 
-void ApiImpl::getFrame(uint8_t* buffer, size_t& width, size_t& height) const
+void ApiImpl::initVQS(uint32_t width, uint32_t height, uint32_t numBuffers, uint8_t** buffers)
 {
+	VK::VulkanAppPtr app = initHeadless(width, height, numBuffers, buffers);
+	getVqsApi()->setAppPtr(app);
 
+}
+
+void ApiImpl::setFrameBuffers(uint32_t width, uint32_t height, uint32_t numBuffers, uint8_t** buffers)
+{
+	_app->setHeadlessFrameBuffers(width, height, numBuffers, buffers, true);
+}
+
+uint32_t ApiImpl::getHeadlessFrameIndex() const
+{
+	return _app->getHeadlessFrameIndex();
+}
+
+void ApiImpl::doneWithHeadlessFrameIndex()
+{
+	_app->doneWithHeadlessFrameIndex();
 }
 
 string ApiImpl::getCommand(size_t idx) const
 {
 	string result;
-	for (CommandId id = CommandId::CMD_Init; id != CommandId::CMD_LAST; id = incr(id)) {
+	for (CommandId id = CommandId::CMD_OpenFile; id != CommandId::CMD_LAST; id = incr(id)) {
 		switch (id)
 		{
-		case CommandId::CMD_Init:
-			result = "CMD_Init";
-			break;
 		case CommandId::CMD_OpenFile:
 			result = "CMD_OpenFile";
 			break;

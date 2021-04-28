@@ -310,7 +310,7 @@ namespace
 	void headlessThreadFunc()
 	{
 		try {
-			gApp->run();
+			gApp->runHeadless();
 		}
 		catch (const std::exception& e) {
 			std::cerr << e.what() << std::endl;
@@ -358,13 +358,9 @@ int VK::mainRunTest(int numArgs, char** args) {
 	return EXIT_SUCCESS;
 }
 
-int initHeadless(double width, double height)
+VK::VulkanAppPtr initHeadless(uint32_t width, uint32_t height, uint32_t numBuffers, uint8_t** buffers)
 {
-	VkRect2D frame;
-	frame.offset = { 0,0, };
-	frame.extent.width = (uint32_t)width; // TODO BRT - lazy passing of a double to postpone creating integer point type.
-	frame.extent.height = (uint32_t)height;
-	gApp = VulkanApp::createHeadless(frame);
+	gApp = VulkanApp::createHeadless(width, height, numBuffers, buffers);
 #if 1
 	gApp->setAntiAliasSamples(VK_SAMPLE_COUNT_4_BIT);
 	gApp->setClearColor(0.0f, 0.0f, 0.2f);
@@ -373,7 +369,9 @@ int initHeadless(double width, double height)
 	if (formats.empty()) {
 		throw runtime_error("Format not supported");
 	}
-	VkExtent2D offscreenExtent = frame.extent;
+	VkExtent2D offscreenExtent = {};
+	offscreenExtent.width = width;
+	offscreenExtent.height = height;
 	gOffscreen = make_shared<OffscreenPass3D>(gApp, formats.front()._format);
 	gOffscreen->setAntiAliasSamples(VK_SAMPLE_COUNT_1_BIT);
 	gOffscreen->setClearColor(0.0f, 0.3f, 0.0f);
@@ -393,6 +391,6 @@ int initHeadless(double width, double height)
 	graphicsThread.detach();
 #endif
 
-	return 1;
+	return gApp;
 }
 

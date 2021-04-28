@@ -75,7 +75,7 @@ Image::Image(const DeviceContextPtr& context, const VkSwapchainCreateInfoKHR& in
 	_imageInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
 }
 
-Image::Image(const DeviceContextPtr& context, const VkImageCreateInfo& info)
+Image::Image(const DeviceContextPtr& context, const VkImageCreateInfo& info, uint8_t* buffer)
 	: _context(context)
 	, _imageInfo(info)
 {
@@ -100,6 +100,9 @@ Image::Image(const DeviceContextPtr& context, const VkImageCreateInfo& info)
 	memAllocInfo.allocationSize = memRequirements.size;
 	// Memory must be host visible to copy from
 	memAllocInfo.memoryTypeIndex = _context->getMemoryType(memRequirements.memoryTypeBits, 0); // May need host visible or something
+
+	// Vulkan does not allow using the webGl memory as the image memory.
+	// Must be copied over at end of render.
 	if (vkAllocateMemory(_context->_device, &memAllocInfo, nullptr, &_memory) != VK_SUCCESS) {
 		throw("Failed to create image");
 	}

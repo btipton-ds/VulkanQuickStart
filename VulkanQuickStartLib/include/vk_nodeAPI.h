@@ -31,10 +31,17 @@ This file is part of the VulkanQuickStart Project.
 #include <memory>
 #include <string>
 
+#include <memory>
+#include <inttypes.h>
+
+namespace VK {
+	class VulkanApp;
+	using VulkanAppPtr = std::shared_ptr<VulkanApp>;
+}
+
 namespace VQS_API
 {
 	enum class CommandId {
-		CMD_Init,
 		CMD_OpenFile,
 		CMD_MouseDown,
 		CMD_MouseUp,
@@ -87,7 +94,12 @@ namespace VQS_API
 		virtual size_t getNumCommands() const = 0;
 		virtual std::string getCommand(size_t idx) const = 0;
 		virtual CmdData doCommand(CommandId cmd, const CmdData& command) = 0;
-		virtual void getFrame(uint8_t* buffer, size_t& width, size_t& height) const = 0;
+		virtual void initVQS(uint32_t width, uint32_t height, uint32_t numBuffers, uint8_t** buffers) = 0;
+		virtual void setFrameBuffers(uint32_t width, uint32_t height, uint32_t numBuffers, uint8_t** buffers) = 0;
+		virtual uint32_t getHeadlessFrameIndex() const = 0;
+		virtual void doneWithHeadlessFrameIndex() = 0;
+		virtual void setAppPtr(const VK::VulkanAppPtr& app) = 0;
+
 	};
 
 }

@@ -79,14 +79,17 @@ namespace VK {
 		using UpdaterPtr = std::shared_ptr<Updater>;
 
 		static VulkanAppPtr create(const VkRect2D& rect);
-		static VulkanAppPtr createHeadless(const VkRect2D& rect);
+		static VulkanAppPtr createHeadless(uint32_t width, uint32_t height, uint32_t numBuffers, uint8_t** buffers);
+		void setHeadlessFrameBuffers(uint32_t width, uint32_t height, uint32_t numBuffers, uint8_t** buffers, bool doCreateOffscreenSwap);
+		uint32_t getHeadlessFrameIndex() const;
+		void doneWithHeadlessFrameIndex();
+
 
 		void setClearColor(float red, float green, float blue, float alpha = 1.0f);
 
 	protected:
 		VulkanApp(const VkRect2D& rect);
 		void init();
-		void initHeadless();
 
 	public:
 		~VulkanApp();
@@ -127,6 +130,7 @@ namespace VK {
 		uint32_t getSwapChainIndex() const;
 
 		void run();
+		void runHeadless();
 		void stop();
 
 		void setUpdater(const UpdaterPtr& updater);
@@ -190,10 +194,13 @@ namespace VK {
 		void updateUBO(const VkExtent2D& extent, const BoundingBox& modelBounds, UboType& ubo) const;
 		void reportFPS();
 		void drawFrame();
+		void drawNextHeadlessFrame(uint32_t frameIndex);
 		void submitGraphicsQueue();
 		void submitComputeCommands();
 		void presentQueueKHR();
 		bool recreateSwapChainIfNeeded(VkResult result) ;
+		bool rebuildPipelinesIfNeeded();
+		bool rebuildPipelines();
 		void doPostDrawTasks() const;
 
 		VkShaderModule createShaderModule(const std::vector<char>& code);
@@ -222,7 +229,9 @@ namespace VK {
 		double _modelScale = 1.0;
 		VkSurfaceKHR _surface = VK_NULL_HANDLE;
 		size_t _changeNumber = 0, _lastChangeNumber = 0, _uiWindowChangeNumber = 0;
-		uint32_t _swapChainIndex = 0;
+		uint32_t _swapChainIndex = 0, _headlessWorkFrame = 0;
+
+		std::vector<uint8_t*> _webGlBuffers; // These are passed in from Electron
 
 		VkInstance _instance = VK_NULL_HANDLE;
 		VkDebugUtilsMessengerEXT _debugMessenger;

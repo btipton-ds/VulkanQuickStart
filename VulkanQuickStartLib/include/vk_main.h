@@ -30,8 +30,13 @@ This file is part of the VulkanQuickStart Project.
 
 #include <vk_exports.h>
 
+#include <memory>
+
 namespace VK {
+	class VulkanApp;
+	using VulkanAppPtr = std::shared_ptr<VulkanApp>;
   EXPORT_VQS int mainRunTest(int numArgs, char** args);
+
 }
 
-EXPORT_VQS int initHeadless(double width, double height);
+EXPORT_VQS VK::VulkanAppPtr initHeadless(uint32_t width, uint32_t height, uint32_t numBuffers, uint8_t** buffers);
