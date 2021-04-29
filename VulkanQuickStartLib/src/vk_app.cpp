@@ -140,7 +140,7 @@ void VulkanApp::setHeadlessFrameBuffers(uint32_t width, uint32_t height, uint32_
 		_frameRect.extent.width = width;
 		_frameRect.extent.height = height;
 		if (doCreateOffscreenSwap)
-			createOffscreenSwap(); // May need to synch this
+			createOffscreenBuffers(); // May need to synch this
 	}
 }
 
@@ -287,7 +287,7 @@ void VulkanApp::runHeadless()
 	_swapChainIndex = 0;
 	_headlessWorkFrame = 1;
 	while (!done) {
-		rebuildPipelinesIfNeeded();
+		rebuildOffscreenIfNeeded();
 		if (_headlessWorkFrame != _swapChainIndex) {
 			glfwPollEvents();
 			cout << "Rendering idx: " << _headlessWorkFrame << "\n";
@@ -343,7 +343,7 @@ void VulkanApp::initVulkanHeadless() {
 	setupDebugMessenger();
 	pickPhysicalDevice();
 	createLogicalDevice();
-	createOffscreenSwap();
+	createOffscreenBuffers();
 	createPipelines();
 	createRenderPass();
 	createGraphicsPipeline();
@@ -380,7 +380,7 @@ void VulkanApp::recreateSwapChain() {
 	createCommandBuffers();
 }
 
-bool VulkanApp::rebuildPipelines()
+bool VulkanApp::rebuildOffscreen()
 {
 	
 	_lastChangeNumber = _changeNumber;
@@ -391,7 +391,7 @@ bool VulkanApp::rebuildPipelines()
 
 	cleanupSwapChain();
 
-	createOffscreenSwap();
+	createOffscreenBuffers();
 	createRenderPass();
  	createGraphicsPipeline();
 	createColorResources();
@@ -676,45 +676,11 @@ void VulkanApp::createSwapChain() {
 	_swapChain._extent = extent;
 }
 
-void VulkanApp::createOffscreenSwap()
+void VulkanApp::createOffscreenBuffers()
 {
 	size_t imageCount = _webGlBuffers.size();
 	if (imageCount == 0)
 		return;
-	VkExtent3D extent3D;
-	extent3D.width = _frameRect.extent.width;
-	extent3D.height = _frameRect.extent.height;
-	extent3D.depth = 0;
-
-	QueueFamilyIndices indices = findQueueFamilies(_deviceContext->_physicalDevice);
-	uint32_t queueFamilyIndices[] = { indices.graphicsFamily, indices.presentFamily };
-
-	_swapChain._images.clear();
-	_swapChain._images.reserve(imageCount);
-	_swapChain._vkImageViews.clear();
-	_swapChain._vkImageViews.reserve(imageCount);
-
-	auto formats = findSupportedFormats({ VK_FORMAT_R8G8B8A8_UNORM, VK_FORMAT_R8G8B8A8_UINT, VK_FORMAT_B8G8R8A8_UNORM }, VK_FORMAT_FEATURE_COLOR_ATTACHMENT_BIT);
-	if (formats.empty())
-		throw "Could not find usable format";
-
-	VkImageCreateInfo createInfo = {};
-	createInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
-	createInfo.extent = extent3D;
-	createInfo.tiling = formats[0]._tiling;
-	createInfo.format = formats[0]._format; // TODO BRT check this against device capabilities;
-	createInfo.flags = VK_IMAGE_CREATE_MUTABLE_FORMAT_BIT;
-	createInfo.pQueueFamilyIndices = queueFamilyIndices;
-	createInfo.queueFamilyIndexCount = 2;
-	createInfo.usage = VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_STORAGE_BIT | VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT;
-
-	for (uint32_t i = 0; i < imageCount; i++) {
-		ImagePtr image = make_shared<Image>(_deviceContext, createInfo, _webGlBuffers[i]);
-		_swapChain._images.push_back(image);
-		_swapChain._vkImageViews.push_back(Image::createImageView(_deviceContext, image->getVkImage(), createInfo.format, VK_IMAGE_ASPECT_COLOR_BIT, 1));
-	}
-	_swapChain._imageFormat = createInfo.format;
-	_swapChain._extent = _frameRect.extent;
 }
 
 void VulkanApp::createRenderPass() {
@@ -1166,7 +1132,7 @@ inline bool VulkanApp::recreateSwapChainIfNeeded(VkResult result) {
 	return needToRecreate;
 }
 
-bool VulkanApp::rebuildPipelinesIfNeeded()
+bool VulkanApp::rebuildOffscreenIfNeeded()
 {
 	bool needToRecreate = false;
 
@@ -1174,7 +1140,7 @@ bool VulkanApp::rebuildPipelinesIfNeeded()
 	needToRecreate = (_changeNumber > _lastChangeNumber) || _framebufferResized;
 
 	if (needToRecreate) {
-		rebuildPipelines();
+		rebuildOffscreen();
 	}
 	return needToRecreate;
 }

@@ -67,8 +67,8 @@ namespace VK {
 
 		void draw(VkCommandBuffer cmdBuff) override;
 
-                PipelineGroupTypePtr& getPipelines();
-                const PipelineGroupTypePtr& getPipelines() const;
+		PipelineGroupTypePtr& getPipelines();
+		const PipelineGroupTypePtr& getPipelines() const;
 
 	protected:
 		VkSampleCountFlagBits getAntiAliasSamples() const override;

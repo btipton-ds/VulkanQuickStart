@@ -173,7 +173,7 @@ namespace VK {
 
 		void createLogicalDevice();
 		void createSwapChain();
-		void createOffscreenSwap();
+		void createOffscreenBuffers();
 		void createPipelines();
 		void createRenderPass();
 		void createGraphicsPipeline();
@@ -199,8 +199,8 @@ namespace VK {
 		void submitComputeCommands();
 		void presentQueueKHR();
 		bool recreateSwapChainIfNeeded(VkResult result) ;
-		bool rebuildPipelinesIfNeeded();
-		bool rebuildPipelines();
+		bool rebuildOffscreenIfNeeded();
+		bool rebuildOffscreen();
 		void doPostDrawTasks() const;
 
 		VkShaderModule createShaderModule(const std::vector<char>& code);
