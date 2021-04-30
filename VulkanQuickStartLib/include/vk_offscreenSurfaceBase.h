@@ -53,7 +53,7 @@ namespace VK {
 		OffscreenSurfaceBase(const VulkanAppPtr& app, VkFormat colorFormat);
 		virtual ~OffscreenSurfaceBase();
 
-		void init(const VkExtent2D& extent);
+		void init(const VkExtent2D& extent, size_t numFrames = 1);
 		void cleanup();
 
 		const TextureImagePtr& getColorImage() const;
@@ -82,22 +82,28 @@ namespace VK {
 		VkRect2D _rect = { { 0, 0 }, {0, 0 } };
 		VkClearColorValue _clearColor = { { 0, 0, 0, 1 } };
 		VkClearDepthStencilValue _depthStencil = { 1, 0 };
-		VkFramebuffer _frameBuffer = VK_NULL_HANDLE;
-		TextureImagePtr _color = VK_NULL_HANDLE;
-		ImagePtr _depth = VK_NULL_HANDLE;
-		VkSampler _sampler = VK_NULL_HANDLE;
-		VkDescriptorImageInfo _descriptor = {};
 		DeviceContextPtr _deviceContext;
 		VkFormat _colorFormat, _depthFormat;
 
+		struct FrameBuffers {
+			VkFramebuffer _frameBuffer = VK_NULL_HANDLE;
+			TextureImagePtr _color = VK_NULL_HANDLE;
+			ImagePtr _depth = VK_NULL_HANDLE;
+			VkSampler _sampler = VK_NULL_HANDLE;
+			VkDescriptorImageInfo _descriptor = {};
+		};
+
+		size_t _currentBufferIdx = 0;
+		size_t _drawBufferIdx = 0;
+		std::vector<FrameBuffers> _frameBuffers;
 	};
 
 	inline const TextureImagePtr& OffscreenSurfaceBase::getColorImage() const {
-		return _color;
+		return _frameBuffers[_currentBufferIdx]._color;
 	}
 
 	inline VkFramebuffer OffscreenSurfaceBase::getFrameBuffer() const {
-		return _frameBuffer;
+		return _frameBuffers[_currentBufferIdx]._frameBuffer;
 	}
 
 	inline const VkRect2D& OffscreenSurfaceBase::getRect() const {
@@ -125,7 +131,7 @@ namespace VK {
 	}
 
 	inline const VkDescriptorImageInfo& OffscreenSurfaceBase::getDescriptorInfo() const {
-		return _descriptor;
+		return _frameBuffers[_currentBufferIdx]._descriptor;
 	}
 }
 

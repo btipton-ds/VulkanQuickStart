@@ -333,7 +333,7 @@ namespace VK {
 				_offscreenSurface = std::make_shared<OffscreenSurface3D>(getAppPtr(), _imageFormat);
 				_offscreenSurface->setAntiAliasSamples(_msaaSamples);
 				_offscreenSurface->setClearColor(_clearColor);
-				_offscreenSurface->init(_frameRect.extent);
+				_offscreenSurface->init(_frameRect.extent, _webGlBuffers.size()); // This doesn't have to be the same size, but it's convenient
 				addOffscreen(_offscreenSurface);
 			}
 

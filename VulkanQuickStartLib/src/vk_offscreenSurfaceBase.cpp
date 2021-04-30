@@ -52,7 +52,8 @@ OffscreenSurfaceBase::~OffscreenSurfaceBase() {
 	cleanup();
 }
 
-void OffscreenSurfaceBase::init(const VkExtent2D& extent) {
+void OffscreenSurfaceBase::init(const VkExtent2D& extent, size_t numFrames) {
+	_frameBuffers.resize(numFrames);
 
 	_rect = { {0, 0}, extent };
 	auto device = _deviceContext->_device;
@@ -64,123 +65,128 @@ void OffscreenSurfaceBase::init(const VkExtent2D& extent) {
 
 	uint32_t colorUsageBits = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT |
 		VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_STORAGE_BIT;
-	_color = TextureImage::newPtr(_deviceContext, fbColorFormat, colorUsageBits, _rect.extent.width, _rect.extent.height, antiAliasSampleBits);
+	for (auto& fb : _frameBuffers) {
 
-	// Create _sampler to sample from the attachment in the fragment shader
-	VkSamplerCreateInfo samplerInfo = {};
-	samplerInfo.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
-	samplerInfo.magFilter = VK_FILTER_LINEAR;
-	samplerInfo.minFilter = VK_FILTER_LINEAR;
-	samplerInfo.mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR;
-	samplerInfo.addressModeU = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE;
-	samplerInfo.addressModeV = samplerInfo.addressModeU;
-	samplerInfo.addressModeW = samplerInfo.addressModeU;
-	samplerInfo.mipLodBias = 0.0f;
-	samplerInfo.maxAnisotropy = 1.0f;
-	samplerInfo.minLod = 0.0f;
-	samplerInfo.maxLod = 1.0f;
-	samplerInfo.borderColor = VK_BORDER_COLOR_FLOAT_OPAQUE_WHITE;
-	VK_CHK(vkCreateSampler(device, &samplerInfo, nullptr, &_sampler));
+		fb._color = TextureImage::newPtr(_deviceContext, fbColorFormat, colorUsageBits, _rect.extent.width, _rect.extent.height, antiAliasSampleBits);
 
-	// Depth stencil attachment
-	VkFormat fbDepthFormat = _depthFormat;
+		// Create _sampler to sample from the attachment in the fragment shader
+		VkSamplerCreateInfo samplerInfo = {};
+		samplerInfo.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
+		samplerInfo.magFilter = VK_FILTER_LINEAR;
+		samplerInfo.minFilter = VK_FILTER_LINEAR;
+		samplerInfo.mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR;
+		samplerInfo.addressModeU = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE;
+		samplerInfo.addressModeV = samplerInfo.addressModeU;
+		samplerInfo.addressModeW = samplerInfo.addressModeU;
+		samplerInfo.mipLodBias = 0.0f;
+		samplerInfo.maxAnisotropy = 1.0f;
+		samplerInfo.minLod = 0.0f;
+		samplerInfo.maxLod = 1.0f;
+		samplerInfo.borderColor = VK_BORDER_COLOR_FLOAT_OPAQUE_WHITE;
+		VK_CHK(vkCreateSampler(device, &samplerInfo, nullptr, &fb._sampler));
 
-	_depth = make_shared<Image>(_deviceContext);
-	_depth->create(fbDepthFormat, VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT, _rect.extent.width, _rect.extent.height, antiAliasSampleBits);
+		// Depth stencil attachment
+		VkFormat fbDepthFormat = _depthFormat;
 
-	// Create a separate render pass for the offscreen rendering as it may differ from the one used for scene rendering
+		fb._depth = make_shared<Image>(_deviceContext);
+		fb._depth->create(fbDepthFormat, VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT, _rect.extent.width, _rect.extent.height, antiAliasSampleBits);
 
-	std::array<VkAttachmentDescription, 2> attchmentDescriptions = {};
-	// Color attachment
-	attchmentDescriptions[0].format = fbColorFormat;
-	attchmentDescriptions[0].samples = antiAliasSampleBits;
-	attchmentDescriptions[0].loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
-	attchmentDescriptions[0].storeOp = VK_ATTACHMENT_STORE_OP_STORE;
-	attchmentDescriptions[0].stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
-	attchmentDescriptions[0].stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
-	attchmentDescriptions[0].initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-	attchmentDescriptions[0].finalLayout = VK_IMAGE_LAYOUT_GENERAL; // VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-	// Depth attachment
-	attchmentDescriptions[1].format = fbDepthFormat;
-	attchmentDescriptions[1].samples = antiAliasSampleBits;
-	attchmentDescriptions[1].loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
-	attchmentDescriptions[1].storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
-	attchmentDescriptions[1].stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
-	attchmentDescriptions[1].stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
-	attchmentDescriptions[1].initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-	attchmentDescriptions[1].finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+		// Create a separate render pass for the offscreen rendering as it may differ from the one used for scene rendering
 
-	VkAttachmentReference colorReference = { 0, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL };
-	VkAttachmentReference depthReference = { 1, VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL };
+		std::array<VkAttachmentDescription, 2> attchmentDescriptions = {};
+		// Color attachment
+		attchmentDescriptions[0].format = fbColorFormat;
+		attchmentDescriptions[0].samples = antiAliasSampleBits;
+		attchmentDescriptions[0].loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+		attchmentDescriptions[0].storeOp = VK_ATTACHMENT_STORE_OP_STORE;
+		attchmentDescriptions[0].stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+		attchmentDescriptions[0].stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+		attchmentDescriptions[0].initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+		attchmentDescriptions[0].finalLayout = VK_IMAGE_LAYOUT_GENERAL; // VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+		// Depth attachment
+		attchmentDescriptions[1].format = fbDepthFormat;
+		attchmentDescriptions[1].samples = antiAliasSampleBits;
+		attchmentDescriptions[1].loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+		attchmentDescriptions[1].storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+		attchmentDescriptions[1].stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+		attchmentDescriptions[1].stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+		attchmentDescriptions[1].initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+		attchmentDescriptions[1].finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
 
-	VkSubpassDescription subpassDescription = {};
-	subpassDescription.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
-	subpassDescription.colorAttachmentCount = 1;
-	subpassDescription.pColorAttachments = &colorReference;
-	subpassDescription.pDepthStencilAttachment = &depthReference;
+		VkAttachmentReference colorReference = { 0, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL };
+		VkAttachmentReference depthReference = { 1, VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL };
 
-	// Use subpass dependencies for layout transitions
-	std::array<VkSubpassDependency, 2> dependencies;
+		VkSubpassDescription subpassDescription = {};
+		subpassDescription.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
+		subpassDescription.colorAttachmentCount = 1;
+		subpassDescription.pColorAttachments = &colorReference;
+		subpassDescription.pDepthStencilAttachment = &depthReference;
 
-	dependencies[0].srcSubpass = VK_SUBPASS_EXTERNAL;
-	dependencies[0].dstSubpass = 0;
-	dependencies[0].srcStageMask = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
-	dependencies[0].dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
-	dependencies[0].srcAccessMask = VK_ACCESS_SHADER_READ_BIT;
-	dependencies[0].dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
-	dependencies[0].dependencyFlags = VK_DEPENDENCY_BY_REGION_BIT;
+		// Use subpass dependencies for layout transitions
+		std::array<VkSubpassDependency, 2> dependencies;
 
-	dependencies[1].srcSubpass = 0;
-	dependencies[1].dstSubpass = VK_SUBPASS_EXTERNAL;
-	dependencies[1].srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
-	dependencies[1].dstStageMask = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
-	dependencies[1].srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
-	dependencies[1].dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
-	dependencies[1].dependencyFlags = VK_DEPENDENCY_BY_REGION_BIT;
+		dependencies[0].srcSubpass = VK_SUBPASS_EXTERNAL;
+		dependencies[0].dstSubpass = 0;
+		dependencies[0].srcStageMask = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
+		dependencies[0].dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+		dependencies[0].srcAccessMask = VK_ACCESS_SHADER_READ_BIT;
+		dependencies[0].dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+		dependencies[0].dependencyFlags = VK_DEPENDENCY_BY_REGION_BIT;
 
-	// Create the actual renderpass
-	VkRenderPassCreateInfo renderPassInfo = {};
-	renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
-	renderPassInfo.attachmentCount = static_cast<uint32_t>(attchmentDescriptions.size());
-	renderPassInfo.pAttachments = attchmentDescriptions.data();
-	renderPassInfo.subpassCount = 1;
-	renderPassInfo.pSubpasses = &subpassDescription;
-	renderPassInfo.dependencyCount = static_cast<uint32_t>(dependencies.size());
-	renderPassInfo.pDependencies = dependencies.data();
+		dependencies[1].srcSubpass = 0;
+		dependencies[1].dstSubpass = VK_SUBPASS_EXTERNAL;
+		dependencies[1].srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+		dependencies[1].dstStageMask = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
+		dependencies[1].srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+		dependencies[1].dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
+		dependencies[1].dependencyFlags = VK_DEPENDENCY_BY_REGION_BIT;
 
-	VkRenderPass renderPass;
-	VK_CHK(vkCreateRenderPass(device, &renderPassInfo, nullptr, &renderPass));
-	setRenderPass(renderPass);
+		// Create the actual renderpass
+		VkRenderPassCreateInfo renderPassInfo = {};
+		renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
+		renderPassInfo.attachmentCount = static_cast<uint32_t>(attchmentDescriptions.size());
+		renderPassInfo.pAttachments = attchmentDescriptions.data();
+		renderPassInfo.subpassCount = 1;
+		renderPassInfo.pSubpasses = &subpassDescription;
+		renderPassInfo.dependencyCount = static_cast<uint32_t>(dependencies.size());
+		renderPassInfo.pDependencies = dependencies.data();
 
-	VkImageView attachments[2];
-	attachments[0] = _color->getImageView();
-	attachments[1] = _depth->getImageView();
+		VkRenderPass renderPass;
+		VK_CHK(vkCreateRenderPass(device, &renderPassInfo, nullptr, &renderPass));
+		setRenderPass(renderPass);
 
-	VkFramebufferCreateInfo fbufCreateInfo = {};
-	fbufCreateInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
-	fbufCreateInfo.renderPass = renderPass;
-	fbufCreateInfo.attachmentCount = 2;
-	fbufCreateInfo.pAttachments = attachments;
-	fbufCreateInfo.width = _rect.extent.width;
-	fbufCreateInfo.height = _rect.extent.height;
-	fbufCreateInfo.layers = 1;
+		VkImageView attachments[2];
+		attachments[0] = fb._color->getImageView();
+		attachments[1] = fb._depth->getImageView();
 
-	VK_CHK(vkCreateFramebuffer(device, &fbufCreateInfo, nullptr, &_frameBuffer));
+		VkFramebufferCreateInfo fbufCreateInfo = {};
+		fbufCreateInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
+		fbufCreateInfo.renderPass = renderPass;
+		fbufCreateInfo.attachmentCount = 2;
+		fbufCreateInfo.pAttachments = attachments;
+		fbufCreateInfo.width = _rect.extent.width;
+		fbufCreateInfo.height = _rect.extent.height;
+		fbufCreateInfo.layers = 1;
 
-	// Fill a descriptor for later use in a descriptor set 
-	_descriptor.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-	_descriptor.imageView = _color->getImageView();
-	_descriptor.sampler = _sampler;
+		VK_CHK(vkCreateFramebuffer(device, &fbufCreateInfo, nullptr, &fb._frameBuffer));
+
+		// Fill a descriptor for later use in a descriptor set 
+		fb._descriptor.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+		fb._descriptor.imageView = fb._color->getImageView();
+		fb._descriptor.sampler = fb._sampler;
+	}
 }
 
 void OffscreenSurfaceBase::cleanup() {
 	auto device = _deviceContext->_device;
 
-	if (_sampler)
-		vkDestroySampler(device, _sampler, nullptr);
-	if (_frameBuffer)
-		vkDestroyFramebuffer(device, _frameBuffer, nullptr);
+	for (auto& fb : _frameBuffers) {
+		if (fb._sampler)
+			vkDestroySampler(device, fb._sampler, nullptr);
+		if (fb._frameBuffer)
+			vkDestroyFramebuffer(device, fb._frameBuffer, nullptr);
 
-	_sampler = VK_NULL_HANDLE;
-	_frameBuffer = VK_NULL_HANDLE;
+		fb._sampler = VK_NULL_HANDLE;
+		fb._frameBuffer = VK_NULL_HANDLE;
+	}
 }
