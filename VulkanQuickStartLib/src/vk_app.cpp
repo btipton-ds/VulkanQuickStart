@@ -371,29 +371,6 @@ void VulkanApp::recreateSwapChain() {
 	createCommandBuffers();
 }
 
-bool VulkanApp::rebuildOffscreen()
-{
-	
-	_lastChangeNumber = _changeNumber;
-	_framebufferResized = false;
-	_pipelines->resized(_frameRect);
-
-	vkDeviceWaitIdle(_deviceContext->_device);
-
-	cleanupSwapChain();
-
-	createOffscreenBuffers();
-	createRenderPass();
- 	createGraphicsPipeline();
-	createColorResources();
-	createDepthResources();
-	createFramebuffers();
-	createCommandBuffers();
-
-	return true;
-}
-
-
 void VulkanApp::cleanupSwapChain() {
 	for (auto framebuffer : _swapChain._vkFrameBuffers) {
 		vkDestroyFramebuffer(_deviceContext->_device, framebuffer, nullptr);
@@ -403,7 +380,7 @@ void VulkanApp::cleanupSwapChain() {
 		pl->cleanupSwapChain();
 	});
 
-	for (const auto& osp : _offscreenPasses) {
+	for (const auto& osp : _offscreenSurfaces) {
 		osp->cleanupSwapChain();
 	}
 
@@ -422,8 +399,8 @@ void VulkanApp::cleanupSwapChain() {
 }
 
 size_t VulkanApp::addOffscreen(const OffscreenSurfaceBasePtr& osp) {
-	size_t result = _offscreenPasses.size();
-	_offscreenPasses.push_back(osp);
+	size_t result = _offscreenSurfaces.size();
+	_offscreenSurfaces.push_back(osp);
 	changed();
 	return result;
 }
@@ -443,7 +420,7 @@ size_t VulkanApp::addPostDrawTask(const PostDrawTaskPtr& task) {
 }
 
 void VulkanApp::cleanup() {
-	for (const auto& osp : _offscreenPasses)
+	for (const auto& osp : _offscreenSurfaces)
 		osp->cleanup();
 
 	cleanupSwapChain();
@@ -760,7 +737,7 @@ void VulkanApp::createGraphicsPipeline() {
 			pl->build();
 	});
 
-	for (const auto& osp : _offscreenPasses) {
+	for (const auto& osp : _offscreenSurfaces) {
 		osp->build();
 	}
 
@@ -955,7 +932,7 @@ void VulkanApp::createCommandBuffers() {
 		renderPassInfo.clearValueCount = static_cast<uint32_t>(clearValues.size());
 		renderPassInfo.pClearValues = clearValues.data();
 
-		for (const OffscreenSurfaceBasePtr& osp : _offscreenPasses) {
+		for (const OffscreenSurfaceBasePtr& osp : _offscreenSurfaces) {
 			clearValues[0].color = osp->getClearColor();
 			clearValues[1].depthStencil = osp->getDepthStencil();;
 			drawCmdBufferLoop(osp, cmdBuff, beginInfo, renderPassInfo);
@@ -995,8 +972,9 @@ void VulkanApp::drawCmdBufferLoop(VkCommandBuffer cmdBuff, size_t swapChainIndex
 }
 
 void VulkanApp::drawCmdBufferLoop(const OffscreenSurfaceBasePtr& osp, VkCommandBuffer cmdBuff, VkCommandBufferBeginInfo& beginInfo, VkRenderPassBeginInfo renderPassInfo) {
+	size_t drawIdx = osp->getDrawBufferIdx();
 	renderPassInfo.renderPass = osp->getRenderPass();
-	renderPassInfo.framebuffer = osp->getFrameBuffer();
+	renderPassInfo.framebuffer = osp->getFrameBuffer(drawIdx);
 	renderPassInfo.renderArea.extent = osp->getRect().extent;
 
 	vkCmdBeginRenderPass(cmdBuff, &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
@@ -1092,7 +1070,7 @@ void VulkanApp::updateUniformBuffer(uint32_t swapChainImageIndex) {
 		_uiWindow->updateUniformBuffer(swapChainImageIndex);
 	}
 
-	for (const OffscreenSurfaceBasePtr& osp : _offscreenPasses) {
+	for (const OffscreenSurfaceBasePtr& osp : _offscreenSurfaces) {
 		if (!osp->updateUbo()) {
 			const auto& rect = osp->getRect();
 			if (!_uboUpdater || !_uboUpdater(rect.extent.width, rect.extent.height, ubo)) {
@@ -1120,19 +1098,6 @@ inline bool VulkanApp::recreateSwapChainIfNeeded(VkResult result) {
 
 	if (needToRecreate) {
 		recreateSwapChain();
-	}
-	return needToRecreate;
-}
-
-bool VulkanApp::rebuildOffscreenIfNeeded()
-{
-	bool needToRecreate = false;
-
-
-	needToRecreate = (_changeNumber > _lastChangeNumber) || _framebufferResized;
-
-	if (needToRecreate) {
-		rebuildOffscreen();
 	}
 	return needToRecreate;
 }
@@ -1170,6 +1135,10 @@ void VulkanApp::drawFrame() {
 	doPostDrawTasks();
 
 	_deviceContext->nextFrame();
+
+	for (auto& osp : _offscreenSurfaces) {
+		osp->nextFrame();
+	}
 }
 
 void VulkanApp::drawNextHeadlessFrame(uint32_t frameIndex)

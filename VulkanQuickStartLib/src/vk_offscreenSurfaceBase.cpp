@@ -190,3 +190,8 @@ void OffscreenSurfaceBase::cleanup() {
 		fb._frameBuffer = VK_NULL_HANDLE;
 	}
 }
+
+void OffscreenSurfaceBase::nextFrame() 
+{
+	_drawBufferIdx = (_drawBufferIdx + 1) % _frameBuffers.size();
+}

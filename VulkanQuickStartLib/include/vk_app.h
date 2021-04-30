@@ -199,8 +199,6 @@ namespace VK {
 		void submitComputeCommands();
 		void presentQueueKHR();
 		bool recreateSwapChainIfNeeded(VkResult result) ;
-		bool rebuildOffscreenIfNeeded();
-		bool rebuildOffscreen();
 		void doPostDrawTasks() const;
 
 		VkShaderModule createShaderModule(const std::vector<char>& code);
@@ -249,7 +247,7 @@ namespace VK {
 		SwapChain _swapChain;
 
 		double _targetFrameDurationMillis = -1;
-		std::vector<OffscreenSurfaceBasePtr> _offscreenPasses;
+		std::vector<OffscreenSurfaceBasePtr> _offscreenSurfaces;
 		std::vector<PostDrawTaskPtr> _postDrawTasks;
 		PipelineGroupTypePtr _pipelines;
 		std::vector<ComputeStepBasePtr> _computeSteps;
@@ -352,8 +350,8 @@ namespace VK {
 
 
 	inline ImagePtr VulkanApp::getOffscreenImage(size_t index) const {
-		if (index < _offscreenPasses.size())
-			return _offscreenPasses[index]->getColorImage();
+		if (index < _offscreenSurfaces.size())
+			return _offscreenSurfaces[index]->getColorImage();
 		return nullptr;
 	}
 

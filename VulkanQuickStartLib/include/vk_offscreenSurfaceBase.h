@@ -56,9 +56,10 @@ namespace VK {
 		void init(const VkExtent2D& extent, size_t numFrames = 1);
 		void cleanup();
 
-		const TextureImagePtr& getColorImage() const;
-		VkFramebuffer getFrameBuffer() const;
+		const TextureImagePtr& getColorImage(size_t index = -1) const;
+		VkFramebuffer getFrameBuffer(size_t index) const;
 		const VkRect2D& getRect() const;
+		void nextFrame();
 
 		const VkClearColorValue& getClearColor() const;
 		void setClearColor(float red, float green, float blue, float alpha = 1.0f);
@@ -67,7 +68,9 @@ namespace VK {
 		const VkClearDepthStencilValue& getDepthStencil() const;
 		void setDepthStencil(const VkClearDepthStencilValue&);
 
-		const VkDescriptorImageInfo& getDescriptorInfo() const;
+		const VkDescriptorImageInfo& getDescriptorInfo(size_t index) const;
+		size_t getDrawBufferIdx() const;
+		size_t getCurrentBufferIdx() const;
 
 		virtual VkRenderPass getRenderPass() const = 0;
 		virtual bool updateUbo() = 0;
@@ -86,11 +89,11 @@ namespace VK {
 		VkFormat _colorFormat, _depthFormat;
 
 		struct FrameBuffers {
+			VkDescriptorImageInfo _descriptor = {};
 			VkFramebuffer _frameBuffer = VK_NULL_HANDLE;
 			TextureImagePtr _color = VK_NULL_HANDLE;
 			ImagePtr _depth = VK_NULL_HANDLE;
 			VkSampler _sampler = VK_NULL_HANDLE;
-			VkDescriptorImageInfo _descriptor = {};
 		};
 
 		size_t _currentBufferIdx = 0;
@@ -98,12 +101,12 @@ namespace VK {
 		std::vector<FrameBuffers> _frameBuffers;
 	};
 
-	inline const TextureImagePtr& OffscreenSurfaceBase::getColorImage() const {
-		return _frameBuffers[_currentBufferIdx]._color;
+	inline const TextureImagePtr& OffscreenSurfaceBase::getColorImage(size_t index) const {
+		return _frameBuffers[index == -1 ? _currentBufferIdx : index]._color;
 	}
 
-	inline VkFramebuffer OffscreenSurfaceBase::getFrameBuffer() const {
-		return _frameBuffers[_currentBufferIdx]._frameBuffer;
+	inline VkFramebuffer OffscreenSurfaceBase::getFrameBuffer(size_t index) const {
+		return _frameBuffers[index]._frameBuffer;
 	}
 
 	inline const VkRect2D& OffscreenSurfaceBase::getRect() const {
@@ -130,9 +133,18 @@ namespace VK {
 		_depthStencil = value;
 	}
 
-	inline const VkDescriptorImageInfo& OffscreenSurfaceBase::getDescriptorInfo() const {
-		return _frameBuffers[_currentBufferIdx]._descriptor;
+	inline const VkDescriptorImageInfo& OffscreenSurfaceBase::getDescriptorInfo(size_t index) const {
+		return _frameBuffers[index]._descriptor;
 	}
+
+	inline size_t OffscreenSurfaceBase::getDrawBufferIdx() const {
+		return _drawBufferIdx;
+	}
+
+	inline size_t OffscreenSurfaceBase::getCurrentBufferIdx() const {
+		return _currentBufferIdx;
+	}
+
 }
 
 #pragma warning (pop)
