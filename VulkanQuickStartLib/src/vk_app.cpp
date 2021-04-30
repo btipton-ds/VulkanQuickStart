@@ -153,14 +153,13 @@ uint32_t VulkanApp::getHeadlessFrameIndex()
 	image->getImageData((char*)buf, _webGlBuffers.size());
 
 	*/
-	_headlessWorkFrame = (_swapChainIndex + 1) % (uint32_t)_webGlBuffers.size();
 
 	return _swapChainIndex;
 }
 
 void VulkanApp::doneWithHeadlessFrameIndex()
 {
-	_headlessWorkFrame = (_swapChainIndex + 1) % (uint32_t)_webGlBuffers.size();
+//	_headlessWorkFrame = (_swapChainIndex + 1) % (uint32_t)_webGlBuffers.size();
 }
 
 VulkanApp::VulkanApp(const VkRect2D& rect)

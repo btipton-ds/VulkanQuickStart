@@ -216,7 +216,7 @@ namespace VK {
 
 		GLFWwindow* _window = nullptr;
 		VkRect2D _frameRect;
-		bool _isRunning = true, _headlessFrameStale = true;
+		bool _isRunning = true;
 		size_t _runtimeMillis = 0;
 		UI::WindowPtr _uiWindow;
 		unsigned int _windowDpi = 72;
@@ -230,7 +230,7 @@ namespace VK {
 		double _modelScale = 1.0;
 		VkSurfaceKHR _surface = VK_NULL_HANDLE;
 		size_t _changeNumber = 0, _lastChangeNumber = 0, _uiWindowChangeNumber = 0;
-		uint32_t _swapChainIndex = 0, _headlessWorkFrame = 0;
+		uint32_t _swapChainIndex = 0, _offscreenFrameIndex = 0;
 
 		std::vector<uint8_t*> _webGlBuffers; // These are passed in from Electron
 		OffscreenSurface3DPtr _offscreenSurface;
