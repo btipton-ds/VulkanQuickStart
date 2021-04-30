@@ -37,8 +37,8 @@ int main(int numArgs, char** args) {
 	uint32_t width = 512, height = 512, numBuffers = 2;
 
 	std::vector<uint8_t*> buffers;
-	buffers.push_back(new uint8_t[width * height * 4]);
-	buffers.push_back(new uint8_t[width * height * 4]);
+	for (uint32_t i = 0; i < numBuffers; i++)
+		buffers.push_back(new uint8_t[width * height * 4]);
 
 	VK::VulkanAppPtr app = initHeadless(width, height, (uint32_t)buffers.size(), buffers.data(), false);
 

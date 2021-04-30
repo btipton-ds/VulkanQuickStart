@@ -62,6 +62,7 @@ namespace VK {
 
 		const VkClearColorValue& getClearColor() const;
 		void setClearColor(float red, float green, float blue, float alpha = 1.0f);
+		void setClearColor(const VkClearColorValue& color);
 
 		const VkClearDepthStencilValue& getDepthStencil() const;
 		void setDepthStencil(const VkClearDepthStencilValue&);
@@ -113,6 +114,10 @@ namespace VK {
 
 	inline void OffscreenSurfaceBase::setClearColor(float red, float green, float blue, float alpha) {
 		_clearColor = { { red, green, blue, alpha } };
+	}
+
+	inline void OffscreenSurfaceBase::setClearColor(const VkClearColorValue& color) {
+		_clearColor = color;
 	}
 
 	inline void OffscreenSurfaceBase::setDepthStencil(const VkClearDepthStencilValue& value) {

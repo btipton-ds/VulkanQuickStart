@@ -171,8 +171,6 @@ void ModelPNC3f::loadModel(const TriMesh::CMeshPtr& meshPtr, const glm::vec3& co
 
 	}
 
-	cout << "numFused: " << numFused << "\n";
-
 	for (size_t i = 0; i < _vertices.size(); i++) {
 		const auto& vert = _vertices[i];
 		_vertices[i].norm = normalize(vert.norm);

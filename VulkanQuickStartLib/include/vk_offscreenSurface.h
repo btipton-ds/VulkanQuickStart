@@ -46,6 +46,7 @@ namespace VK {
 
 	*/
 
+	// TODO BRT - The UBO_TYPE template type is a bad design. Need to change this to inheritance instead of templatizing it - if possible.
 	template<class UBO_TYPE>
 	class OffscreenSurface : public OffscreenSurfaceBase {
 	public:

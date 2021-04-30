@@ -233,6 +233,7 @@ namespace VK {
 		uint32_t _swapChainIndex = 0, _headlessWorkFrame = 0;
 
 		std::vector<uint8_t*> _webGlBuffers; // These are passed in from Electron
+		OffscreenSurface3DPtr _offscreenSurface;
 
 		VkInstance _instance = VK_NULL_HANDLE;
 		VkDebugUtilsMessengerEXT _debugMessenger;
@@ -324,11 +325,21 @@ namespace VK {
 
 	template<class PIPELINE_TYPE>
 	inline VK::PipelinePtr<PIPELINE_TYPE> VulkanApp::addPipelineWithSource(const std::string& shaderId, const std::vector<std::string>& filenames) {
+		VK::PipelinePtr<PIPELINE_TYPE> pipeline;
 		if (_surface) {
-			VK::PipelinePtr<PIPELINE_TYPE> pipeline = _pipelines->addPipelineWithSource<PIPELINE_TYPE>(shaderId, _frameRect, filenames);
-			return pipeline;
-		} 
-		return nullptr;
+			pipeline = _pipelines->addPipelineWithSource<PIPELINE_TYPE>(shaderId, _frameRect, filenames);
+		} else {
+			if (!_offscreenSurface) {
+				_offscreenSurface = std::make_shared<OffscreenSurface3D>(getAppPtr(), _imageFormat);
+				_offscreenSurface->setAntiAliasSamples(_msaaSamples);
+				_offscreenSurface->setClearColor(_clearColor);
+				_offscreenSurface->init(_frameRect.extent);
+				addOffscreen(_offscreenSurface);
+			}
+
+			pipeline = _offscreenSurface->getPipelines()->addPipelineWithSource<PIPELINE_TYPE>(shaderId, _frameRect, filenames);
+		}
+		return pipeline;
 	}
 
 	inline void VulkanApp::stop() {

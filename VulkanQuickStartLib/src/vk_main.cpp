@@ -318,8 +318,7 @@ namespace
 		while (!done) {
 			this_thread::sleep_for(std::chrono::microseconds(20));
 			uint32_t idx = gApp->getHeadlessFrameIndex();
-
-			cout << "Drawing idx: " << idx << "\n";
+			cout << idx << "\n"; // this required or the optimizer will optimize away the call.
 		}
 	}
 }
