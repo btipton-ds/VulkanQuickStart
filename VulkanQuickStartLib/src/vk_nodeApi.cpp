@@ -246,7 +246,7 @@ CmdData ApiImpl::doCommand(CommandId cmd, const CmdData& command)
 
 void ApiImpl::initVQS(uint32_t width, uint32_t height, uint32_t numBuffers, uint8_t** buffers)
 {
-	VK::VulkanAppPtr app = initHeadless(width, height, numBuffers, buffers);
+	VK::VulkanAppPtr app = initHeadless(width, height, numBuffers, buffers, true);
 	getVqsApi()->setAppPtr(app);
 
 }

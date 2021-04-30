@@ -34,16 +34,5 @@ This file is part of the VulkanQuickStart Project.
 #include <vector>
 
 int main(int numArgs, char** args) {
-#if 1
 	return VK::mainRunTest(numArgs, args);
-#else
-	uint32_t width = 512, height = 512, numBuffers = 2;
-
-	std::vector<uint8_t*> buffers;
-	buffers.push_back(new uint8_t[width * height * 4]);
-	buffers.push_back(new uint8_t[width * height * 4]);
-
-	VK::VulkanAppPtr app = initHeadless(width, height, (uint32_t)buffers.size(), buffers.data());
-
-#endif
 }

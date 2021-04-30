@@ -39,4 +39,4 @@ namespace VK {
 
 }
 
-EXPORT_VQS VK::VulkanAppPtr initHeadless(uint32_t width, uint32_t height, uint32_t numBuffers, uint8_t** buffers);
+EXPORT_VQS VK::VulkanAppPtr initHeadless(uint32_t width, uint32_t height, uint32_t numBuffers, uint8_t** buffers, bool detachWorkerThread);

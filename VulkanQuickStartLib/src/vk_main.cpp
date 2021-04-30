@@ -119,7 +119,7 @@ namespace
 	PipelineGroup<PipelinePNCT3fPtr> pipeline3DWSampler;
 
 	VulkanAppPtr gApp;
-	OffscreenPass3DPtr gOffscreen;
+	OffscreenSurface3DPtr gOffscreen;
 	size_t offscreenIdx = stm1;
 
 	ModelPNC3fPtr vase, part;
@@ -297,7 +297,7 @@ namespace
 		pipeline3DWSampler.add(gApp->addPipelineWithSource<PipelinePNCT3f>("obj_shader", sampler3DFilenames));
 		pipeline3DShaded.add(gApp->addPipelineWithSource<PipelinePNC3f>("stl_shaded", shaded3DFilenames));
 		pipeline3DWireframe.add(gApp->addPipelineWithSource<PipelinePNC3f>("stl_wireframe", wf3DFilenames));
-#if 1
+#if 0
 			pipeline3DWSampler.add(gOffscreen->getPipelines()->addPipelineWithSource<PipelinePNCT3f>("obj_shader", gOffscreen->getRect(), sampler3DFilenames));
 			pipeline3DShaded.add(gOffscreen->getPipelines()->addPipelineWithSource<PipelinePNC3f>("stl_shaded", gOffscreen->getRect(), shaded3DFilenames));
 			pipeline3DWireframe.add(gOffscreen->getPipelines()->addPipelineWithSource<PipelinePNC3f>("stl_wireframe", gOffscreen->getRect(), wf3DFilenames));
@@ -351,7 +351,7 @@ int VK::mainRunTest(int numArgs, char** args) {
 	VkExtent2D offscreenExtent = {};
 	offscreenExtent.width = frame.extent.width;
 	offscreenExtent.height = frame.extent.height;
-	gOffscreen = make_shared<OffscreenPass3D>(gApp, formats.front()._format);
+	gOffscreen = make_shared<OffscreenSurface3D>(gApp, formats.front()._format);
 	gOffscreen->setAntiAliasSamples(VK_SAMPLE_COUNT_1_BIT);
 	gOffscreen->setClearColor(0.0f, 0.3f, 0.0f);
 	gOffscreen->init(offscreenExtent);
@@ -377,25 +377,28 @@ int VK::mainRunTest(int numArgs, char** args) {
 	return EXIT_SUCCESS;
 }
 
-VK::VulkanAppPtr initHeadless(uint32_t width, uint32_t height, uint32_t numBuffers, uint8_t** buffers)
+VK::VulkanAppPtr initHeadless(uint32_t width, uint32_t height, uint32_t numBuffers, uint8_t** buffers, bool detachWorkerThread)
 {
 	gApp = VulkanApp::createHeadless(width, height, numBuffers, buffers);
 #if 1
 	gApp->setAntiAliasSamples(VK_SAMPLE_COUNT_4_BIT);
 	gApp->setClearColor(0.0f, 0.0f, 0.2f);
 	
+#if 1
 	auto formats = gApp->findSupportedFormats({ VK_FORMAT_R8G8B8A8_UNORM, VK_FORMAT_R8G8B8A8_UINT, VK_FORMAT_B8G8R8A8_UNORM }, VK_FORMAT_FEATURE_COLOR_ATTACHMENT_BIT);
 	if (formats.empty()) {
 		throw runtime_error("Format not supported");
 	}
+
 	VkExtent2D offscreenExtent = {};
 	offscreenExtent.width = width;
 	offscreenExtent.height = height;
-	gOffscreen = make_shared<OffscreenPass3D>(gApp, formats.front()._format);
+	gOffscreen = make_shared<OffscreenSurface3D>(gApp, formats.front()._format);
 	gOffscreen->setAntiAliasSamples(VK_SAMPLE_COUNT_1_BIT);
 	gOffscreen->setClearColor(0.0f, 0.3f, 0.0f);
 	gOffscreen->init(offscreenExtent);
 	offscreenIdx = gApp->addOffscreen(gOffscreen);
+#endif
 
 	createPipelines(true);
 
@@ -408,13 +411,13 @@ VK::VulkanAppPtr initHeadless(uint32_t width, uint32_t height, uint32_t numBuffe
 
 	thread graphicsThread(headlessThreadFunc);
 
-#if 1
-	graphicsThread.detach();
-#else
-	thread testThread(headlessTestThreadFunc);
-	graphicsThread.join();
-	testThread.join();
-#endif
+	if (detachWorkerThread) {
+		graphicsThread.detach();
+	} else {
+		thread testThread(headlessTestThreadFunc);
+		graphicsThread.join();
+		testThread.join();
+	}
 
 #endif
 	return gApp;

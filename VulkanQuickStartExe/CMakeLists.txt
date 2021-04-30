@@ -31,7 +31,16 @@ VulkanQuickStart
 "src/VulkanQuickStart.cxx" 
 )
 
+add_executable (
+VQSETest
+"src/VQSETest.cxx" 
+)
+
 target_link_libraries("VulkanQuickStart" 
+PUBLIC VulkanQuickStartLib
+)
+
+target_link_libraries("VQSETest" 
 PUBLIC VulkanQuickStartLib
 )
 

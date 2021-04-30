@@ -1,5 +1,3 @@
-#pragma once
-
 /*
 
 This file is part of the VulkanQuickStart Project.
@@ -29,48 +27,19 @@ This file is part of the VulkanQuickStart Project.
 
 */
 
-#include <vk_defines.h>
+// Vulkan 01.cpp : This file contains the 'main' function. Program execution begins and ends there.
+//
 
+#include <vk_main.h>
 #include <vector>
 
-namespace VK {
+int main(int numArgs, char** args) {
+	uint32_t width = 512, height = 512, numBuffers = 2;
 
+	std::vector<uint8_t*> buffers;
+	buffers.push_back(new uint8_t[width * height * 4]);
+	buffers.push_back(new uint8_t[width * height * 4]);
 
-	template<class PL_TYPE>
-	class PipelineGroup {
-		/*
-		PipelineGroup allows a set of pipelines to be treated as a group.
-		Handy for when you render the 'same pipeline' to multiple targets which require the pipeline to be specialized into multiple parts.
-		*/
-	public:
-		inline void add(const PL_TYPE& pl) {
-			if (pl) {
-				pl->build();
-				_pipelines.push_back(pl);
-			}
-		}
-
-		template<class T>
-		inline void addSceneNode(const T& n) {
-			for (auto& pl : _pipelines) {
-				pl->addSceneNode(n);
-			}
-		}
-
-		inline void toggleVisiblity() {
-			for (auto& pl : _pipelines) {
-				pl->toggleVisiblity();
-			}
-		}
-
-		inline void setPolygonMode(VkPolygonMode mode) {
-			for (auto& pl : _pipelines) {
-				pl->setPolygonMode(mode);
-			}
-		}
-
-	private:
-		std::vector<PL_TYPE> _pipelines;
-	};
+	VK::VulkanAppPtr app = initHeadless(width, height, (uint32_t)buffers.size(), buffers.data(), false);
 
 }

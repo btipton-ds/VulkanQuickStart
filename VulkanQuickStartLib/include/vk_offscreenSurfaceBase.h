@@ -44,10 +44,14 @@ This file is part of the VulkanQuickStart Project.
 
 namespace VK {
 
-	class EXPORT_VQS OffscreenPassBase {
+	/*
+	OffscreenSurface and OffscreenSurfaceBase are NOT surfaces. They are collection of images, frame buffers, renderers etc. that fulfill the role of a surface
+	for offscreen rendering.
+	*/
+	class EXPORT_VQS OffscreenSurfaceBase {
 	public:
-		OffscreenPassBase(const VulkanAppPtr& app, VkFormat colorFormat);
-		virtual ~OffscreenPassBase();
+		OffscreenSurfaceBase(const VulkanAppPtr& app, VkFormat colorFormat);
+		virtual ~OffscreenSurfaceBase();
 
 		void init(const VkExtent2D& extent);
 		void cleanup();
@@ -87,35 +91,35 @@ namespace VK {
 
 	};
 
-	inline const TextureImagePtr& OffscreenPassBase::getColorImage() const {
+	inline const TextureImagePtr& OffscreenSurfaceBase::getColorImage() const {
 		return _color;
 	}
 
-	inline VkFramebuffer OffscreenPassBase::getFrameBuffer() const {
+	inline VkFramebuffer OffscreenSurfaceBase::getFrameBuffer() const {
 		return _frameBuffer;
 	}
 
-	inline const VkRect2D& OffscreenPassBase::getRect() const {
+	inline const VkRect2D& OffscreenSurfaceBase::getRect() const {
 		return _rect;
 	}
 
-	inline const VkClearColorValue& OffscreenPassBase::getClearColor() const {
+	inline const VkClearColorValue& OffscreenSurfaceBase::getClearColor() const {
 		return _clearColor;
 	}
 
-	inline const VkClearDepthStencilValue& OffscreenPassBase::getDepthStencil() const {
+	inline const VkClearDepthStencilValue& OffscreenSurfaceBase::getDepthStencil() const {
 		return _depthStencil;
 	}
 
-	inline void OffscreenPassBase::setClearColor(float red, float green, float blue, float alpha) {
+	inline void OffscreenSurfaceBase::setClearColor(float red, float green, float blue, float alpha) {
 		_clearColor = { { red, green, blue, alpha } };
 	}
 
-	inline void OffscreenPassBase::setDepthStencil(const VkClearDepthStencilValue& value) {
+	inline void OffscreenSurfaceBase::setDepthStencil(const VkClearDepthStencilValue& value) {
 		_depthStencil = value;
 	}
 
-	inline const VkDescriptorImageInfo& OffscreenPassBase::getDescriptorInfo() const {
+	inline const VkDescriptorImageInfo& OffscreenSurfaceBase::getDescriptorInfo() const {
 		return _descriptor;
 	}
 }

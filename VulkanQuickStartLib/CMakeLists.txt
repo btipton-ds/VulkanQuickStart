@@ -64,7 +64,7 @@ VulkanQuickStartLib SHARED
 "src/vk_modelPNC3f.cpp"  
 "src/vk_modelPNCT3f.cpp"
 "src/vk_nodeApi.cpp"
-"src/vk_offscreenPassBase.cpp"  
+"src/vk_offscreenSurfaceBase.cpp"  
 "src/vk_pipelineBase.cpp"
 
 "src/vk_pipelinePNC3f.cpp"

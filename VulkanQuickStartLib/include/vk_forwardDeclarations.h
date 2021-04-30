@@ -62,8 +62,8 @@ namespace VK {
 	class VulkanApp;
 	using VulkanAppPtr = std::shared_ptr<VulkanApp>;
 
-	class OffscreenPassBase;
-	using OffscreenPassBasePtr = std::shared_ptr<OffscreenPassBase>;
+	class OffscreenSurfaceBase;
+	using OffscreenSurfaceBasePtr = std::shared_ptr<OffscreenSurfaceBase>;
 
 	class ShaderPool;
 	using ShaderPoolPtr = std::shared_ptr<ShaderPool>;

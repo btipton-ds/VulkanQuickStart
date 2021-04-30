@@ -145,11 +145,14 @@ void VulkanApp::setHeadlessFrameBuffers(uint32_t width, uint32_t height, uint32_
 }
 
 uint32_t VulkanApp::getHeadlessFrameIndex()
+
 {
+	/*
 	const ImagePtr& image = _swapChain._images[_swapChainIndex];
 	uint8_t* buf = _webGlBuffers[_swapChainIndex];
 	image->getImageData((char*)buf, _webGlBuffers.size());
 
+	*/
 	_headlessWorkFrame = (_swapChainIndex + 1) % (uint32_t)_webGlBuffers.size();
 
 	return _swapChainIndex;
@@ -175,7 +178,8 @@ void VulkanApp::init() {
 }
 
 void VulkanApp::createPipelines() {
-	_pipelines = make_shared<PipelineGroupType>(getAppPtr(), _swapChain._images.size());
+	uint32_t numImages = _surface ? (uint32_t)_swapChain._images.size() : 2;
+	_pipelines = make_shared<PipelineGroupType>(getAppPtr(), numImages);
 	_pipelines->setAntiAliasSamples(_msaaSamples);
 	if (_uiWindow)
 		_uiWindow->getPipelines()->setAntiAliasSamples(_msaaSamples);
@@ -283,19 +287,7 @@ void VulkanApp::run()
 
 void VulkanApp::runHeadless()
 {
-	bool done = false;
-	_swapChainIndex = 0;
-	_headlessWorkFrame = 1;
-	while (!done) {
-		rebuildOffscreenIfNeeded();
-		if (_headlessWorkFrame != _swapChainIndex) {
-			glfwPollEvents();
-			cout << "Rendering idx: " << _headlessWorkFrame << "\n";
-			drawNextHeadlessFrame(_headlessWorkFrame);
-			_swapChainIndex = _headlessWorkFrame;
-		}
-	}
-	// run offscreen pipelines
+	run();
 }
 
 void VulkanApp::initWindow() {
@@ -430,7 +422,7 @@ void VulkanApp::cleanupSwapChain() {
 		vkDestroySwapchainKHR(_deviceContext->_device, _swapChain._vkSwapChain, nullptr);
 }
 
-size_t VulkanApp::addOffscreen(const OffscreenPassBasePtr& osp) {
+size_t VulkanApp::addOffscreen(const OffscreenSurfaceBasePtr& osp) {
 	size_t result = _offscreenPasses.size();
 	_offscreenPasses.push_back(osp);
 	changed();
@@ -672,8 +664,7 @@ void VulkanApp::createSwapChain() {
 		_swapChain._images.push_back(image);
 		_swapChain._vkImageViews.push_back(Image::createImageView(_deviceContext, image->getVkImage(), surfaceFormat.format, VK_IMAGE_ASPECT_COLOR_BIT, 1));
 	}
-	_swapChain._imageFormat = surfaceFormat.format;
-	_swapChain._extent = extent;
+	_imageFormat = surfaceFormat.format;
 }
 
 void VulkanApp::createOffscreenBuffers()
@@ -681,11 +672,15 @@ void VulkanApp::createOffscreenBuffers()
 	size_t imageCount = _webGlBuffers.size();
 	if (imageCount == 0)
 		return;
+
+	auto format = findSupportedFormat({ _requestedFormat }, VK_IMAGE_TILING_OPTIMAL, VK_FORMAT_FEATURE_STORAGE_IMAGE_BIT);
+
+	_imageFormat = format;
 }
 
 void VulkanApp::createRenderPass() {
 	VkAttachmentDescription colorAttachment = {};
-	colorAttachment.format = _swapChain._imageFormat;
+	colorAttachment.format = _imageFormat;
 	colorAttachment.samples = _msaaSamples;
 	colorAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
 	colorAttachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
@@ -705,7 +700,7 @@ void VulkanApp::createRenderPass() {
 	depthAttachment.finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
 
 	VkAttachmentDescription colorAttachmentResolve = {};
-	colorAttachmentResolve.format = _swapChain._imageFormat;
+	colorAttachmentResolve.format = _imageFormat;
 	colorAttachmentResolve.samples = VK_SAMPLE_COUNT_1_BIT;
 	colorAttachmentResolve.loadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
 	colorAttachmentResolve.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
@@ -792,8 +787,8 @@ void VulkanApp::createFramebuffers() {
 		framebufferInfo.renderPass = _pipelines->getRenderPass();
 		framebufferInfo.attachmentCount = static_cast<uint32_t>(attachments.size());
 		framebufferInfo.pAttachments = attachments.data();
-		framebufferInfo.width = _swapChain._extent.width;
-		framebufferInfo.height = _swapChain._extent.height;
+		framebufferInfo.width = _frameRect.extent.width;
+		framebufferInfo.height = _frameRect.extent.height;
 		framebufferInfo.layers = 1;
 
 		if (vkCreateFramebuffer(_deviceContext->_device, &framebufferInfo, nullptr, &_swapChain._vkFrameBuffers[i]) != VK_SUCCESS) {
@@ -815,15 +810,15 @@ void VulkanApp::createCommandPool() {
 }
 
 void VulkanApp::createColorResources() {
-	VkFormat colorFormat = _swapChain._imageFormat;
+	VkFormat colorFormat = _imageFormat;
 	VkImageUsageFlags flagBits = VK_IMAGE_USAGE_TRANSIENT_ATTACHMENT_BIT | VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
-	_swapChain._colorImage.create(colorFormat, flagBits, _swapChain._extent.width, _swapChain._extent.height, _msaaSamples);
+	_swapChain._colorImage.create(colorFormat, flagBits, _frameRect.extent.width, _frameRect.extent.height, _msaaSamples);
 }
 
 void VulkanApp::createDepthResources() {
 	VkFormat depthFormat = findDepthFormat();
 	VkImageUsageFlags flagBits = VK_IMAGE_USAGE_TRANSIENT_ATTACHMENT_BIT | VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT;
-	_swapChain._depthImage.create(depthFormat, flagBits, _swapChain._extent.width, _swapChain._extent.height, _msaaSamples);
+	_swapChain._depthImage.create(depthFormat, flagBits, _frameRect.extent.width, _frameRect.extent.height, _msaaSamples);
 }
 
 VkFormat VulkanApp::findSupportedFormat(const std::vector<VkFormat>& candidates, VkImageTiling tiling, VkFormatFeatureFlags features) {
@@ -958,12 +953,10 @@ void VulkanApp::createCommandBuffers() {
 		renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
 
 		std::array<VkClearValue, 2> clearValues = {};
-		clearValues[0].color = _clearColor;
-		clearValues[1].depthStencil = _depthStencil;
 		renderPassInfo.clearValueCount = static_cast<uint32_t>(clearValues.size());
 		renderPassInfo.pClearValues = clearValues.data();
 
-		for (const OffscreenPassBasePtr& osp : _offscreenPasses) {
+		for (const OffscreenSurfaceBasePtr& osp : _offscreenPasses) {
 			clearValues[0].color = osp->getClearColor();
 			clearValues[1].depthStencil = osp->getDepthStencil();;
 			drawCmdBufferLoop(osp, cmdBuff, beginInfo, renderPassInfo);
@@ -984,7 +977,7 @@ void VulkanApp::drawCmdBufferLoop(VkCommandBuffer cmdBuff, size_t swapChainIndex
 	renderPassInfo.renderPass = _pipelines->getRenderPass();
 	renderPassInfo.framebuffer = _swapChain._vkFrameBuffers[swapChainIndex];
 	renderPassInfo.renderArea.offset = { 0, 0 };
-	renderPassInfo.renderArea.extent = _swapChain._extent;
+	renderPassInfo.renderArea.extent = _frameRect.extent;
 
 	vkCmdBeginRenderPass(cmdBuff, &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
 
@@ -1002,7 +995,7 @@ void VulkanApp::drawCmdBufferLoop(VkCommandBuffer cmdBuff, size_t swapChainIndex
 	vkCmdEndRenderPass(cmdBuff);
 }
 
-void VulkanApp::drawCmdBufferLoop(const OffscreenPassBasePtr& osp, VkCommandBuffer cmdBuff, VkCommandBufferBeginInfo& beginInfo, VkRenderPassBeginInfo renderPassInfo) {
+void VulkanApp::drawCmdBufferLoop(const OffscreenSurfaceBasePtr& osp, VkCommandBuffer cmdBuff, VkCommandBufferBeginInfo& beginInfo, VkRenderPassBeginInfo renderPassInfo) {
 	renderPassInfo.renderPass = osp->getRenderPass();
 	renderPassInfo.framebuffer = osp->getFrameBuffer();
 	renderPassInfo.renderArea.extent = osp->getRect().extent;
@@ -1091,8 +1084,8 @@ void VulkanApp::updateUniformBuffer(uint32_t swapChainImageIndex) {
 	});
 
 	UniformBufferObject3D ubo;
-	if (!_uboUpdater || !_uboUpdater(_swapChain._extent.width, _swapChain._extent.height, ubo)) {
-		updateUBO(_swapChain._extent, modelBounds, ubo);
+	if (!_uboUpdater || !_uboUpdater(_frameRect.extent.width, _frameRect.extent.height, ubo)) {
+		updateUBO(_frameRect.extent, modelBounds, ubo);
 	}
 	_pipelines->setUbo(ubo, swapChainImageIndex);
 
@@ -1100,13 +1093,13 @@ void VulkanApp::updateUniformBuffer(uint32_t swapChainImageIndex) {
 		_uiWindow->updateUniformBuffer(swapChainImageIndex);
 	}
 
-	for (const OffscreenPassBasePtr& osp : _offscreenPasses) {
+	for (const OffscreenSurfaceBasePtr& osp : _offscreenPasses) {
 		if (!osp->updateUbo()) {
 			const auto& rect = osp->getRect();
 			if (!_uboUpdater || !_uboUpdater(rect.extent.width, rect.extent.height, ubo)) {
 				updateUBO(rect.extent, modelBounds, ubo);
 			}
-			OffscreenPass3D::PointerType ospSpecific = dynamic_pointer_cast<OffscreenPass3D>(osp);
+			OffscreenSurface3D::PointerType ospSpecific = dynamic_pointer_cast<OffscreenSurface3D>(osp);
 			if (ospSpecific)
 				ospSpecific->setUbo(ubo);
 		}
@@ -1159,16 +1152,17 @@ void VulkanApp::drawFrame() {
 	_deviceContext->waitForInFlightFence();
 
 	VkSemaphore semaphore = _deviceContext->getImageAvailableSemaphore();
-	VkResult result = vkAcquireNextImageKHR(_deviceContext->_device, _swapChain._vkSwapChain, std::numeric_limits<uint64_t>::max(),
-		semaphore, VK_NULL_HANDLE, &_swapChainIndex);
+	if (_swapChain._vkSwapChain != VK_NULL_HANDLE) {
+		VkResult result = vkAcquireNextImageKHR(_deviceContext->_device, _swapChain._vkSwapChain, std::numeric_limits<uint64_t>::max(),
+			semaphore, VK_NULL_HANDLE, &_swapChainIndex);
 
-	if (recreateSwapChainIfNeeded(result)) {
-		return;
+		if (recreateSwapChainIfNeeded(result)) {
+			return;
+		}
+		else if (result != VK_SUCCESS && result != VK_SUBOPTIMAL_KHR) {
+			THROW("failed to acquire swap chain image!");
+		}
 	}
-	else if (result != VK_SUCCESS && result != VK_SUBOPTIMAL_KHR) {
-		THROW("failed to acquire swap chain image!");
-	}
-
 	updateUniformBuffer(_swapChainIndex);
 	submitGraphicsQueue();
 	submitComputeCommands();

@@ -42,8 +42,6 @@ namespace VK {
 		SwapChain(const DeviceContextPtr& context);
 
 		VkSwapchainKHR _vkSwapChain = VK_NULL_HANDLE;
-		VkFormat _imageFormat;
-		VkExtent2D _extent;
 		std::vector<ImagePtr> _images;
 		std::vector<VkImageView> _vkImageViews;
 		std::vector<VkFramebuffer> _vkFrameBuffers;

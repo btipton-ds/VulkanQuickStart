@@ -36,21 +36,27 @@ This file is part of the VulkanQuickStart Project.
 
 #include <vk_forwardDeclarations.h>
 
-#include <vk_offscreenPassBase.h>
+#include <vk_offscreenSurfaceBase.h>
 
 namespace VK {
 
+	/*
+	OffscreenSurface and OffscreenSurfaceBase are NOT surfaces. They are collection of images, frame buffers, renderers etc. that fulfill the role of a surface
+	for offscreen rendering.
+
+	*/
+
 	template<class UBO_TYPE>
-	class OffscreenPass : public OffscreenPassBase {
+	class OffscreenSurface : public OffscreenSurfaceBase {
 	public:
 		using UboType = UBO_TYPE;
 		using PipelineGroupType = PipelineUboGroup<UBO_TYPE>;
 		using PipelineGroupTypePtr = PipelineUboGroupPtr<UBO_TYPE>;
 		using PipelinePtr = typename PipelineGroupType::PipelinePtr;
-		using PointerType = std::shared_ptr<OffscreenPass>;
+		using PointerType = std::shared_ptr<OffscreenSurface>;
 
-		OffscreenPass(const VulkanAppPtr& app, VkFormat colorFormat);
-		~OffscreenPass();
+		OffscreenSurface(const VulkanAppPtr& app, VkFormat colorFormat);
+		~OffscreenSurface();
 
 		VkRenderPass getRenderPass() const override;
 
@@ -80,24 +86,24 @@ namespace VK {
 	};
 
 	template<class UBO_TYPE>
-	inline OffscreenPass<UBO_TYPE>::OffscreenPass(const VulkanAppPtr& app, VkFormat colorFormat)
-		: OffscreenPassBase(app, colorFormat)
+	inline OffscreenSurface<UBO_TYPE>::OffscreenSurface(const VulkanAppPtr& app, VkFormat colorFormat)
+		: OffscreenSurfaceBase(app, colorFormat)
 	{
 		_pipelines = std::make_shared<PipelineGroupType>(app, 1);
 	}
 
 	template<class UBO_TYPE>
-	inline OffscreenPass<UBO_TYPE>::~OffscreenPass() {
+	inline OffscreenSurface<UBO_TYPE>::~OffscreenSurface() {
 	}
 
 	template<class UBO_TYPE>
 	template<typename FUNC_TYPE>
-	inline void OffscreenPass<UBO_TYPE>::setUboUpdateFunction(FUNC_TYPE f) {
+	inline void OffscreenSurface<UBO_TYPE>::setUboUpdateFunction(FUNC_TYPE f) {
 		_updateUbo = f;
 	}
 
 	template<class UBO_TYPE>
-	inline bool OffscreenPass<UBO_TYPE>::updateUbo() {
+	inline bool OffscreenSurface<UBO_TYPE>::updateUbo() {
 		UBO_TYPE ubo;
 		if (_updateUbo && _updateUbo(_rect.extent.width, _rect.extent.height, ubo)) {
 			setUbo(ubo);
@@ -109,68 +115,68 @@ namespace VK {
 	}
 
 	template<class UBO_TYPE>
-	inline void OffscreenPass<UBO_TYPE>::setAntiAliasSamples(VkSampleCountFlagBits samples) {
+	inline void OffscreenSurface<UBO_TYPE>::setAntiAliasSamples(VkSampleCountFlagBits samples) {
 		_pipelines->setAntiAliasSamples(samples);
 	}
 
 	template<class UBO_TYPE>
-	inline void OffscreenPass<UBO_TYPE>::cleanupSwapChain() {
-		_pipelines->iterate([](const OffscreenPass::PipelinePtr& pl) {
+	inline void OffscreenSurface<UBO_TYPE>::cleanupSwapChain() {
+		_pipelines->iterate([](const OffscreenSurface::PipelinePtr& pl) {
 			pl->cleanupSwapChain();
 		});
 	}
 
 	template<class UBO_TYPE>
-	inline void OffscreenPass<UBO_TYPE>::build() {
-		_pipelines->iterate([](const OffscreenPass::PipelinePtr& pl) {
+	inline void OffscreenSurface<UBO_TYPE>::build() {
+		_pipelines->iterate([](const OffscreenSurface::PipelinePtr& pl) {
 			if (pl->isVisible())
 				pl->build();
 		});
 	}
 	template<class UBO_TYPE>
-	void OffscreenPass<UBO_TYPE>::draw(VkCommandBuffer cmdBuff) {
-		_pipelines->iterate([cmdBuff](const OffscreenPass::PipelinePtr& pl) {
+	void OffscreenSurface<UBO_TYPE>::draw(VkCommandBuffer cmdBuff) {
+		_pipelines->iterate([cmdBuff](const OffscreenSurface::PipelinePtr& pl) {
 			if (pl->isVisible())
 				pl->draw(cmdBuff, 0);
 		});
 	}
 
 	template<class UBO_TYPE>
-	inline void OffscreenPass<UBO_TYPE>::setUbo(const UBO_TYPE& ubo) {
+	inline void OffscreenSurface<UBO_TYPE>::setUbo(const UBO_TYPE& ubo) {
 		_pipelines->setUbo(ubo, 0);
 	}
 
 	template<class UBO_TYPE>
-	const UBO_TYPE& OffscreenPass<UBO_TYPE>::getUbo() const {
+	const UBO_TYPE& OffscreenSurface<UBO_TYPE>::getUbo() const {
 		return _pipelines->getUbo();
 	}
 
 	template<class UBO_TYPE>
-	inline VkRenderPass OffscreenPass<UBO_TYPE>::getRenderPass() const {
+	inline VkRenderPass OffscreenSurface<UBO_TYPE>::getRenderPass() const {
 		return _pipelines->getRenderPass();
 	}
 
 	template<class UBO_TYPE>
-	VkSampleCountFlagBits OffscreenPass<UBO_TYPE>::getAntiAliasSamples() const {
+	VkSampleCountFlagBits OffscreenSurface<UBO_TYPE>::getAntiAliasSamples() const {
 		return _pipelines->getAntiAliasSamples();
 	}
 
 	template<class UBO_TYPE>
-	inline void OffscreenPass<UBO_TYPE>::setRenderPass(VkRenderPass renderPass) {
+	inline void OffscreenSurface<UBO_TYPE>::setRenderPass(VkRenderPass renderPass) {
 		_pipelines->setRenderPass(renderPass);
 	}
 
 	template<class UBO_TYPE>
-        inline typename OffscreenPass<UBO_TYPE>::PipelineGroupTypePtr& OffscreenPass<UBO_TYPE>::getPipelines() {
+        inline typename OffscreenSurface<UBO_TYPE>::PipelineGroupTypePtr& OffscreenSurface<UBO_TYPE>::getPipelines() {
             return _pipelines;
         }
 
 	template<class UBO_TYPE>
-        inline const typename OffscreenPass<UBO_TYPE>::PipelineGroupTypePtr& OffscreenPass<UBO_TYPE>::getPipelines() const {
+        inline const typename OffscreenSurface<UBO_TYPE>::PipelineGroupTypePtr& OffscreenSurface<UBO_TYPE>::getPipelines() const {
             return _pipelines;
         }
 
-    using OffscreenPass3D = OffscreenPass<UniformBufferObject3D>;
-    using OffscreenPass3DPtr = typename OffscreenPass3D::PointerType;
+    using OffscreenSurface3D = OffscreenSurface<UniformBufferObject3D>;
+    using OffscreenSurface3DPtr = typename OffscreenSurface3D::PointerType;
 
 }

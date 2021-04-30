@@ -53,7 +53,7 @@ This file is part of the VulkanQuickStart Project.
 #include <vk_pipelinePNC3f.h>
 #include <vk_shaderPool.h>
 #include <vk_swapChain.h>
-#include <vk_offscreenPass.h>
+#include <vk_offscreenSurface.h>
 
 #pragma warning (push)
 #pragma warning( disable : 4251 )
@@ -105,7 +105,7 @@ namespace VK {
 
 		template<class PIPELINE_TYPE>
 		VK::PipelinePtr<PIPELINE_TYPE> addPipelineWithSource(const std::string& shaderId, const std::vector<std::string>& filenames);
-		size_t addOffscreen(const OffscreenPassBasePtr& osp);
+		size_t addOffscreen(const OffscreenSurfaceBasePtr& osp);
 		size_t addComputeStep(const ComputeStepBasePtr& step);
 		size_t addPostDrawTask(const PostDrawTaskPtr& task);
 
@@ -188,7 +188,7 @@ namespace VK {
 		uint32_t findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties);
 		void createCommandBuffers();
 		void drawCmdBufferLoop(VkCommandBuffer cmdBuff, size_t swapChainIndex, VkCommandBufferBeginInfo& beginInfo, VkRenderPassBeginInfo renderPassInfo);
-		void drawCmdBufferLoop(const OffscreenPassBasePtr& osp, VkCommandBuffer cmdBuff, VkCommandBufferBeginInfo& beginInfo, VkRenderPassBeginInfo renderPassInfo);
+		void drawCmdBufferLoop(const OffscreenSurfaceBasePtr& osp, VkCommandBuffer cmdBuff, VkCommandBufferBeginInfo& beginInfo, VkRenderPassBeginInfo renderPassInfo);
 		void createSyncObjects();
 		void updateUniformBuffer(uint32_t swapChainImageIndex);
 		void updateUBO(const VkExtent2D& extent, const BoundingBox& modelBounds, UboType& ubo) const;
@@ -220,7 +220,8 @@ namespace VK {
 		size_t _runtimeMillis = 0;
 		UI::WindowPtr _uiWindow;
 		unsigned int _windowDpi = 72;
-		VkFormat _requestedFormat = VK_FORMAT_B8G8R8A8_UNORM; // TODO BRT - this look redundant and confusing. Do we need it?
+		VkFormat _imageFormat;
+		VkFormat _requestedFormat = VK_FORMAT_R8G8B8A8_UNORM; // TODO BRT - this look redundant and confusing. Do we need it?
 		VkColorSpaceKHR _requestedColorSpace = VK_COLOR_SPACE_SRGB_NONLINEAR_KHR;
 		UpdaterPtr _updater;
 		UpdateUboFunctionType<UniformBufferObject3D> _uboUpdater;
@@ -247,7 +248,7 @@ namespace VK {
 		SwapChain _swapChain;
 
 		double _targetFrameDurationMillis = -1;
-		std::vector<OffscreenPassBasePtr> _offscreenPasses;
+		std::vector<OffscreenSurfaceBasePtr> _offscreenPasses;
 		std::vector<PostDrawTaskPtr> _postDrawTasks;
 		PipelineGroupTypePtr _pipelines;
 		std::vector<ComputeStepBasePtr> _computeSteps;
@@ -323,8 +324,11 @@ namespace VK {
 
 	template<class PIPELINE_TYPE>
 	inline VK::PipelinePtr<PIPELINE_TYPE> VulkanApp::addPipelineWithSource(const std::string& shaderId, const std::vector<std::string>& filenames) {
-		VK::PipelinePtr<PIPELINE_TYPE> pipeline = _pipelines->addPipelineWithSource<PIPELINE_TYPE>(shaderId, _frameRect, filenames);
-		return pipeline;
+		if (_surface) {
+			VK::PipelinePtr<PIPELINE_TYPE> pipeline = _pipelines->addPipelineWithSource<PIPELINE_TYPE>(shaderId, _frameRect, filenames);
+			return pipeline;
+		} 
+		return nullptr;
 	}
 
 	inline void VulkanApp::stop() {

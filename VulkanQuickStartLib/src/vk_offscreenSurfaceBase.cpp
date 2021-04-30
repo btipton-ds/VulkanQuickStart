@@ -32,7 +32,7 @@ This file is part of the VulkanQuickStart Project.
 #include <array>
 
 #include <vk_logger.h>
-#include <vk_offscreenPassBase.h>
+#include <vk_offscreenSurfaceBase.h>
 #include <vk_deviceContext.h>
 #include <vk_image.h>
 #include <vk_pipelineBase.h>
@@ -41,18 +41,18 @@ This file is part of the VulkanQuickStart Project.
 using namespace std;
 using namespace VK;
 
-OffscreenPassBase::OffscreenPassBase(const VulkanAppPtr& app, VkFormat colorFormat)
+OffscreenSurfaceBase::OffscreenSurfaceBase(const VulkanAppPtr& app, VkFormat colorFormat)
 	: _deviceContext(app->getDeviceContext())
 	, _colorFormat(colorFormat)
 	, _depthFormat(app->findDepthFormat())
 {
 }
 
-OffscreenPassBase::~OffscreenPassBase() {
+OffscreenSurfaceBase::~OffscreenSurfaceBase() {
 	cleanup();
 }
 
-void OffscreenPassBase::init(const VkExtent2D& extent) {
+void OffscreenSurfaceBase::init(const VkExtent2D& extent) {
 
 	_rect = { {0, 0}, extent };
 	auto device = _deviceContext->_device;
@@ -173,7 +173,7 @@ void OffscreenPassBase::init(const VkExtent2D& extent) {
 	_descriptor.sampler = _sampler;
 }
 
-void OffscreenPassBase::cleanup() {
+void OffscreenSurfaceBase::cleanup() {
 	auto device = _deviceContext->_device;
 
 	if (_sampler)
