@@ -193,5 +193,6 @@ void OffscreenSurfaceBase::cleanup() {
 
 void OffscreenSurfaceBase::nextFrame() 
 {
+	_currentBufferIdx = _drawBufferIdx;
 	_drawBufferIdx = (_drawBufferIdx + 1) % _frameBuffers.size();
 }

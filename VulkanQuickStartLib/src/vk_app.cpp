@@ -147,12 +147,26 @@ void VulkanApp::setHeadlessFrameBuffers(uint32_t width, uint32_t height, uint32_
 uint32_t VulkanApp::getHeadlessFrameIndex()
 
 {
-	/*
-	const ImagePtr& image = _swapChain._images[_swapChainIndex];
-	uint8_t* buf = _webGlBuffers[_swapChainIndex];
-	image->getImageData((char*)buf, _webGlBuffers.size());
-
-	*/
+#if 1
+	size_t frameIdx = _offscreenSurface->getCurrentBufferIdx();
+	const ImagePtr& image = _offscreenSurface->getColorImage(frameIdx);
+	uint8_t* buf = _webGlBuffers[frameIdx];
+	size_t webGlBufSize = _frameRect.extent.width * _frameRect.extent.height * 4;
+	size_t imageBufSize = image->getImageData((char*)buf, 0);
+	if (imageBufSize != webGlBufSize)
+		return -1;
+	image->processImage([&](const char* p, const VkSubresourceLayout& vkLayout, bool colorSwizzle) {
+		memcpy(buf, p, webGlBufSize);
+#if 0
+		size_t count = _frameRect.extent.width * _frameRect.extent.height;
+		uint32_t* cp = (uint32_t*)buf;
+		for (size_t i = 0; i < count; i++)
+			(*cp++) |= 0xff0000ff;
+#endif
+	});
+	_offscreenSurface->nextFrame();
+	return (uint32_t)frameIdx;
+#endif	
 
 	return _swapChainIndex;
 }

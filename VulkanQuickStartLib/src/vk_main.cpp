@@ -380,7 +380,7 @@ VK::VulkanAppPtr initHeadless(uint32_t width, uint32_t height, uint32_t numBuffe
 {
 	gApp = VulkanApp::createHeadless(width, height, numBuffers, buffers);
 #if 1
-	gApp->setAntiAliasSamples(VK_SAMPLE_COUNT_4_BIT);
+	gApp->setAntiAliasSamples(VK_SAMPLE_COUNT_1_BIT);
 	gApp->setClearColor(0.0f, 0.0f, 0.2f);
 	
 #if 1
