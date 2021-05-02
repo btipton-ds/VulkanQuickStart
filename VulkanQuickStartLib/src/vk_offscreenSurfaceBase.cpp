@@ -169,11 +169,6 @@ void OffscreenSurfaceBase::init(const VkExtent2D& extent, size_t numFrames) {
 		fbufCreateInfo.layers = 1;
 
 		VK_CHK(vkCreateFramebuffer(device, &fbufCreateInfo, nullptr, &fb._frameBuffer));
-
-		// Fill a descriptor for later use in a descriptor set 
-		fb._descriptor.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-		fb._descriptor.imageView = fb._color->getImageView();
-		fb._descriptor.sampler = fb._sampler;
 	}
 }
 
@@ -189,10 +184,4 @@ void OffscreenSurfaceBase::cleanup() {
 		fb._sampler = VK_NULL_HANDLE;
 		fb._frameBuffer = VK_NULL_HANDLE;
 	}
-}
-
-void OffscreenSurfaceBase::nextFrame() 
-{
-	_currentBufferIdx = _drawBufferIdx;
-	_drawBufferIdx = (_drawBufferIdx + 1) % _frameBuffers.size();
 }

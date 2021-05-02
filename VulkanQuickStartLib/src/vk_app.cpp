@@ -144,30 +144,23 @@ void VulkanApp::setHeadlessFrameBuffers(uint32_t width, uint32_t height, uint32_
 	}
 }
 
-uint32_t VulkanApp::getHeadlessFrameIndex()
-
+void VulkanApp::copyOffscreenFrameToWebGl()
 {
-#if 1
-	size_t frameIdx = _offscreenSurface->getCurrentBufferIdx();
+	size_t frameIdx = 0; // _deviceContext->getCurrentFrameIdx();
 	const ImagePtr& image = _offscreenSurface->getColorImage(frameIdx);
 	uint8_t* buf = _webGlBuffers[frameIdx];
 	size_t webGlBufSize = _frameRect.extent.width * _frameRect.extent.height * 4;
 	size_t imageBufSize = image->getImageData((char*)buf, 0);
 	if (imageBufSize != webGlBufSize)
-		return -1;
+		return;
+
 	image->processImage([&](const char* p, const VkSubresourceLayout& vkLayout, bool colorSwizzle) {
 		memcpy(buf, p, webGlBufSize);
-#if 0
-		size_t count = _frameRect.extent.width * _frameRect.extent.height;
-		uint32_t* cp = (uint32_t*)buf;
-		for (size_t i = 0; i < count; i++)
-			(*cp++) |= 0xff0000ff;
-#endif
 	});
-	_offscreenSurface->nextFrame();
-	return (uint32_t)frameIdx;
-#endif	
+}
 
+uint32_t VulkanApp::getHeadlessFrameIndex()
+{
 	return _swapChainIndex;
 }
 
@@ -330,20 +323,25 @@ void VulkanApp::initVulkan() {
 	createInstance();
 	setupDebugMessenger();
 	createSurface();
+
 	pickPhysicalDevice();
 	createLogicalDevice();
 	createSwapChain();
+
 	createPipelines();
 	createRenderPass();
 	createGraphicsPipeline();
+
 	createCommandPool();
 	createColorResources();
 	createDepthResources();
+
 	createFramebuffers();
 	createSyncObjects();
 }
 
 void VulkanApp::initVulkanHeadless() {
+	// They almost identical, use same method with a flag
 	createInstance();
 	setupDebugMessenger();
 	pickPhysicalDevice();
@@ -367,7 +365,7 @@ void VulkanApp::recreateSwapChain() {
 	_pipelines->resized(_frameRect);
 
 	int width = 0, height = 0;
-	while (width == 0 || height == 0) {
+	while (_window && (width == 0 || height == 0)) {
 		glfwGetFramebufferSize(_window, &width, &height);
 		glfwWaitEvents();
 	}
@@ -376,7 +374,8 @@ void VulkanApp::recreateSwapChain() {
 
 	cleanupSwapChain();
 
-	createSwapChain();
+	if (_surface)
+		createSwapChain();
 	createRenderPass();
 	createGraphicsPipeline();
 	createColorResources();
@@ -916,7 +915,8 @@ uint32_t VulkanApp::findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags pr
 }
 
 void VulkanApp::createCommandBuffers() {
-	_commandBuffers.resize(_swapChain._vkFrameBuffers.size());
+	size_t numBuffers = _surface ? _swapChain._vkFrameBuffers.size() : _webGlBuffers.size();
+	_commandBuffers.resize(numBuffers);
 
 	VkCommandBufferAllocateInfo allocInfo = {};
 	allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
@@ -939,22 +939,11 @@ void VulkanApp::createCommandBuffers() {
 			THROW("failed to begin recording command buffer!");
 		}
 
-		VkRenderPassBeginInfo renderPassInfo = {};
-		renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
-
-		std::array<VkClearValue, 2> clearValues = {};
-		renderPassInfo.clearValueCount = static_cast<uint32_t>(clearValues.size());
-		renderPassInfo.pClearValues = clearValues.data();
+		drawCmdBufferLoop(cmdBuff, swapChainIndex, beginInfo);
 
 		for (const OffscreenSurfaceBasePtr& osp : _offscreenSurfaces) {
-			clearValues[0].color = osp->getClearColor();
-			clearValues[1].depthStencil = osp->getDepthStencil();;
-			drawCmdBufferLoop(osp, cmdBuff, beginInfo, renderPassInfo);
+			drawCmdBufferLoop(osp, cmdBuff, swapChainIndex, beginInfo);
 		}
-
-		clearValues[0].color = _clearColor;
-		clearValues[1].depthStencil = _depthStencil;
-		drawCmdBufferLoop(cmdBuff, swapChainIndex, beginInfo, renderPassInfo);
 
 		if (vkEndCommandBuffer(cmdBuff) != VK_SUCCESS) {
 			THROW("failed to record command buffer!");
@@ -963,11 +952,27 @@ void VulkanApp::createCommandBuffers() {
 
 }
 
-void VulkanApp::drawCmdBufferLoop(VkCommandBuffer cmdBuff, size_t swapChainIndex, VkCommandBufferBeginInfo& beginInfo, VkRenderPassBeginInfo renderPassInfo) {
-	renderPassInfo.renderPass = _pipelines->getRenderPass();
-	renderPassInfo.framebuffer = _swapChain._vkFrameBuffers[swapChainIndex];
-	renderPassInfo.renderArea.offset = { 0, 0 };
-	renderPassInfo.renderArea.extent = _frameRect.extent;
+void VulkanApp::drawCmdBufferLoop(VkCommandBuffer cmdBuff, size_t swapChainIndex, VkCommandBufferBeginInfo& beginInfo) {
+	std::array<VkClearValue, 2> clearValues = {};
+	clearValues[0].color = _clearColor;
+	clearValues[1].depthStencil = _depthStencil;
+
+	VkRenderPassBeginInfo renderPassInfo = {};
+	renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
+	renderPassInfo.clearValueCount = static_cast<uint32_t>(clearValues.size());
+	renderPassInfo.pClearValues = clearValues.data();
+
+	if(_offscreenSurface) {
+		renderPassInfo.renderPass = _offscreenSurface->getRenderPass();// _pipelines->getRenderPass();
+		renderPassInfo.framebuffer = _offscreenSurface->getFrameBuffer(swapChainIndex);
+		renderPassInfo.renderArea.offset = { 0, 0 };
+		renderPassInfo.renderArea.extent = _frameRect.extent;
+	} else {
+		renderPassInfo.renderPass = _pipelines->getRenderPass();
+		renderPassInfo.framebuffer = _swapChain._vkFrameBuffers[swapChainIndex];
+		renderPassInfo.renderArea.offset = { 0, 0 };
+		renderPassInfo.renderArea.extent = _frameRect.extent;
+	}
 
 	vkCmdBeginRenderPass(cmdBuff, &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
 
@@ -985,10 +990,17 @@ void VulkanApp::drawCmdBufferLoop(VkCommandBuffer cmdBuff, size_t swapChainIndex
 	vkCmdEndRenderPass(cmdBuff);
 }
 
-void VulkanApp::drawCmdBufferLoop(const OffscreenSurfaceBasePtr& osp, VkCommandBuffer cmdBuff, VkCommandBufferBeginInfo& beginInfo, VkRenderPassBeginInfo renderPassInfo) {
-	size_t drawIdx = osp->getDrawBufferIdx();
+void VulkanApp::drawCmdBufferLoop(const OffscreenSurfaceBasePtr& osp, VkCommandBuffer cmdBuff, size_t swapChainIndex, VkCommandBufferBeginInfo& beginInfo) {
+	std::array<VkClearValue, 2> clearValues = {};
+	clearValues[0].color = osp->getClearColor();
+	clearValues[1].depthStencil = osp->getDepthStencil();;
+
+	VkRenderPassBeginInfo renderPassInfo = {};
+	renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
+	renderPassInfo.clearValueCount = static_cast<uint32_t>(clearValues.size());
+	renderPassInfo.pClearValues = clearValues.data();
 	renderPassInfo.renderPass = osp->getRenderPass();
-	renderPassInfo.framebuffer = osp->getFrameBuffer(drawIdx);
+	renderPassInfo.framebuffer = osp->getFrameBuffer(swapChainIndex);
 	renderPassInfo.renderArea.extent = osp->getRect().extent;
 
 	vkCmdBeginRenderPass(cmdBuff, &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
@@ -1119,60 +1131,35 @@ inline bool VulkanApp::recreateSwapChainIfNeeded(VkResult result) {
 void VulkanApp::drawFrame() {
 	// TODO Cache this state on _pipelines so we stop doing the loop
 	size_t numSceneNodes = 0;
-	_pipelines->iterate([&](const PipelinePtr& pipeline) {
-		// TODO, add update buffers call here.
-		numSceneNodes += pipeline->numSceneNodes();
-	});
+	bool hasSwapChain;
+	if (_offscreenSurface) {
+		hasSwapChain = false;
+		_offscreenSurface->getPipelines()->iterate([&](const PipelinePtr& pipeline) {
+			// TODO, add update buffers call here.
+			numSceneNodes += pipeline->numSceneNodes();
+		});
+	} else {
+		hasSwapChain = true;
+		_pipelines->iterate([&](const PipelinePtr& pipeline) {
+			// TODO, add update buffers call here.
+			numSceneNodes += pipeline->numSceneNodes();
+		});
+	}
 
 	if (numSceneNodes <= 0)
 		return;
 
-	_deviceContext->waitForInFlightFence();
+	VkResult result = VK_SUCCESS;
+	_deviceContext->waitRenderFinished();
+	if (_offscreenSurface) {
+		copyOffscreenFrameToWebGl();
+	}
 
-	VkSemaphore semaphore = _deviceContext->getImageAvailableSemaphore();
-	if (_swapChain._vkSwapChain != VK_NULL_HANDLE) {
-		VkResult result = vkAcquireNextImageKHR(_deviceContext->_device, _swapChain._vkSwapChain, std::numeric_limits<uint64_t>::max(),
+	if (hasSwapChain) {
+		VkSemaphore semaphore = _deviceContext->getImageAvailableSemaphore();
+		result = vkAcquireNextImageKHR(_deviceContext->_device, _swapChain._vkSwapChain, std::numeric_limits<uint64_t>::max(),
 			semaphore, VK_NULL_HANDLE, &_swapChainIndex);
-
-		if (recreateSwapChainIfNeeded(result)) {
-			return;
-		}
-		else if (result != VK_SUCCESS && result != VK_SUBOPTIMAL_KHR) {
-			THROW("failed to acquire swap chain image!");
-		}
 	}
-	updateUniformBuffer(_swapChainIndex);
-	submitGraphicsQueue();
-	submitComputeCommands();
-	presentQueueKHR();
-
-	doPostDrawTasks();
-
-	_deviceContext->nextFrame();
-
-	for (auto& osp : _offscreenSurfaces) {
-		osp->nextFrame();
-	}
-}
-
-void VulkanApp::drawNextHeadlessFrame(uint32_t frameIndex)
-{
-	// TODO Cache this state on _pipelines so we stop doing the loop
-	size_t numSceneNodes = 0;
-	_pipelines->iterate([&](const PipelinePtr& pipeline) {
-		// TODO, add update buffers call here.
-		numSceneNodes += pipeline->numSceneNodes();
-	});
-
-	if (numSceneNodes <= 0)
-		return;
-
-	/*
-	_deviceContext->waitForInFlightFence();
-
-	VkSemaphore semaphore = _deviceContext->getImageAvailableSemaphore();
-	VkResult result = vkAcquireNextImageKHR(_deviceContext->_device, _swapChain._vkSwapChain, std::numeric_limits<uint64_t>::max(),
-		semaphore, VK_NULL_HANDLE, &_swapChainIndex);
 
 	if (recreateSwapChainIfNeeded(result)) {
 		return;
@@ -1180,43 +1167,26 @@ void VulkanApp::drawNextHeadlessFrame(uint32_t frameIndex)
 	else if (result != VK_SUCCESS && result != VK_SUBOPTIMAL_KHR) {
 		THROW("failed to acquire swap chain image!");
 	}
-	*/
 
-	updateUniformBuffer(frameIndex);
-	submitGraphicsQueue();
+	updateUniformBuffer(_swapChainIndex);
+	_deviceContext->submitGraphicsQueue(_commandBuffers[_swapChainIndex], hasSwapChain);
+	if (hasSwapChain) {
+		presentQueueKHR();
+	}
 	submitComputeCommands();
-
 	doPostDrawTasks();
 
-}
-
-void VulkanApp::submitGraphicsQueue() {
-	_deviceContext->submitGraphicsQueue(_commandBuffers[_swapChainIndex]);
+	_deviceContext->nextFrame();
 }
 
 void VulkanApp::presentQueueKHR() {
-	VkSemaphore semaphore = _deviceContext->getImageAvailableSemaphore();
-	VkSubmitInfo submitInfo = {};
-	submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
-
-	VkSemaphore waitSemaphores[] = { semaphore };
-	VkPipelineStageFlags waitStages[] = { VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT };
-	submitInfo.waitSemaphoreCount = 1;
-	submitInfo.pWaitSemaphores = waitSemaphores;
-	submitInfo.pWaitDstStageMask = waitStages;
-
-	submitInfo.commandBufferCount = 1;
-	submitInfo.pCommandBuffers = &_commandBuffers[_swapChainIndex];
-
-	VkSemaphore signalSemaphores = _deviceContext->getRenderFinishedSemaphore();
-	submitInfo.signalSemaphoreCount = 1;
-	submitInfo.pSignalSemaphores = &signalSemaphores;
+	VkSemaphore renderFinishedSemaphore = _deviceContext->getRenderFinishedSemaphore();
 
 	VkPresentInfoKHR presentInfo = {};
 	presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
 
 	presentInfo.waitSemaphoreCount = 1;
-	presentInfo.pWaitSemaphores = &signalSemaphores;
+	presentInfo.pWaitSemaphores = &renderFinishedSemaphore;
 
 	VkSwapchainKHR swapChains[] = { _swapChain._vkSwapChain };
 	presentInfo.swapchainCount = 1;
@@ -1491,6 +1461,6 @@ VKAPI_ATTR VkBool32 VKAPI_CALL VulkanApp::debugCallback(VkDebugUtilsMessageSever
 		std::cerr << "  " << msg << std::endl;
 	}
 	std::cerr << "\n---------------------------------------------------------------------------\n";
-	std::cerr << "\n---------------------------------------------------------------------------\n";
+	std::cerr << "---------------------------------------------------------------------------\n";
 	return VK_FALSE;
 }

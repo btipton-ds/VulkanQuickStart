@@ -47,10 +47,10 @@ namespace VK {
 		void destroy();
 
 		void createSyncObjects();
-		void waitForInFlightFence();
+		void waitRenderFinished();
 		VkSemaphore getImageAvailableSemaphore() const;
 		VkSemaphore getRenderFinishedSemaphore() const;
-		void submitGraphicsQueue(VkCommandBuffer cmdBuf);
+		void submitGraphicsQueue(VkCommandBuffer cmdBuf, bool hasSwapChain);
 		void nextFrame();
 
 		uint32_t findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties) const;
@@ -61,6 +61,7 @@ namespace VK {
 
 		const ShaderPool& getShaderPool() const;
 		ShaderPool& getShaderPool();
+		size_t getCurrentFrameIdx() const;
 
 		VkDevice _device = VK_NULL_HANDLE;
 		VkPhysicalDevice _physicalDevice = VK_NULL_HANDLE;
@@ -79,7 +80,12 @@ namespace VK {
 		ShaderPoolPtr _shaderPool;
 	};
 
-	inline void DeviceContext::waitForInFlightFence() {
+	inline size_t DeviceContext::getCurrentFrameIdx() const
+	{
+		return _currentFrame;
+	}
+
+	inline void DeviceContext::waitRenderFinished() {
 		vkWaitForFences(_device, 1, &_inFlightFences[_currentFrame], VK_TRUE, std::numeric_limits<uint64_t>::max());
 	}
 

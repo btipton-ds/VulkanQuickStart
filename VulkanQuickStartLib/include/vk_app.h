@@ -134,7 +134,7 @@ namespace VK {
 		void stop();
 
 		void setUpdater(const UpdaterPtr& updater);
-		ImagePtr getOffscreenImage(size_t index) const;
+		ImagePtr getOffscreenImage(size_t offscreenIdx, size_t swapChainIdx) const;
 
 		const VkRect2D& getFrameRect() const;
 
@@ -187,15 +187,14 @@ namespace VK {
 		void createBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer& buffer, VkDeviceMemory& bufferMemory);
 		uint32_t findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties);
 		void createCommandBuffers();
-		void drawCmdBufferLoop(VkCommandBuffer cmdBuff, size_t swapChainIndex, VkCommandBufferBeginInfo& beginInfo, VkRenderPassBeginInfo renderPassInfo);
-		void drawCmdBufferLoop(const OffscreenSurfaceBasePtr& osp, VkCommandBuffer cmdBuff, VkCommandBufferBeginInfo& beginInfo, VkRenderPassBeginInfo renderPassInfo);
+		void drawCmdBufferLoop(VkCommandBuffer cmdBuff, size_t swapChainIndex, VkCommandBufferBeginInfo& beginInfo);
+		void drawCmdBufferLoop(const OffscreenSurfaceBasePtr& osp, VkCommandBuffer cmdBuff, size_t swapChainIndex, VkCommandBufferBeginInfo& beginInfo);
 		void createSyncObjects();
 		void updateUniformBuffer(uint32_t swapChainImageIndex);
 		void updateUBO(const VkExtent2D& extent, const BoundingBox& modelBounds, UboType& ubo) const;
 		void reportFPS();
 		void drawFrame();
-		void drawNextHeadlessFrame(uint32_t frameIndex);
-		void submitGraphicsQueue();
+		void copyOffscreenFrameToWebGl();
 		void submitComputeCommands();
 		void presentQueueKHR();
 		bool recreateSwapChainIfNeeded(VkResult result) ;
@@ -349,9 +348,11 @@ namespace VK {
 	}
 
 
-	inline ImagePtr VulkanApp::getOffscreenImage(size_t index) const {
-		if (index < _offscreenSurfaces.size())
-			return _offscreenSurfaces[index]->getColorImage();
+	inline ImagePtr VulkanApp::getOffscreenImage(size_t offscreenIdx, size_t swapChainIdx) const {
+		if (offscreenIdx < _offscreenSurfaces.size()) {
+			auto os = _offscreenSurfaces[offscreenIdx];
+			return os->getColorImage(swapChainIdx);
+		}
 		return nullptr;
 	}
 

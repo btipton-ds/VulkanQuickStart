@@ -56,10 +56,9 @@ namespace VK {
 		void init(const VkExtent2D& extent, size_t numFrames = 1);
 		void cleanup();
 
-		const TextureImagePtr& getColorImage(size_t index = -1) const;
+		const TextureImagePtr& getColorImage(size_t index) const;
 		VkFramebuffer getFrameBuffer(size_t index) const;
 		const VkRect2D& getRect() const;
-		void nextFrame();
 
 		const VkClearColorValue& getClearColor() const;
 		void setClearColor(float red, float green, float blue, float alpha = 1.0f);
@@ -67,10 +66,6 @@ namespace VK {
 
 		const VkClearDepthStencilValue& getDepthStencil() const;
 		void setDepthStencil(const VkClearDepthStencilValue&);
-
-		const VkDescriptorImageInfo& getDescriptorInfo(size_t index) const;
-		size_t getDrawBufferIdx() const;
-		size_t getCurrentBufferIdx() const;
 
 		virtual VkRenderPass getRenderPass() const = 0;
 		virtual bool updateUbo() = 0;
@@ -89,23 +84,21 @@ namespace VK {
 		VkFormat _colorFormat, _depthFormat;
 
 		struct FrameBuffers {
-			VkDescriptorImageInfo _descriptor = {};
 			VkFramebuffer _frameBuffer = VK_NULL_HANDLE;
 			TextureImagePtr _color = VK_NULL_HANDLE;
 			ImagePtr _depth = VK_NULL_HANDLE;
 			VkSampler _sampler = VK_NULL_HANDLE;
 		};
 
-		size_t _currentBufferIdx = 0;
-		size_t _drawBufferIdx = 0;
 		std::vector<FrameBuffers> _frameBuffers;
 	};
 
 	inline const TextureImagePtr& OffscreenSurfaceBase::getColorImage(size_t index) const {
-		return _frameBuffers[index == -1 ? _currentBufferIdx : index]._color;
+		return _frameBuffers[index]._color;
 	}
 
 	inline VkFramebuffer OffscreenSurfaceBase::getFrameBuffer(size_t index) const {
+		index = index % _frameBuffers.size();
 		return _frameBuffers[index]._frameBuffer;
 	}
 
@@ -131,18 +124,6 @@ namespace VK {
 
 	inline void OffscreenSurfaceBase::setDepthStencil(const VkClearDepthStencilValue& value) {
 		_depthStencil = value;
-	}
-
-	inline const VkDescriptorImageInfo& OffscreenSurfaceBase::getDescriptorInfo(size_t index) const {
-		return _frameBuffers[index]._descriptor;
-	}
-
-	inline size_t OffscreenSurfaceBase::getDrawBufferIdx() const {
-		return _drawBufferIdx;
-	}
-
-	inline size_t OffscreenSurfaceBase::getCurrentBufferIdx() const {
-		return _currentBufferIdx;
 	}
 
 }

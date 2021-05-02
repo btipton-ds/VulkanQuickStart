@@ -184,7 +184,7 @@ namespace
 			setAction(UI::Button::ActionType::ACT_CLICK, [&](int btnNum, int modifiers) {
 			string path = "/Users/Bob/Documents/Projects/ElectroFish/HexMeshTests/";
 			if (btnNum == 0) {
-				ImagePtr image = gApp->getOffscreenImage(offscreenIdx);
+				ImagePtr image = gApp->getOffscreenImage(offscreenIdx, gApp->getSwapChainIndex());
 				if (!image) {
 					const auto& swapChain = gApp->getSwapChain();
 					const auto& images = swapChain._images;
@@ -381,9 +381,9 @@ VK::VulkanAppPtr initHeadless(uint32_t width, uint32_t height, uint32_t numBuffe
 	gApp = VulkanApp::createHeadless(width, height, numBuffers, buffers);
 #if 1
 	gApp->setAntiAliasSamples(VK_SAMPLE_COUNT_1_BIT);
-	gApp->setClearColor(0.0f, 0.0f, 0.2f);
+	gApp->setClearColor(0.2f, 0.0f, 0.0f);
 	
-#if 1
+#if 0
 	auto formats = gApp->findSupportedFormats({ VK_FORMAT_R8G8B8A8_UNORM, VK_FORMAT_R8G8B8A8_UINT, VK_FORMAT_B8G8R8A8_UNORM }, VK_FORMAT_FEATURE_COLOR_ATTACHMENT_BIT);
 	if (formats.empty()) {
 		throw runtime_error("Format not supported");
@@ -408,14 +408,24 @@ VK::VulkanAppPtr initHeadless(uint32_t width, uint32_t height, uint32_t numBuffe
 	gApp->setUboUpdateFunction(orbitFunc);
 #endif
 
-	thread graphicsThread(headlessThreadFunc);
+	static shared_ptr<thread> graphicsThread;
+	if (graphicsThread) {
+		graphicsThread->join();
+		graphicsThread = nullptr;
+	}
+	graphicsThread = make_shared<thread>(headlessThreadFunc);
 
 	if (detachWorkerThread) {
-		graphicsThread.detach();
+		graphicsThread->detach();
 	} else {
-		thread testThread(headlessTestThreadFunc);
-		graphicsThread.join();
-		testThread.join();
+		static shared_ptr<thread> testThread;
+		if (testThread) {
+			testThread->join();
+			testThread = nullptr;
+		}
+		testThread = make_shared<thread>(headlessTestThreadFunc);
+		graphicsThread->join();
+		testThread->join();
 	}
 
 #endif

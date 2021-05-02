@@ -72,22 +72,28 @@ void DeviceContext::createSyncObjects() {
 	}
 }
 
-void DeviceContext::submitGraphicsQueue(VkCommandBuffer cmdBuf) {
+void DeviceContext::submitGraphicsQueue(VkCommandBuffer cmdBuf, bool hasSwapChain) {
 	VkSemaphore semaphore = _imageAvailableSemaphores[_currentFrame];
 	VkSubmitInfo submitInfo = {};
 	submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
 
 	VkPipelineStageFlags waitStages= VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
-	submitInfo.waitSemaphoreCount = 1;
-	submitInfo.pWaitSemaphores = &semaphore;
+	if (hasSwapChain) {
+		submitInfo.waitSemaphoreCount = 1;
+		submitInfo.pWaitSemaphores = &semaphore;
+		VkSemaphore signalSemaphores = _renderFinishedSemaphores[_currentFrame];
+		submitInfo.signalSemaphoreCount = 1;
+		submitInfo.pSignalSemaphores = &signalSemaphores;
+	} else {
+		submitInfo.waitSemaphoreCount = 0;
+		submitInfo.pWaitSemaphores = VK_NULL_HANDLE;
+		submitInfo.signalSemaphoreCount = 0;
+		submitInfo.pSignalSemaphores = VK_NULL_HANDLE;
+	}
 	submitInfo.pWaitDstStageMask = &waitStages;
 
 	submitInfo.commandBufferCount = 1;
 	submitInfo.pCommandBuffers = &cmdBuf;
-
-	VkSemaphore signalSemaphores = _renderFinishedSemaphores[_currentFrame];
-	submitInfo.signalSemaphoreCount = 1;
-	submitInfo.pSignalSemaphores = &signalSemaphores;
 
 	vkResetFences(_device, 1, &_inFlightFences[_currentFrame]);
 
@@ -95,7 +101,6 @@ void DeviceContext::submitGraphicsQueue(VkCommandBuffer cmdBuf) {
 		THROW("failed to submit draw command buffer!");
 	}
 }
-
 
 void DeviceContext::destroy() {
 	if (_device != VK_NULL_HANDLE) {
