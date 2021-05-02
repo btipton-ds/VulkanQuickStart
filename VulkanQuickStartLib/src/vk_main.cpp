@@ -381,7 +381,7 @@ VK::VulkanAppPtr initHeadless(uint32_t width, uint32_t height, uint32_t numBuffe
 	gApp = VulkanApp::createHeadless(width, height, numBuffers, buffers);
 #if 1
 	gApp->setAntiAliasSamples(VK_SAMPLE_COUNT_1_BIT);
-	gApp->setClearColor(0.2f, 0.0f, 0.0f);
+	gApp->setClearColor(0.0f, 0.0f, 0.2f);
 	
 #if 0
 	auto formats = gApp->findSupportedFormats({ VK_FORMAT_R8G8B8A8_UNORM, VK_FORMAT_R8G8B8A8_UINT, VK_FORMAT_B8G8R8A8_UNORM }, VK_FORMAT_FEATURE_COLOR_ATTACHMENT_BIT);

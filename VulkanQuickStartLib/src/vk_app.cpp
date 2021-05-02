@@ -1076,7 +1076,11 @@ void VulkanApp::updateUniformBuffer(uint32_t swapChainImageIndex) {
 
 	BoundingBox modelBounds;
 
-	_pipelines->iterate([&](const PipelinePtr& pipeline) {
+	auto pl = _pipelines;
+	if (_offscreenSurface)
+		pl = _offscreenSurface->getPipelines();
+
+	pl->iterate([&](const PipelinePtr& pipeline) {
 		auto ptr3D = dynamic_pointer_cast<PipelinePNC3f>(pipeline);
 		if (ptr3D)
 			modelBounds.merge(ptr3D->getBounds());
