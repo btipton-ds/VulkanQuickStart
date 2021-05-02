@@ -587,6 +587,39 @@ size_t Image::pixelSize(VkFormat format) {
 	return result;
 }
 
+void Image::copyBits(const VkSubresourceLayout& vkLayout, bool colorSwizzle, const char* srcPix, size_t pixelSize, char* dstPx) const
+{
+	auto data = srcPix;
+	const auto& extent = _imageInfo.extent;
+
+	if (colorSwizzle) {
+		for (uint32_t y = 0; y < extent.height; y++)
+		{
+			unsigned int* row = (unsigned int*)data;
+			for (uint32_t x = 0; x < extent.width; x++)
+			{
+				for (size_t px = 0; px < pixelSize; px++) 
+					*dstPx++ = *((char*)row + (pixelSize - px));
+				
+				row++;
+			}
+			data += vkLayout.rowPitch;
+		}
+	} else {
+		if (pixelSize == 4) {
+			uint32_t* dstPtr = (uint32_t*)(dstPx);
+			for (uint32_t y = 0; y < extent.height; y++)
+			{
+				uint32_t* srcPx = (uint32_t*)data;
+				memcpy(dstPtr, srcPx, 4 * extent.width);
+				data += vkLayout.rowPitch;
+				dstPtr += extent.width;
+			}
+		}
+	}
+
+}
+
 void Image::saveImage(const std::string& filename, const VkSubresourceLayout& vkLayout, bool colorSwizzle, const char* pix) const {
 
 	vector<char> buf;
@@ -599,8 +632,11 @@ void Image::saveImage(const std::string& filename, const VkSubresourceLayout& vk
 	const auto& extent = _imageInfo.extent;
 
 	size_t numPix = extent.width * extent.height;
+
 	buf.resize(numPix * pixelSize);
 	char* dstPx = &buf[0];
+	copyBits(vkLayout, colorSwizzle, pix, pixelSize, dstPx);
+#if 0
 	auto data = pix;
 	for (uint32_t y = 0; y < extent.height; y++)
 	{
@@ -625,6 +661,7 @@ void Image::saveImage(const std::string& filename, const VkSubresourceLayout& vk
 		}
 		data += vkLayout.rowPitch;
 	}
+#endif
 
 	if (filename.find(".png") != string::npos) {
 		stbi_write_png(filename.c_str(), (int)extent.width, (int)extent.height, pixelSize, buf.data(), pixelSize *(int)extent.width);

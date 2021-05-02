@@ -61,7 +61,7 @@ namespace VK {
 
 			func(mem.getData(), copier.getSubResourceLayout(), copier.getColorSwizzle());
 		}
-
+		void copyBits(const VkSubresourceLayout& vkLayout, bool colorSwizzle, const char* srcPix, size_t pixelSize, char* dstPix) const;
 		void saveImage(const std::string& filename) const;
 		size_t getImageData(const char*& data, size_t bufSize) const;
 		size_t getImageData(char* data, size_t bufSize) const;

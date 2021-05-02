@@ -155,7 +155,8 @@ void VulkanApp::copyOffscreenFrameToWebGl()
 		return;
 
 	image->processImage([&](const char* p, const VkSubresourceLayout& vkLayout, bool colorSwizzle) {
-		memcpy(buf, p, webGlBufSize);
+		image->copyBits(vkLayout, colorSwizzle, p, 4, (char*)buf);
+//		memcpy(buf, p, webGlBufSize);
 	});
 }
 
@@ -1106,6 +1107,7 @@ void VulkanApp::updateUniformBuffer(uint32_t swapChainImageIndex) {
 			if (!_uboUpdater || !_uboUpdater(rect.extent.width, rect.extent.height, ubo)) {
 				updateUBO(rect.extent, modelBounds, ubo);
 			}
+
 			OffscreenSurface3D::PointerType ospSpecific = dynamic_pointer_cast<OffscreenSurface3D>(osp);
 			if (ospSpecific)
 				ospSpecific->setUbo(ubo);
