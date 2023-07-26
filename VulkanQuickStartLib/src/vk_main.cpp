@@ -59,6 +59,10 @@ This file is part of the VulkanQuickStart Project.
 using namespace std;
 using namespace VK;
 
+/*
+* TODO
+* Something changed and now the release version crashes while loading the dll. Already upgraded the graphics driver. It crashes before it enters void main().
+*/
 namespace
 {
 

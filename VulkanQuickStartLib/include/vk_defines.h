@@ -37,7 +37,10 @@ This file is part of the VulkanQuickStart Project.
 #endif
 
 #define _HAS_ITERATOR_DEBUGGING 0
+
+#ifndef USE_EIGEN_VECTOR3
 #define USE_EIGEN_VECTOR3 0
+#endif
 
 #ifdef _GCC
 #define GCC_CLASS class
