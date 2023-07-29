@@ -242,7 +242,7 @@ namespace vks
 			}
 			else
 			{
-				queueFamilyIndices.graphics = VK_NULL_HANDLE;
+				queueFamilyIndices.graphics = 0; // VK_NULL_HANDLE;
 			}
 
 			// Dedicated compute queue

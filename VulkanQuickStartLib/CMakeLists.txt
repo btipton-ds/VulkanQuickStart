@@ -35,6 +35,7 @@ else(UNIX)
 endif(UNIX)
 
 set(CONFIG "x64-${CMAKE_BUILD_TYPE}")
+message(STATUS "${CONFIG}")
 
 if(${CMAKE_BUILD_TYPE} MATCHES "Release")
 add_compile_definitions(VQS_RELEASE_BUILD)
@@ -43,8 +44,7 @@ endif()
 link_directories (
 "${GLFW_LIB_DIR}"
 "${FREE_TYPE_LIB_DER}"
-"../../triMesh/out/build/${CONFIG}/triMesh/"
-"../../triMesh/out/build/${CONFIG}/stlReader/"
+"../../triMesh/${CMAKE_BUILD_TYPE}/"
 )
 
 #turn export declaration on for windows
@@ -88,7 +88,6 @@ target_compile_features(VulkanQuickStartLib PRIVATE cxx_std_17)
 target_link_libraries("VulkanQuickStartLib" 
 PUBLIC Vulkan::Vulkan
 PRIVATE triMesh
-PRIVATE stlReader 
 PRIVATE freetype
 PRIVATE ${GLFW_LIB_NAME}
 )
