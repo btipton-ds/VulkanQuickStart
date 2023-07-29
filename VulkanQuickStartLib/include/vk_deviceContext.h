@@ -34,6 +34,7 @@ This file is part of the VulkanQuickStart Project.
 #define GLFW_INCLUDE_VULKAN
 #include <GLFW/glfw3.h>
 
+#include <limits>
 #include <set>
 #include <memory>
 

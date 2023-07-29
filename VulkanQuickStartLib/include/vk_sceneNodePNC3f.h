@@ -43,9 +43,6 @@ This file is part of the VulkanQuickStart Project.
 #include <vk_uniformBuffers.h>
 #include <vk_transformFunc.h>
 
-#pragma warning (push)
-#pragma warning( disable : 4251 )
-
 namespace VK {
 
 	class EXPORT_VQS SceneNodePNC3f : public SceneNode<Vertex3_PNCf> {
@@ -97,4 +94,3 @@ namespace VK {
 
 }
 
-#pragma warning (pop)

@@ -13,7 +13,7 @@ include_directories(
 	"../../ThirdParty/glm-0.9.9.5/glm"
 	"../../ThirdParty/glfw-3.3.2/include"
 	"../../ThirdParty/tinyobjloader"
-	"../../ThirdParty/freetype-2.10.2/include"
+	"/usr/local/include/eigen3/"
 	"../../ThirdParty/stb"
 	"${Vulkan_INCLUDE_DIRS}"
 	"../../triMesh/triMesh/include"
