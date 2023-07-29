@@ -3,6 +3,8 @@
 	<name>VulkanQuickStart</name>
 	<comment></comment>
 	<projects>
+		<project>VulkanQuickStartLib</project>
+		<project>triMesh</project>
 	</projects>
 	<buildSpec>
 		<buildCommand>
