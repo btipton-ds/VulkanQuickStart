@@ -36,6 +36,7 @@ endif(UNIX)
 
 set(CONFIG "x64-${CMAKE_BUILD_TYPE}")
 message(STATUS "${CONFIG}")
+message(STATUS "../../triMesh/${CMAKE_BUILD_TYPE}/")
 
 if(${CMAKE_BUILD_TYPE} MATCHES "Release")
 add_compile_definitions(VQS_RELEASE_BUILD)
