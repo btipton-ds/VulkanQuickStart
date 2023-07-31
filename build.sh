@@ -11,3 +11,5 @@ while getopts ":d:D:r:R" opt; do
   esac
 done
 
+make -j12
+
