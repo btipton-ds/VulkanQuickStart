@@ -1,6 +1,7 @@
 x64
 Debug
 Release
+Makefile
 CMakeFiles
 CMakeCache.txt
 .vs
@@ -9,6 +10,8 @@ CMakeCache.txt
 *.filters
 *.user
 *.TMP
+*.cmake
+*.so
 out
 
 
