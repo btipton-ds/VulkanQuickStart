@@ -1,6 +1,6 @@
 #include "vulkanwidget.h"
 
-VulkanWidget::VulkanWidget(VulkanWindow *w, QWidget *parent)
+VulkanWidget::VulkanWidget(QWidget *parent, VulkanWindow *w)
     : QWidget{parent}
 {
 

@@ -12,7 +12,7 @@ class VulkanWidget : public QWidget
     Q_OBJECT
 
 public:
-    explicit VulkanWidget(VulkanWindow *w, QWidget *parent = nullptr);
+    explicit VulkanWidget(QWidget *parent = nullptr, VulkanWindow *w = nullptr);
 
 public slots:
     void onVulkanInfoReceived(const QString &text);
