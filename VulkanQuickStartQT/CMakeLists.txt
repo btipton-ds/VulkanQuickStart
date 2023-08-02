@@ -42,6 +42,7 @@ set(PROJECT_SOURCES
         mainwindow.ui
         ${TS_FILES}
 )
+message(STATUS "PROJECT_SOURCES: ${PROJECT_SOURCES}")
 
 if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
     qt_add_executable(${PROJECT_NAME}
@@ -72,7 +73,6 @@ else()
 endif()
 
 if (UNIX)
-    list(APPEND CMAKE_CXX_FLAGS "-pthread -fPIC")
     set(GLSL_VALIDATOR "glslangValidator")
     add_definitions(-DGLFW_EXPOSE_NATIVE_X11 -D_GCC)
 else(UNIX)
