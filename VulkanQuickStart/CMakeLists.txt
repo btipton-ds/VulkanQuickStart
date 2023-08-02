@@ -6,19 +6,19 @@ cmake_minimum_required (VERSION 3.10.2)
 project(VulkanQuickStart)
 
 include_directories(
-"../VulkanQuickStartLib/include"
+"../../VulkanQuickStartLib/include"
 )
 
 if (UNIX)
 	list(APPEND CMAKE_CXX_FLAGS "-pthread -fPIC")
     set(GLSL_VALIDATOR "glslangValidator")
     add_definitions(-DGLFW_EXPOSE_NATIVE_X11 -D_GCC)
-    set(GLFW_LIB_DIR "../../ThirdParty/glfw/src")
+    set(GLFW_LIB_DIR "../../../ThirdParty/glfw/src")
 else(UNIX)
 
     set(GLSL_VALIDATOR "/VulkanSDK/1.2.170.0/Bin32/glslangValidator.exe")
     add_definitions(-DGLFW_EXPOSE_NATIVE_WIN32)
-    set(GLFW_LIB_DIR "../../ThirdParty/glfw-3.3.2/lib-vc2019")
+    set(GLFW_LIB_DIR "../../../ThirdParty/glfw-3.3.2/lib-vc2019")
 endif(UNIX)
 
 set(CONFIG "x64-${CMAKE_BUILD_TYPE}")
@@ -27,7 +27,7 @@ set (CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BUILD_TYPE})
 set (CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BUILD_TYPE})
 
 link_directories (
-"../VulkanQuickStartLib/${CMAKE_BUILD_TYPE}"
+"../../VulkanQuickStartLib/${CMAKE_BUILD_TYPE}"
 )
 
 
@@ -44,8 +44,8 @@ target_compile_features(VulkanQuickStart PRIVATE cxx_std_17)
 
 
 file(GLOB_RECURSE GLSL_SOURCE_FILES
-    "../VulkanQuickStartLib/shaders/*.frag"
-    "../VulkanQuickStartLib/shaders/*.vert"
+    "../shaders/*.frag"
+    "../shaders/*.vert"
     )
 
 foreach(GLSL ${GLSL_SOURCE_FILES})
