@@ -141,7 +141,7 @@
   <customwidget>
    <class>VulkanWidget</class>
    <extends>QWidget</extends>
-   <header>../../../VulkanQuickStart/VulkanSrc/vulkanwidget.h</header>
+   <header>../../../VulkanQuickStartQT/VulkanSrc/vulkanwidget.h</header>
    <container>1</container>
   </customwidget>
  </customwidgets>

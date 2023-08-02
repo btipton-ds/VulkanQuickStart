@@ -9,7 +9,7 @@ set(CMAKE_AUTORCC ON)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set (CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BUILD_TYPE})
-set(VULKAN_QUICK_START_LIB_PATH "../VulkanQuickStartLib/${CMAKE_BUILD_TYPE}")
+set(VULKAN_QUICK_START_LIB_PATH "../../VulkanQuickStartLib/${CMAKE_BUILD_TYPE}")
 set(VULKAN_QUICK_START_LIB "${VULKAN_QUICK_START_LIB_PATH}/libVulkanQuickStartLib.so")
 
 message(STATUS "Vulkan:include: ${Vulkan_INCLUDE_DIRS}")
@@ -26,9 +26,9 @@ set(TS_FILES VulkanQuickStart_en_US.ts)
 
 include_directories(
     "${Vulkan_INCLUDE_DIRS}"
-    "../VulkanQuickStartLib/include"
-    "../triMesh/stlReader/include"
-    "../triMesh/triMesh/include"
+    "../../VulkanQuickStartLib/include"
+    "../../triMesh/stlReader/include"
+    "../../triMesh/triMesh/include"
 )
 
 link_directories (
@@ -136,4 +136,3 @@ add_custom_target(
     )
 
 add_dependencies(${PROJECT_NAME} VkShaders)
-

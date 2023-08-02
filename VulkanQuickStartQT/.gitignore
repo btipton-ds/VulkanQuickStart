@@ -8,8 +8,6 @@ Makefile
 CMakeCache.txt
 cmake_install.cmake
 .vs
-*-Desktop-Debug
-*-Desktop-Release
 *.exe_autogen/
 *.pdb
 *.idb
