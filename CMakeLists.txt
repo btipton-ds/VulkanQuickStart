@@ -9,10 +9,21 @@ set(CMAKE_AUTORCC ON)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+message(STATUS "CMAKE_CURRENT_SOURCE_DIR: ${CMAKE_CURRENT_SOURCE_DIR}")
+
 find_package(QT NAMES Qt6 Qt5 REQUIRED COMPONENTS Widgets LinguistTools)
 find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Widgets LinguistTools)
+find_package (Vulkan)
 
 set(TS_FILES VulkanQuickStart_en_US.ts)
+
+message(STATUS "Vulkan:include: ${Vulkan_INCLUDE_DIRS}")
+include_directories(
+    "${Vulkan_INCLUDE_DIRS}"
+    "../VulkanQuickStartLib/include"
+    "../triMesh/stlReader/include"
+    "../triMesh/triMesh/include"
+)
 
 set(PROJECT_SOURCES
         main.cpp
@@ -23,7 +34,7 @@ set(PROJECT_SOURCES
 )
 
 if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
-    qt_add_executable(VulkanQuickStart
+    qt_add_executable(${PROJECT_NAME}
         MANUAL_FINALIZATION
         ${PROJECT_SOURCES}
     )
@@ -35,13 +46,13 @@ if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
     qt_create_translation(QM_FILES ${CMAKE_SOURCE_DIR} ${TS_FILES})
 else()
     if(ANDROID)
-        add_library(VulkanQuickStart SHARED
+        add_library(${PROJECT_NAME} SHARED
             ${PROJECT_SOURCES}
         )
 # Define properties for Android with Qt 5 after find_package() calls as:
 #    set(ANDROID_PACKAGE_SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/android")
     else()
-        add_executable(VulkanQuickStart
+        add_executable(${PROJECT_NAME}
             ${PROJECT_SOURCES}
             VulkanSrc/vulkanwidget.h VulkanSrc/vulkanwidget.cpp
         )
@@ -50,7 +61,24 @@ else()
     qt5_create_translation(QM_FILES ${CMAKE_SOURCE_DIR} ${TS_FILES})
 endif()
 
-target_link_libraries(VulkanQuickStart PRIVATE Qt${QT_VERSION_MAJOR}::Widgets)
+target_compile_features(${PROJECT_NAME} PRIVATE cxx_std_17)
+
+set(VULKAN_QUICK_START_LIB_PATH "/home/bobt/QT-workspace/VulkanQuickStartLib/Release")
+set(VULKAN_QUICK_START_LIB "${VULKAN_QUICK_START_LIB_PATH}/libVulkanQuickStartLib.so")
+
+message(STATUS "CMAKE_BUILD_TYPE: ${CMAKE_BUILD_TYPE}")
+message(STATUS "VULKAN_QUICK_START_LIB_PATH: ${VULKAN_QUICK_START_LIB_PATH}")
+message(STATUS "VULKAN_QUICK_START_LIB: ${VULKAN_QUICK_START_LIB}")
+
+link_directories (
+    ${VULKAN_QUICK_START_LIB_PATH}
+)
+
+target_link_libraries(
+    ${PROJECT_NAME} PUBLIC
+    Qt${QT_VERSION_MAJOR}::Widgets
+    VulkanQuickStartLib
+)
 
 # Qt for iOS sets MACOSX_BUNDLE_GUI_IDENTIFIER automatically since Qt 6.1.
 # If you are developing for iOS or macOS you should consider setting an
@@ -58,7 +86,7 @@ target_link_libraries(VulkanQuickStart PRIVATE Qt${QT_VERSION_MAJOR}::Widgets)
 if(${QT_VERSION} VERSION_LESS 6.1.0)
   set(BUNDLE_ID_OPTION MACOSX_BUNDLE_GUI_IDENTIFIER com.example.VulkanQuickStart)
 endif()
-set_target_properties(VulkanQuickStart PROPERTIES
+set_target_properties(${PROJECT_NAME} PROPERTIES
     ${BUNDLE_ID_OPTION}
     MACOSX_BUNDLE_BUNDLE_VERSION ${PROJECT_VERSION}
     MACOSX_BUNDLE_SHORT_VERSION_STRING ${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}
@@ -67,12 +95,12 @@ set_target_properties(VulkanQuickStart PROPERTIES
 )
 
 include(GNUInstallDirs)
-install(TARGETS VulkanQuickStart
+install(TARGETS ${PROJECT_NAME}
     BUNDLE DESTINATION .
     LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
     RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
 )
 
 if(QT_VERSION_MAJOR EQUAL 6)
-    qt_finalize_executable(VulkanQuickStart)
+    qt_finalize_executable(${PROJECT_NAME})
 endif()

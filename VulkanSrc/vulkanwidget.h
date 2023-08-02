@@ -1,6 +1,8 @@
 #ifndef VULKANWIDGET_H
 #define VULKANWIDGET_H
 
+#include <memory>
+
 #include <QObject>
 #include <QWidget>
 #include <QVulkanWindow>
@@ -12,7 +14,7 @@ class VulkanWidget : public QWidget
     Q_OBJECT
 
 public:
-    explicit VulkanWidget(QWidget *parent = nullptr, VulkanWindow *w = nullptr);
+    explicit VulkanWidget(QWidget *parent = nullptr);
 
 public slots:
     void onVulkanInfoReceived(const QString &text);
@@ -20,7 +22,9 @@ public slots:
     void onGrabRequested();
 
 private:
-    VulkanWindow *m_window;
+    VulkanWindow *m_window = nullptr;
+    static std::shared_ptr<QVulkanInstance> s_pQVI;
+    static std::shared_ptr<QVulkanWindow> s_pQVW;
 };
 
 class VulkanRenderer

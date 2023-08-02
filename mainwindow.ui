@@ -44,6 +44,12 @@
         <height>0</height>
        </size>
       </property>
+      <property name="maximumSize">
+       <size>
+        <width>120</width>
+        <height>16777215</height>
+       </size>
+      </property>
       <property name="locale">
        <locale language="English" country="UnitedStates"/>
       </property>
@@ -72,7 +78,14 @@
      </widget>
     </item>
     <item>
-     <widget class="VulkanWidget" name="GraphicsPane" native="true"/>
+     <widget class="VulkanWidget" name="GraphicsPane" native="true">
+      <property name="sizePolicy">
+       <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+        <horstretch>0</horstretch>
+        <verstretch>0</verstretch>
+       </sizepolicy>
+      </property>
+     </widget>
     </item>
    </layout>
   </widget>
