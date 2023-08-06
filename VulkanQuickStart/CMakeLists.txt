@@ -5,6 +5,10 @@ cmake_minimum_required (VERSION 3.10.2)
 
 project(VulkanQuickStart)
 
+message(STATUS "PROJECT_SOURCE_DIR: ${PROJECT_SOURCE_DIR}")
+set (CMAKE_LIBRARY_OUTPUT_DIRECTORY "${PROJECT_SOURCE_DIR}/${CMAKE_BUILD_TYPE}")
+set (CMAKE_RUNTIME_OUTPUT_DIRECTORY "${PROJECT_SOURCE_DIR}/${CMAKE_BUILD_TYPE}")
+
 include_directories(
 "../../VulkanQuickStartLib/include"
 )
@@ -22,9 +26,6 @@ else(UNIX)
 endif(UNIX)
 
 set(CONFIG "x64-${CMAKE_BUILD_TYPE}")
-
-set (CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BUILD_TYPE})
-set (CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BUILD_TYPE})
 
 link_directories (
 "../../VulkanQuickStartLib/${CMAKE_BUILD_TYPE}"
