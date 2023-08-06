@@ -28,6 +28,7 @@ set (CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BUILD_TYPE})
 
 link_directories (
 "../VulkanQuickStartLib/${CMAKE_BUILD_TYPE}"
+"../triMesh/${CMAKE_BUILD_TYPE}"
 )
 
 
@@ -38,6 +39,7 @@ VulkanQuickStart
 
 target_link_libraries("VulkanQuickStart" 
 PUBLIC VulkanQuickStartLib
+stlReader
 )
 
 target_compile_features(VulkanQuickStart PRIVATE cxx_std_17)
