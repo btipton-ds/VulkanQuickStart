@@ -1,22 +1,18 @@
 x64
 Debug/
 Release/
+shaders/
 VulkanQuickStart_autogen/
-Makefile
 CMakeFiles
 Makefile
 CMakeCache.txt
 cmake_install.cmake
 .vs
-*-Desktop-Debug
-*-Desktop-Release
 *.exe_autogen/
 *.pdb
 *.idb
 *.filters
 *.user
 *.TMP
-*.cmake
-*.so
 out
 

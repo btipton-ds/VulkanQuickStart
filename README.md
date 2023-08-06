@@ -2,6 +2,10 @@
 
 VulkanQuickStart is intended as a tutorial, example and foundation for building applications using the Vulkan graphics engine.
 
+There are now two builds in different directories
+VulkanQuickStart is based on an old Dear imgui, minimal GUI API. It's obsolete but still works
+VulkanQuickStartQT is based on QT 6.5 and is in progress
+
 If you have been looking for the next generation of cross platform graphics engines, Vulkan looks like one of the better choices. Possibly the best or only choice.
 
 The core of Vulkan offers tremendous advantages in cross platform development, speed, flexibility and customizability. It is under development by the Khronos group (https://www.khronos.org/vulkan/), 
