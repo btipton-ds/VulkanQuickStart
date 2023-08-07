@@ -4,6 +4,7 @@ x64
 Debug/
 Release/
 VulkanQuickStart_autogen/
+shaders_spv
 Makefile
 CMakeFiles
 Makefile
