@@ -70,4 +70,27 @@ add_custom_target(
 
 add_dependencies(VulkanQuickStart VkShaders)
 
+if (UNIX)
+else(UNIX)
+
+add_custom_command(
+        TARGET VulkanQuickStart POST_BUILD
+
+        COMMAND ${CMAKE_COMMAND} -E copy
+                "${PROJECT_SOURCE_DIR}/../../VulkanQuickStartLib/${CMAKE_BUILD_TYPE}/VulkanQuickStartLib.dll"
+                "${PROJECT_SOURCE_DIR}/${CMAKE_BUILD_TYPE}/VulkanQuickStartLib.dll"
+)
+
+if("Debug" STREQUAL "${CMAKE_BUILD_TYPE}")
+add_custom_command(
+        TARGET VulkanQuickStart POST_BUILD
+
+        COMMAND ${CMAKE_COMMAND} -E copy
+                "${PROJECT_SOURCE_DIR}/../../VulkanQuickStartLib/${CMAKE_BUILD_TYPE}/VulkanQuickStartLib.pdb"
+                "${PROJECT_SOURCE_DIR}/${CMAKE_BUILD_TYPE}/VulkanQuickStartLib.pdb"
+)
+endif("Debug" STREQUAL "${CMAKE_BUILD_TYPE}")
+
+endif(UNIX)
+
 # TODO: Add tests and install targets if needed.
