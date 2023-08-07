@@ -20,7 +20,7 @@ if (UNIX)
     set(GLFW_LIB_DIR "../../../ThirdParty/glfw/src")
 else(UNIX)
 
-    set(GLSL_VALIDATOR "/VulkanSDK/1.2.170.0/Bin32/glslangValidator.exe")
+    set(GLSL_VALIDATOR "C:/VulkanSDK/1.3.250.1/Bin/glslangValidator.exe")
     add_definitions(-DGLFW_EXPOSE_NATIVE_WIN32)
     set(GLFW_LIB_DIR "../../../ThirdParty/glfw-3.3.2/lib-vc2019")
 endif(UNIX)
@@ -54,10 +54,11 @@ file(GLOB_RECURSE GLSL_SOURCE_FILES
 foreach(GLSL ${GLSL_SOURCE_FILES})
   get_filename_component(RAW_FILE_NAME ${GLSL} NAME)
   string(REPLACE "." "_" FILE_NAME "${RAW_FILE_NAME}")
-  set(SPIRV "${PROJECT_BINARY_DIR}/shaders/${FILE_NAME}.spv")
+  set(SPIRV "${PROJECT_SOURCE_DIR}/../shaders_spv/${FILE_NAME}.spv")
+message(STATUS "${SPIRV}")
   add_custom_command(
     OUTPUT ${SPIRV}
-    COMMAND ${CMAKE_COMMAND} -E make_directory "${PROJECT_BINARY_DIR}/shaders/"
+    COMMAND ${CMAKE_COMMAND} -E make_directory "${PROJECT_SOURCE_DIR}/../shaders_spv/"
     COMMAND ${GLSL_VALIDATOR} -V ${GLSL} -o ${SPIRV}
     DEPENDS ${GLSL})
   list(APPEND SPIRV_BINARY_FILES ${SPIRV})
