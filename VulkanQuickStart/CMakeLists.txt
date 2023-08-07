@@ -50,12 +50,13 @@ file(GLOB_RECURSE GLSL_SOURCE_FILES
     "../shaders/*.frag"
     "../shaders/*.vert"
     )
+message(STATUS ${GLSL_SOURCE_FILES})
 
 foreach(GLSL ${GLSL_SOURCE_FILES})
   get_filename_component(RAW_FILE_NAME ${GLSL} NAME)
   string(REPLACE "." "_" FILE_NAME "${RAW_FILE_NAME}")
   set(SPIRV "${PROJECT_SOURCE_DIR}/../shaders_spv/${FILE_NAME}.spv")
-message(STATUS "${SPIRV}")
+
   add_custom_command(
     OUTPUT ${SPIRV}
     COMMAND ${CMAKE_COMMAND} -E make_directory "${PROJECT_SOURCE_DIR}/../shaders_spv/"
