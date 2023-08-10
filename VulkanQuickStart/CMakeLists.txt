@@ -4,17 +4,20 @@
 cmake_minimum_required (VERSION 3.10.2)
 
 project(VulkanQuickStart)
+find_package(wxWidgets COMPONENTS net gl core base)
 
-message(STATUS "PROJECT_SOURCE_DIR: ${PROJECT_SOURCE_DIR}")
 set (CMAKE_LIBRARY_OUTPUT_DIRECTORY "${PROJECT_SOURCE_DIR}/${CMAKE_BUILD_TYPE}")
 set (CMAKE_RUNTIME_OUTPUT_DIRECTORY "${PROJECT_SOURCE_DIR}/${CMAKE_BUILD_TYPE}")
 
 include_directories(
-"../../VulkanQuickStartLib/include"
+	"../../VulkanQuickStartLib/include"
 )
 
 if (UNIX)
-	list(APPEND CMAKE_CXX_FLAGS "-pthread -fPIC")
+	execute_process(COMMAND wx-config --cxxflags OUTPUT_VARIABLE WX_FLAGS OUTPUT_STRIP_TRAILING_WHITESPACE)
+	execute_process(COMMAND wx-config --libs OUTPUT_VARIABLE WX_LIB_FLAGS OUTPUT_STRIP_TRAILING_WHITESPACE)
+
+	list(APPEND CMAKE_CXX_FLAGS "${WX_FLAGS} -fPIC ${WX_LIB_FLAGS}")
     set(GLSL_VALIDATOR "glslangValidator")
     add_definitions(-DGLFW_EXPOSE_NATIVE_X11 -D_GCC)
     set(GLFW_LIB_DIR "../../../ThirdParty/glfw/src")
@@ -33,24 +36,22 @@ link_directories (
 )
 
 
-add_executable (
-VulkanQuickStart
-"src/VulkanQuickStart.cxx" 
+add_executable (VulkanQuickStart
+	"src/VulkanQuickStart.cxx" 
 )
 
-target_link_libraries("VulkanQuickStart" 
-PUBLIC VulkanQuickStartLib
-stlReader
+target_link_libraries(VulkanQuickStart 
+	PUBLIC VulkanQuickStartLib
+	stlReader
+	wx_gtk3u-3.2.so
 )
 
 target_compile_features(VulkanQuickStart PRIVATE cxx_std_17)
-
 
 file(GLOB_RECURSE GLSL_SOURCE_FILES
     "../shaders/*.frag"
     "../shaders/*.vert"
     )
-message(STATUS ${GLSL_SOURCE_FILES})
 
 foreach(GLSL ${GLSL_SOURCE_FILES})
   get_filename_component(RAW_FILE_NAME ${GLSL} NAME)
