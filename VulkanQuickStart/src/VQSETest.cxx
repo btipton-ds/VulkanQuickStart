@@ -32,7 +32,7 @@ This file is part of the VulkanQuickStart Project.
 
 #include <vk_main.h>
 #include <vector>
-
+#if 0
 int main(int numArgs, char** args) {
 	uint32_t width = 512, height = 512, numBuffers = 2;
 
@@ -43,3 +43,4 @@ int main(int numArgs, char** args) {
 	VK::VulkanAppPtr app = initHeadless(width, height, (uint32_t)buffers.size(), buffers.data(), false);
 
 }
+#endif

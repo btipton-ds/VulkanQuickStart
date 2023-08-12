@@ -4,24 +4,55 @@
 cmake_minimum_required (VERSION 3.10.2)
 
 project(VulkanQuickStart)
-find_package(wxWidgets COMPONENTS net gl core base)
 
 set (CMAKE_LIBRARY_OUTPUT_DIRECTORY "${PROJECT_SOURCE_DIR}/${CMAKE_BUILD_TYPE}")
 set (CMAKE_RUNTIME_OUTPUT_DIRECTORY "${PROJECT_SOURCE_DIR}/${CMAKE_BUILD_TYPE}")
 
-include_directories(
-	"../../VulkanQuickStartLib/include"
-)
+find_package(wxWidgets)
+include(${wxWidgets_USE_FILE})
+
+message(STATUS "wxWidgets_FOUND: ${wxWidgets_FOUND}")
+message(STATUS "wxWidgets_VERSION: ${wxWidgets_VERSION}")
+message(STATUS "wxWidgets_VERSION_MAJOR: ${wxWidgets_VERSION_MAJOR}")
+message(STATUS "wxWidgets_ROOT_DIR: ${wxWidgets_ROOT_DIR}")
+message(STATUS "wxWidgets_DIR: ${wxWidgets_DIR}")
+message(STATUS "wxWidgets_USE_FILE: ${wxWidgets_USE_FILE}")
+message(STATUS "wxWidgets_INCLUDE_DIRS: ${wxWidgets_INCLUDE_DIRS}")
+message(STATUS "WX_INCLUDE_CONFIG_PATH: ${WX_INCLUDE_CONFIG_PATH}")
+message(STATUS "wxWidgets_LIBRARY_DIRS: ${wxWidgets_LIBRARY_DIRS}")
+message(STATUS "wxWidgets_LIBRARIES: ${wxWidgets_LIBRARIES}")
+
+set(wxWidgets_INCLUDE_DIR "${wxWidgets_DIR}/../include/")
+
+if ("${CMAKE_BUILD_TYPE}" STREQUAL "Release")
+    set(DLL_NAME "wxmsw32u_core_vc14x_x64.dll")
+    set(WX_INCLUDE_CONFIG_PATH "${wxWidgets_DIR}/vc_x64_dll/mswu/")
+else()
+    set(DLL_NAME "wxmsw32ud_core_vc14x_x64.dll")
+    set(WX_INCLUDE_CONFIG_PATH "${wxWidgets_DIR}/vc_x64_dll/mswud/")
+endif()
 
 if (UNIX)
+    
+    include_directories(
+	    "../../VulkanQuickStartLib/include"
+    )
+    
 	execute_process(COMMAND wx-config --cxxflags OUTPUT_VARIABLE WX_FLAGS OUTPUT_STRIP_TRAILING_WHITESPACE)
 	execute_process(COMMAND wx-config --libs OUTPUT_VARIABLE WX_LIB_FLAGS OUTPUT_STRIP_TRAILING_WHITESPACE)
-
-	list(APPEND CMAKE_CXX_FLAGS "${WX_FLAGS} -fPIC ${WX_LIB_FLAGS}")
+    
+	list(APPEND CMAKE_CXX_FLAGS "${WX_FLAGS} -DWXUSINGDLL -fPIC ${WX_LIB_FLAGS}")
     set(GLSL_VALIDATOR "glslangValidator")
     add_definitions(-DGLFW_EXPOSE_NATIVE_X11 -D_GCC)
     set(GLFW_LIB_DIR "../../../ThirdParty/glfw/src")
+    set(WX_LIB_DIR "")
+    set(WX_LIB_NAME "wx_gtk3u-3.2")
 else(UNIX)
+    include_directories(
+	    "../../VulkanQuickStartLib/include/"
+        "${wxWidgets_INCLUDE_DIRS}"
+    )
+
 
     set(GLSL_VALIDATOR "C:/VulkanSDK/1.3.250.1/Bin/glslangValidator.exe")
     add_definitions(-DGLFW_EXPOSE_NATIVE_WIN32)
@@ -31,19 +62,22 @@ endif(UNIX)
 set(CONFIG "x64-${CMAKE_BUILD_TYPE}")
 
 link_directories (
-"../../VulkanQuickStartLib/${CMAKE_BUILD_TYPE}"
-"../../triMesh/${CMAKE_BUILD_TYPE}"
+    "../../VulkanQuickStartLib/${CMAKE_BUILD_TYPE}"
+    "../../triMesh/${CMAKE_BUILD_TYPE}"
 )
 
 
 add_executable (VulkanQuickStart
+    WIN32
 	"src/VulkanQuickStart.cxx" 
 )
+
+target_compile_definitions(VulkanQuickStart PRIVATE WIN32)
 
 target_link_libraries(VulkanQuickStart 
 	PUBLIC VulkanQuickStartLib
 	stlReader
-	wx_gtk3u-3.2.so
+    ${wxWidgets_LIBRARIES}
 )
 
 target_compile_features(VulkanQuickStart PRIVATE cxx_std_17)
@@ -72,28 +106,5 @@ add_custom_target(
     )
 
 add_dependencies(VulkanQuickStart VkShaders)
-
-if (UNIX)
-else(UNIX)
-
-add_custom_command(
-        TARGET VulkanQuickStart POST_BUILD
-
-        COMMAND ${CMAKE_COMMAND} -E copy
-                "${PROJECT_SOURCE_DIR}/../../VulkanQuickStartLib/${CMAKE_BUILD_TYPE}/VulkanQuickStartLib.dll"
-                "${PROJECT_SOURCE_DIR}/${CMAKE_BUILD_TYPE}/VulkanQuickStartLib.dll"
-)
-
-if("Debug" STREQUAL "${CMAKE_BUILD_TYPE}")
-add_custom_command(
-        TARGET VulkanQuickStart POST_BUILD
-
-        COMMAND ${CMAKE_COMMAND} -E copy
-                "${PROJECT_SOURCE_DIR}/../../VulkanQuickStartLib/${CMAKE_BUILD_TYPE}/VulkanQuickStartLib.pdb"
-                "${PROJECT_SOURCE_DIR}/${CMAKE_BUILD_TYPE}/VulkanQuickStartLib.pdb"
-)
-endif("Debug" STREQUAL "${CMAKE_BUILD_TYPE}")
-
-endif(UNIX)
 
 # TODO: Add tests and install targets if needed.

@@ -34,15 +34,42 @@ This file is part of the VulkanQuickStart Project.
 #include <vector>
 // Start of wxWidgets "Hello World" Program
 
+#ifdef WIN32
+#pragma warning(push)
+#pragma warning(disable: 4996)
 #include <wx/wx.h>
+#pragma warning(pop)
+#else
+#include <wx/wx.h>
+#endif // WIN32
+
 
 class MyApp : public wxApp
 {
 public:
     bool OnInit() override;
 };
-
+#if 0
 wxIMPLEMENT_APP(MyApp);
+#else
+wxAppConsole* wxCreateApp() {
+    wxAppConsole::CheckBuildOptions("3" "." "2" " (" "wchar_t" ",Visual C++ " "1900" ",wx containers" ",compatible with 3.0" ")", "your program");
+    return new MyApp;
+}
+static wxAppInitializer wxTheAppInitializer((wxAppInitializerFunction)wxCreateApp);
+
+extern "C" int __stdcall WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, wxCmdLineArgType lpCmdLine, int nCmdShow) {
+    ; ; 
+    wxApp::SetInitializerFunction((wxAppInitializerFunction)wxCreateApp);
+    auto p = wxApp::GetInitializerFunction();
+    return wxEntry(hInstance, hPrevInstance, lpCmdLine, nCmdShow);
+} 
+
+MyApp& wxGetApp() {
+    return *static_cast<MyApp*>(wxApp::GetInstance());
+} 
+
+#endif
 
 class MyFrame : public wxFrame
 {
