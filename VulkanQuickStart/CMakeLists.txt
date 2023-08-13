@@ -11,27 +11,6 @@ set (CMAKE_RUNTIME_OUTPUT_DIRECTORY "${PROJECT_SOURCE_DIR}/${CMAKE_BUILD_TYPE}")
 find_package(wxWidgets)
 include(${wxWidgets_USE_FILE})
 
-message(STATUS "wxWidgets_FOUND: ${wxWidgets_FOUND}")
-message(STATUS "wxWidgets_VERSION: ${wxWidgets_VERSION}")
-message(STATUS "wxWidgets_VERSION_MAJOR: ${wxWidgets_VERSION_MAJOR}")
-message(STATUS "wxWidgets_ROOT_DIR: ${wxWidgets_ROOT_DIR}")
-message(STATUS "wxWidgets_DIR: ${wxWidgets_DIR}")
-message(STATUS "wxWidgets_USE_FILE: ${wxWidgets_USE_FILE}")
-message(STATUS "wxWidgets_INCLUDE_DIRS: ${wxWidgets_INCLUDE_DIRS}")
-message(STATUS "WX_INCLUDE_CONFIG_PATH: ${WX_INCLUDE_CONFIG_PATH}")
-message(STATUS "wxWidgets_LIBRARY_DIRS: ${wxWidgets_LIBRARY_DIRS}")
-message(STATUS "wxWidgets_LIBRARIES: ${wxWidgets_LIBRARIES}")
-
-set(wxWidgets_INCLUDE_DIR "${wxWidgets_DIR}/../include/")
-
-if ("${CMAKE_BUILD_TYPE}" STREQUAL "Release")
-    set(DLL_NAME "wxmsw32u_core_vc14x_x64.dll")
-    set(WX_INCLUDE_CONFIG_PATH "${wxWidgets_DIR}/vc_x64_dll/mswu/")
-else()
-    set(DLL_NAME "wxmsw32ud_core_vc14x_x64.dll")
-    set(WX_INCLUDE_CONFIG_PATH "${wxWidgets_DIR}/vc_x64_dll/mswud/")
-endif()
-
 if (UNIX)
     
     include_directories(
@@ -48,6 +27,14 @@ if (UNIX)
     set(WX_LIB_DIR "")
     set(WX_LIB_NAME "wx_gtk3u-3.2")
 else(UNIX)
+    if ("${CMAKE_BUILD_TYPE}" STREQUAL "Release")
+        set(WX_INCLUDE_CONFIG_PATH "${wxWidgets_DIR}/vc_x64_lib/mswu/")
+        set(WX_LIB_NAMES "comctl32.lib Rpcrt4.lib wxmsw32u.lib wxpng.lib wxregexu.lib wxzlib.lib")
+    else()
+        set(WX_INCLUDE_CONFIG_PATH "${wxWidgets_DIR}/vc_x64_lib/mswud/")
+        set(WX_LIB_NAMES "comctl32.lib Rpcrt4.lib wxmsw32ud.lib wxpngd.lib wxregexud.lib wxzlibd.lib")
+    endif()
+
     include_directories(
 	    "../../VulkanQuickStartLib/include/"
         "${wxWidgets_INCLUDE_DIRS}"
@@ -64,8 +51,8 @@ set(CONFIG "x64-${CMAKE_BUILD_TYPE}")
 link_directories (
     "../../VulkanQuickStartLib/${CMAKE_BUILD_TYPE}"
     "../../triMesh/${CMAKE_BUILD_TYPE}"
+    ${wxWidgets_ROOT_DIR}/lib/vc_x64_lib/
 )
-
 
 add_executable (VulkanQuickStart
     WIN32
@@ -77,7 +64,7 @@ target_compile_definitions(VulkanQuickStart PRIVATE WIN32)
 target_link_libraries(VulkanQuickStart 
 	PUBLIC VulkanQuickStartLib
 	stlReader
-    ${wxWidgets_LIBRARIES}
+    ${WX_LIB_NAMES}
 )
 
 target_compile_features(VulkanQuickStart PRIVATE cxx_std_17)
