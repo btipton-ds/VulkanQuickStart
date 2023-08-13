@@ -8,25 +8,44 @@ project(VulkanQuickStart)
 set (CMAKE_LIBRARY_OUTPUT_DIRECTORY "${PROJECT_SOURCE_DIR}/${CMAKE_BUILD_TYPE}")
 set (CMAKE_RUNTIME_OUTPUT_DIRECTORY "${PROJECT_SOURCE_DIR}/${CMAKE_BUILD_TYPE}")
 
-find_package(wxWidgets)
-include(${wxWidgets_USE_FILE})
-
 if (UNIX)
     
+    find_package(wxWidgets COMPONENTS net gl core base)
     include_directories(
-	    "../../VulkanQuickStartLib/include"
+        "../../VulkanQuickStartLib/include"
     )
     
-	execute_process(COMMAND wx-config --cxxflags OUTPUT_VARIABLE WX_FLAGS OUTPUT_STRIP_TRAILING_WHITESPACE)
-	execute_process(COMMAND wx-config --libs OUTPUT_VARIABLE WX_LIB_FLAGS OUTPUT_STRIP_TRAILING_WHITESPACE)
-    
-	list(APPEND CMAKE_CXX_FLAGS "${WX_FLAGS} -DWXUSINGDLL -fPIC ${WX_LIB_FLAGS}")
+    execute_process(COMMAND wx-config --cxxflags OUTPUT_VARIABLE WX_FLAGS OUTPUT_STRIP_TRAILING_WHITESPACE)
+    execute_process(COMMAND wx-config --libs OUTPUT_VARIABLE WX_LIB_FLAGS OUTPUT_STRIP_TRAILING_WHITESPACE)
+
+    list(APPEND CMAKE_CXX_FLAGS "${WX_FLAGS} -fPIC ${WX_LIB_FLAGS}")
     set(GLSL_VALIDATOR "glslangValidator")
     add_definitions(-DGLFW_EXPOSE_NATIVE_X11 -D_GCC)
     set(GLFW_LIB_DIR "../../../ThirdParty/glfw/src")
-    set(WX_LIB_DIR "")
-    set(WX_LIB_NAME "wx_gtk3u-3.2")
+    set(WX_LIB_NAMES "wx_gtk3u-3.2.so")
+
+    link_directories (
+        "../../VulkanQuickStartLib/${CMAKE_BUILD_TYPE}"
+        "../../triMesh/${CMAKE_BUILD_TYPE}"
+        ${wxWidgets_ROOT_DIR}/lib/vc_x64_lib/
+    )
+
+    add_executable (VulkanQuickStart
+        WIN32
+	"src/VulkanQuickStart.cxx" 
+    )
+
+    target_link_libraries(VulkanQuickStart 
+	PUBLIC VulkanQuickStartLib
+        stlReader
+        ${WX_LIB_NAMES}
+    )
+
+    target_compile_features(VulkanQuickStart PRIVATE cxx_std_17)
 else(UNIX)
+    find_package(wxWidgets)
+    include(${wxWidgets_USE_FILE})
+
     if ("${CMAKE_BUILD_TYPE}" STREQUAL "Release")
         set(WX_INCLUDE_CONFIG_PATH "${wxWidgets_DIR}/vc_x64_lib/mswu/")
         set(WX_LIB_NAMES "comctl32.lib Rpcrt4.lib wxmsw32u.lib wxpng.lib wxregexu.lib wxzlib.lib")
@@ -36,38 +55,15 @@ else(UNIX)
     endif()
 
     include_directories(
-	    "../../VulkanQuickStartLib/include/"
+	"../../VulkanQuickStartLib/include/"
         "${wxWidgets_INCLUDE_DIRS}"
     )
-
 
     set(GLSL_VALIDATOR "C:/VulkanSDK/1.3.250.1/Bin/glslangValidator.exe")
     add_definitions(-DGLFW_EXPOSE_NATIVE_WIN32)
     set(GLFW_LIB_DIR "../../../ThirdParty/glfw-3.3.2/lib-vc2019")
 endif(UNIX)
 
-set(CONFIG "x64-${CMAKE_BUILD_TYPE}")
-
-link_directories (
-    "../../VulkanQuickStartLib/${CMAKE_BUILD_TYPE}"
-    "../../triMesh/${CMAKE_BUILD_TYPE}"
-    ${wxWidgets_ROOT_DIR}/lib/vc_x64_lib/
-)
-
-add_executable (VulkanQuickStart
-    WIN32
-	"src/VulkanQuickStart.cxx" 
-)
-
-target_compile_definitions(VulkanQuickStart PRIVATE WIN32)
-
-target_link_libraries(VulkanQuickStart 
-	PUBLIC VulkanQuickStartLib
-	stlReader
-    ${WX_LIB_NAMES}
-)
-
-target_compile_features(VulkanQuickStart PRIVATE cxx_std_17 ${wxWidgets_CXX_FLAGS})
 
 file(GLOB_RECURSE GLSL_SOURCE_FILES
     "../shaders/*.frag"
