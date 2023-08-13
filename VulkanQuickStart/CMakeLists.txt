@@ -8,6 +8,10 @@ project(VulkanQuickStart)
 set (CMAKE_LIBRARY_OUTPUT_DIRECTORY "${PROJECT_SOURCE_DIR}/${CMAKE_BUILD_TYPE}")
 set (CMAKE_RUNTIME_OUTPUT_DIRECTORY "${PROJECT_SOURCE_DIR}/${CMAKE_BUILD_TYPE}")
 
+set (SOURCE_FILES 
+    "src/VulkanQuickStart.cxx" 
+)
+
 if (UNIX)
     
     find_package(wxWidgets COMPONENTS net gl core base)
@@ -31,8 +35,7 @@ if (UNIX)
     )
 
     add_executable (VulkanQuickStart
-        WIN32
-	"src/VulkanQuickStart.cxx" 
+        ${SOURCE_FILES}
     )
 
     target_link_libraries(VulkanQuickStart 
@@ -62,6 +65,25 @@ else(UNIX)
     set(GLSL_VALIDATOR "C:/VulkanSDK/1.3.250.1/Bin/glslangValidator.exe")
     add_definitions(-DGLFW_EXPOSE_NATIVE_WIN32)
     set(GLFW_LIB_DIR "../../../ThirdParty/glfw-3.3.2/lib-vc2019")
+
+    link_directories (
+        "../../VulkanQuickStartLib/${CMAKE_BUILD_TYPE}"
+        "../../triMesh/${CMAKE_BUILD_TYPE}"
+        ${wxWidgets_ROOT_DIR}/lib/vc_x64_lib/
+    )
+
+    add_executable (VulkanQuickStart
+        WIN32
+        ${SOURCE_FILES}
+    )
+
+    target_link_libraries(VulkanQuickStart 
+	PUBLIC VulkanQuickStartLib
+        stlReader
+        ${WX_LIB_NAMES}
+    )
+
+    target_compile_features(VulkanQuickStart PRIVATE cxx_std_17)
 endif(UNIX)
 
 
