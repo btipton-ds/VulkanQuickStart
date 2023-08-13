@@ -30,8 +30,9 @@ This file is part of the VulkanQuickStart Project.
 // Vulkan 01.cpp : This file contains the 'main' function. Program execution begins and ends there.
 //
 
-#include <vk_main.h>
+#include <vk_app.h>
 #include <vector>
+
 // Start of wxWidgets "Hello World" Program
 
 #ifdef WIN32
@@ -43,11 +44,19 @@ This file is part of the VulkanQuickStart Project.
 #include <wx/wx.h>
 #endif // WIN32
 
+#if 0
+// Old Vulkan main
+int main(int numArgs, char** args) {
+    return VK::mainRunTest(numArgs, args);
+}
+#endif
 
 class MyApp : public wxApp
 {
 public:
     bool OnInit() override;
+private:
+    VK::VulkanAppPtr m_vkApp;
 };
 
 wxIMPLEMENT_APP(MyApp);
@@ -56,6 +65,9 @@ class MyFrame : public wxFrame
 {
 public:
     MyFrame();
+
+    void addMenus();
+    void addStatusBar();
 
 private:
     void OnHello(wxCommandEvent& event);
@@ -72,33 +84,47 @@ bool MyApp::OnInit()
 {
     MyFrame *frame = new MyFrame();
     frame->Show(true);
+    wxRect rect = frame->GetRect();
+    VkRect2D vkRect;
+    vkRect.extent.height = rect.height;
+    vkRect.extent.width = rect.width;
+    m_vkApp = VK::VulkanApp::create(vkRect);
     return true;
 }
 
 MyFrame::MyFrame()
-    : wxFrame(nullptr, wxID_ANY, "Hello World")
+    : wxFrame(nullptr, wxID_ANY, "Vulkan Quick Start")
 {
-    wxMenu *menuFile = new wxMenu;
+    addMenus();
+    addStatusBar();
+}
+
+void MyFrame::addMenus()
+{
+    wxMenu* menuFile = new wxMenu;
     menuFile->Append(ID_Hello, "&Hello...\tCtrl-H",
-                     "Help string shown in status bar for this menu item");
+        "Help string shown in status bar for this menu item");
     menuFile->AppendSeparator();
     menuFile->Append(wxID_EXIT);
 
-    wxMenu *menuHelp = new wxMenu;
+    wxMenu* menuHelp = new wxMenu;
     menuHelp->Append(wxID_ABOUT);
 
-    wxMenuBar *menuBar = new wxMenuBar;
+    wxMenuBar* menuBar = new wxMenuBar;
     menuBar->Append(menuFile, "&File");
     menuBar->Append(menuHelp, "&Help");
 
-    SetMenuBar( menuBar );
-
-    CreateStatusBar();
-    SetStatusText("Welcome to wxWidgets!");
+    SetMenuBar(menuBar);
 
     Bind(wxEVT_MENU, &MyFrame::OnHello, this, ID_Hello);
     Bind(wxEVT_MENU, &MyFrame::OnAbout, this, wxID_ABOUT);
     Bind(wxEVT_MENU, &MyFrame::OnExit, this, wxID_EXIT);
+}
+
+void MyFrame::addStatusBar()
+{
+    CreateStatusBar();
+    SetStatusText("Welcome to VulkanQuickStart!");
 }
 
 void MyFrame::OnExit(wxCommandEvent& event)

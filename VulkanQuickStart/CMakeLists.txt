@@ -58,7 +58,11 @@ else(UNIX)
     endif()
 
     include_directories(
-	"../../VulkanQuickStartLib/include/"
+        "../../ThirdParty/eigen"
+        "../../triMesh/triMesh/include"
+        "../../ThirdParty/glfw/include"
+        "C:/VulkanSDK/1.3.250.1/Include/"
+	    "../../VulkanQuickStartLib/include/"
         "${wxWidgets_INCLUDE_DIRS}"
     )
 
@@ -84,6 +88,23 @@ else(UNIX)
     )
 
     target_compile_features(VulkanQuickStart PRIVATE cxx_std_17)
+
+    set(SOURCE_LIB "${PROJECT_SOURCE_DIR}/../../VulkanQuickStartLib/${CMAKE_BUILD_TYPE}/VulkanQuickStartLib")
+    set(DEST_LIB "${PROJECT_SOURCE_DIR}/${CMAKE_BUILD_TYPE}/VulkanQuickStartLib")
+    if ("${CMAKE_BUILD_TYPE}" STREQUAL "Release")
+        add_custom_command(TARGET VulkanQuickStart POST_BUILD
+            COMMAND "${CMAKE_COMMAND}" -E copy "${SOURCE_LIB}.dll" "${DEST_LIB}.dll"
+            COMMAND "${CMAKE_COMMAND}" -E copy "${SOURCE_LIB}.lib" "${DEST_LIB}.lib"
+            COMMAND "${CMAKE_COMMAND}" -E copy "${SOURCE_LIB}.exp" "${DEST_LIB}.exp"
+        )
+    else() 
+        add_custom_command(TARGET VulkanQuickStart POST_BUILD
+            COMMAND "${CMAKE_COMMAND}" -E copy "${SOURCE_LIB}.dll" "${DEST_LIB}.dll"
+            COMMAND "${CMAKE_COMMAND}" -E copy "${SOURCE_LIB}.lib" "${DEST_LIB}.lib"
+            COMMAND "${CMAKE_COMMAND}" -E copy "${SOURCE_LIB}.exp" "${DEST_LIB}.exp"
+            COMMAND "${CMAKE_COMMAND}" -E copy "${SOURCE_LIB}.pdb" "${DEST_LIB}.pdb"
+        )
+    endif()
 endif(UNIX)
 
 
