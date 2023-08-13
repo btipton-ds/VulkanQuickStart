@@ -67,7 +67,7 @@ target_link_libraries(VulkanQuickStart
     ${WX_LIB_NAMES}
 )
 
-target_compile_features(VulkanQuickStart PRIVATE cxx_std_17)
+target_compile_features(VulkanQuickStart PRIVATE cxx_std_17 ${wxWidgets_CXX_FLAGS})
 
 file(GLOB_RECURSE GLSL_SOURCE_FILES
     "../shaders/*.frag"
