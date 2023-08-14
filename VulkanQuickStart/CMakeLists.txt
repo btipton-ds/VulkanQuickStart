@@ -60,6 +60,7 @@ else(UNIX)
     include_directories(
         "../../ThirdParty/eigen"
         "../../triMesh/triMesh/include"
+        "../../triMesh/stlReader/include"
         "../../ThirdParty/glfw/include"
         "C:/VulkanSDK/1.3.250.1/Include/"
 	    "../../VulkanQuickStartLib/include/"
