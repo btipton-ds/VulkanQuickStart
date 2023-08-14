@@ -85,10 +85,12 @@ bool MyApp::OnInit()
     MyFrame *frame = new MyFrame();
     frame->Show(true);
     wxRect rect = frame->GetRect();
+    auto pWindow = GetMainTopWindow();
+    WXHWND hWind = pWindow->GetHWND();
     VkRect2D vkRect;
     vkRect.extent.height = rect.height;
     vkRect.extent.width = rect.width;
-    m_vkApp = VK::VulkanApp::create(vkRect);
+    m_vkApp = VK::VulkanApp::create(vkRect, hWind);
     return true;
 }
 

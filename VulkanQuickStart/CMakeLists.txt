@@ -70,20 +70,20 @@ else(UNIX)
     add_definitions(-DGLFW_EXPOSE_NATIVE_WIN32)
     set(GLFW_LIB_DIR "../../../ThirdParty/glfw-3.3.2/lib-vc2019")
 
-    link_directories (
-        "../../VulkanQuickStartLib/${CMAKE_BUILD_TYPE}"
-        "../../triMesh/${CMAKE_BUILD_TYPE}"
-        ${wxWidgets_ROOT_DIR}/lib/vc_x64_lib/
-    )
-
     add_executable (VulkanQuickStart
         WIN32
         ${SOURCE_FILES}
     )
+    target_link_directories(VulkanQuickStart 
+        PRIVATE ${wxWidgets_ROOT_DIR}/lib/vc_x64_lib/
+        PRIVATE "../../triMesh/${CMAKE_BUILD_TYPE}/"
+        PRIVATE "../../VulkanQuickStartLib/${CMAKE_BUILD_TYPE}/"
+    )
 
-    target_link_libraries(VulkanQuickStart 
-	PUBLIC VulkanQuickStartLib
+    target_link_libraries(VulkanQuickStart PRIVATE 
+        triMesh 
         stlReader
+	    VulkanQuickStartLib
         ${WX_LIB_NAMES}
     )
 
