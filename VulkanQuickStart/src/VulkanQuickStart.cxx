@@ -61,29 +61,12 @@ class MyApp : public wxApp
 {
 public:
     bool OnInit() override;
-    virtual bool Initialize(int& argc, wxChar** argv) wxOVERRIDE;
 private:
     VK::VulkanAppPtr m_vkApp;
-    string m_shaderDir;
 };
-#if 0
+#if 1
 wxIMPLEMENT_APP(MyApp);
 #else
-extern "C" int __stdcall WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, wxCmdLineArgType lpCmdLine, int nCmdShow) {
-    ; ; 
-    return wxEntry(hInstance, hPrevInstance, lpCmdLine, nCmdShow);
-} 
-
-MyApp& wxGetApp() {
-    return *static_cast<MyApp*>(wxApp::GetInstance());
-} 
-
-wxAppConsole* wxCreateApp() {
-    wxAppConsole::CheckBuildOptions("3" "." "2" " (" "wchar_t" ",Visual C++ " "1900" ",wx containers"  ",compatible with 3.0" ")", "your program"); 
-    return new MyApp;
-} 
-
-wxAppInitializer wxTheAppInitializer((wxAppInitializerFunction)wxCreateApp);
 #endif
 
 class MyFrame : public wxFrame
@@ -113,47 +96,19 @@ bool MyApp::OnInit()
     frame->Show(true);
     wxRect rect = frame->GetRect();
     auto pWindow = GetMainTopWindow();
-    WXHWND hWind = pWindow->GetHWND();
+    WXHWND hWnd = pWindow->GetHWND();
+
+//    auto foreHwnd = GetForegroundWindow(); // This verifies that hWnd is identical to the windows hWnd. It is.
+//    auto actHwnd = GetActiveWindow();
+
     VkRect2D vkRect;
     vkRect.extent.height = rect.height;
     vkRect.extent.width = rect.width;
 
-    m_vkApp = VK::VulkanApp::create(vkRect);
-    m_vkApp->setShaderDir(m_shaderDir);
+    m_vkApp = VK::VulkanApp::create<VulkanApp>(vkRect, hWnd);
 
     VK::runWindow(m_vkApp);
     
-    return true;
-}
-
-bool MyApp::Initialize(int& argc, wxChar** argv)
-{
-    wxApp::Initialize(argc, argv);
-
-    wstring cmdStr(argv[0]);
-    auto pos = cmdStr.find(L"\\");
-    while (pos != wstring::npos) {
-        cmdStr.replace(pos, 1, L"/");
-        pos = cmdStr.find(L"\\");
-    }
-    pos = cmdStr.rfind(L"/");
-    cmdStr = cmdStr.substr(0, pos);
-    bool dirFound = wxDirExists(cmdStr + L"/shaders_spv");
-    while (!dirFound && cmdStr.find(L"/") != 0) {
-        pos = cmdStr.rfind(L"/");
-        cmdStr = cmdStr.substr(0, pos);
-        dirFound = wxDirExists(cmdStr + L"/shaders_spv");
-    }
-
-    if (dirFound) {
-        setlocale(LC_CTYPE, "");
-
-        string s;
-        for (auto c : cmdStr) {
-            s += char(c);
-        }
-        m_shaderDir += s + "/shaders_spv";
-    }
     return true;
 }
 
